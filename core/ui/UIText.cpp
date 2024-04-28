@@ -158,6 +158,8 @@ void Text::setFontName(std::string_view name)
         config.fontSize     = _fontSize;
         _labelRenderer->setTTFConfig(config);
         _type = Type::TTF;
+        _type = Type::SYSTEM;
+        _labelRenderer->setSystemFontName(name);
     }
     else
     {

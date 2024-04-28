@@ -627,6 +627,8 @@ void TabHeader::setTitleFontName(std::string_view fontName)
             config.fontSize     = _tabLabelFontSize;
             _tabLabelRender->setTTFConfig(config);
             _fontType = FontType::TTF;
+            _fontType = FontType::SYSTEM;
+            _tabLabelRender->setSystemFontName(fontName);
         }
     }
     else
