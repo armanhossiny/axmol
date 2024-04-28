@@ -1,31 +1,35 @@
 /******************************************************************************
  * Spine Runtimes License Agreement
- * Last updated July 28, 2023. Replaces all prior versions.
+ * Last updated May 1, 2019. Replaces all prior versions.
  *
- * Copyright (c) 2013-2023, Esoteric Software LLC
+ * Copyright (c) 2013-2019, Esoteric Software LLC
  *
  * Integration of the Spine Runtimes into software or otherwise creating
  * derivative works of the Spine Runtimes is permitted under the terms and
  * conditions of Section 2 of the Spine Editor License Agreement:
  * http://esotericsoftware.com/spine-editor-license
  *
- * Otherwise, it is permitted to integrate the Spine Runtimes into software or
- * otherwise create derivative works of the Spine Runtimes (collectively,
+ * Otherwise, it is permitted to integrate the Spine Runtimes into software
+ * or otherwise create derivative works of the Spine Runtimes (collectively,
  * "Products"), provided that each user of the Products must obtain their own
  * Spine Editor license and redistribution of the Products in any form must
  * include this license and copyright notice.
  *
- * THE SPINE RUNTIMES ARE PROVIDED BY ESOTERIC SOFTWARE LLC "AS IS" AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL ESOTERIC SOFTWARE LLC BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES,
- * BUSINESS INTERRUPTION, OR LOSS OF USE, DATA, OR PROFITS) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THE
- * SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * THIS SOFTWARE IS PROVIDED BY ESOTERIC SOFTWARE LLC "AS IS" AND ANY EXPRESS
+ * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
+ * NO EVENT SHALL ESOTERIC SOFTWARE LLC BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES, BUSINESS
+ * INTERRUPTION, OR LOSS OF USE, DATA, OR PROFITS) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+ * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
+
+#ifdef SPINE_UE4
+#include "SpinePluginPrivatePCH.h"
+#endif
 
 #include <spine/VertexAttachment.h>
 
@@ -38,8 +42,7 @@ using namespace spine;
 
 RTTI_IMPL(VertexAttachment, Attachment)
 
-VertexAttachment::VertexAttachment(const String &name) : Attachment(name), _worldVerticesLength(0),
-														 _timelineAttachment(this), _id(getNextID()) {
+VertexAttachment::VertexAttachment(const String &name) : Attachment(name), _worldVerticesLength(0), _id(getNextID()) {
 }
 
 VertexAttachment::~VertexAttachment() {
@@ -53,20 +56,22 @@ void VertexAttachment::computeWorldVertices(Slot &slot, float *worldVertices) {
 	computeWorldVertices(slot, 0, _worldVerticesLength, worldVertices, 0);
 }
 
-void VertexAttachment::computeWorldVertices(Slot &slot, size_t start, size_t count, Vector<float> &worldVertices,
-											size_t offset, size_t stride) {
+void VertexAttachment::computeWorldVertices(Slot &slot, size_t start, size_t count, Vector<float> &worldVertices, size_t offset,
+											size_t stride) {
 	computeWorldVertices(slot, start, count, worldVertices.buffer(), offset, stride);
 }
 
 void VertexAttachment::computeWorldVertices(Slot &slot, size_t start, size_t count, float *worldVertices, size_t offset,
-											size_t stride) {
+	size_t stride) {
 	count = offset + (count >> 1) * stride;
 	Skeleton &skeleton = slot._bone._skeleton;
-	Vector<float> *deformArray = &slot.getDeform();
+	Vector<float> *deformArray = &slot.getAttachmentVertices();
 	Vector<float> *vertices = &_vertices;
-	Vector<int> &bones = _bones;
+	Vector<size_t> &bones = _bones;
 	if (bones.size() == 0) {
-		if (deformArray->size() > 0) vertices = deformArray;
+		if (deformArray->size() > 0) {
+			vertices = deformArray;
+		}
 
 		Bone &bone = slot._bone;
 		float x = bone._worldX;
@@ -83,7 +88,7 @@ void VertexAttachment::computeWorldVertices(Slot &slot, size_t start, size_t cou
 
 	int v = 0, skip = 0;
 	for (size_t i = 0; i < start; i += 2) {
-		int n = (int) bones[v];
+		int n = bones[v];
 		v += n + 1;
 		skip += n;
 	}
@@ -92,7 +97,7 @@ void VertexAttachment::computeWorldVertices(Slot &slot, size_t start, size_t cou
 	if (deformArray->size() == 0) {
 		for (size_t w = offset, b = skip * 3; w < count; w += stride) {
 			float wx = 0, wy = 0;
-			int n = (int) bones[v++];
+			int n = bones[v++];
 			n += v;
 			for (; v < n; v++, b += 3) {
 				Bone *boneP = skeletonBones[bones[v]];
@@ -109,7 +114,7 @@ void VertexAttachment::computeWorldVertices(Slot &slot, size_t start, size_t cou
 	} else {
 		for (size_t w = offset, b = skip * 3, f = skip << 1; w < count; w += stride) {
 			float wx = 0, wy = 0;
-			int n = (int) bones[v++];
+			int n = bones[v++];
 			n += v;
 			for (; v < n; v++, b += 3, f += 2) {
 				Bone *boneP = skeletonBones[bones[v]];
@@ -126,11 +131,15 @@ void VertexAttachment::computeWorldVertices(Slot &slot, size_t start, size_t cou
 	}
 }
 
+bool VertexAttachment::applyDeform(VertexAttachment *sourceAttachment) {
+	return this == sourceAttachment;
+}
+
 int VertexAttachment::getId() {
 	return _id;
 }
 
-Vector<int> &VertexAttachment::getBones() {
+Vector<size_t> &VertexAttachment::getBones() {
 	return _bones;
 }
 
@@ -146,22 +155,8 @@ void VertexAttachment::setWorldVerticesLength(size_t inValue) {
 	_worldVerticesLength = inValue;
 }
 
-Attachment *VertexAttachment::getTimelineAttachment() {
-	return _timelineAttachment;
-}
-
-void VertexAttachment::setTimelineAttachment(Attachment *attachment) {
-	_timelineAttachment = attachment;
-}
-
 int VertexAttachment::getNextID() {
 	static int nextID = 0;
-	return nextID++;
-}
 
-void VertexAttachment::copyTo(VertexAttachment *other) {
-	other->_bones.clearAndAddAll(this->_bones);
-	other->_vertices.clearAndAddAll(this->_vertices);
-	other->_worldVerticesLength = this->_worldVerticesLength;
-	other->_timelineAttachment = this->_timelineAttachment;
+	return (nextID++ & 65535) << 11;
 }

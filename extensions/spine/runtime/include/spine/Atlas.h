@@ -1,30 +1,30 @@
 /******************************************************************************
  * Spine Runtimes License Agreement
- * Last updated July 28, 2023. Replaces all prior versions.
+ * Last updated May 1, 2019. Replaces all prior versions.
  *
- * Copyright (c) 2013-2023, Esoteric Software LLC
+ * Copyright (c) 2013-2019, Esoteric Software LLC
  *
  * Integration of the Spine Runtimes into software or otherwise creating
  * derivative works of the Spine Runtimes is permitted under the terms and
  * conditions of Section 2 of the Spine Editor License Agreement:
  * http://esotericsoftware.com/spine-editor-license
  *
- * Otherwise, it is permitted to integrate the Spine Runtimes into software or
- * otherwise create derivative works of the Spine Runtimes (collectively,
+ * Otherwise, it is permitted to integrate the Spine Runtimes into software
+ * or otherwise create derivative works of the Spine Runtimes (collectively,
  * "Products"), provided that each user of the Products must obtain their own
  * Spine Editor license and redistribution of the Products in any form must
  * include this license and copyright notice.
  *
- * THE SPINE RUNTIMES ARE PROVIDED BY ESOTERIC SOFTWARE LLC "AS IS" AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL ESOTERIC SOFTWARE LLC BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES,
- * BUSINESS INTERRUPTION, OR LOSS OF USE, DATA, OR PROFITS) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THE
- * SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * THIS SOFTWARE IS PROVIDED BY ESOTERIC SOFTWARE LLC "AS IS" AND ANY EXPRESS
+ * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
+ * NO EVENT SHALL ESOTERIC SOFTWARE LLC BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES, BUSINESS
+ * INTERRUPTION, OR LOSS OF USE, DATA, OR PROFITS) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+ * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
 
 #ifndef Spine_Atlas_h
@@ -35,105 +35,123 @@
 #include <spine/SpineObject.h>
 #include <spine/SpineString.h>
 #include <spine/HasRendererObject.h>
-#include "TextureRegion.h"
 
 namespace spine {
-	enum Format {
-		Format_Alpha,
-		Format_Intensity,
-		Format_LuminanceAlpha,
-		Format_RGB565,
-		Format_RGBA4444,
-		Format_RGB888,
-		Format_RGBA8888
-	};
+enum Format {
+	Format_Alpha,
+	Format_Intensity,
+	Format_LuminanceAlpha,
+	Format_RGB565,
+	Format_RGBA4444,
+	Format_RGB888,
+	Format_RGBA8888
+};
 
-	// Our TextureFilter collides with UE4's TextureFilter in unity builds. We rename
-	// TextureFilter to SpineTextureFilter in UE4.
-#ifdef SPINE_UE4
-	#define TEXTURE_FILTER_ENUM SpineTextureFilter
-#else
-	#define TEXTURE_FILTER_ENUM TextureFilter
-#endif
+enum TextureFilter {
+	TextureFilter_Unknown,
+	TextureFilter_Nearest,
+	TextureFilter_Linear,
+	TextureFilter_MipMap,
+	TextureFilter_MipMapNearestNearest,
+	TextureFilter_MipMapLinearNearest,
+	TextureFilter_MipMapNearestLinear,
+	TextureFilter_MipMapLinearLinear
+};
 
-	enum TEXTURE_FILTER_ENUM {
-		TextureFilter_Unknown,
-		TextureFilter_Nearest,
-		TextureFilter_Linear,
-		TextureFilter_MipMap,
-		TextureFilter_MipMapNearestNearest,
-		TextureFilter_MipMapLinearNearest,
-		TextureFilter_MipMapNearestLinear,
-		TextureFilter_MipMapLinearLinear
-	};
+enum TextureWrap {
+	TextureWrap_MirroredRepeat,
+	TextureWrap_ClampToEdge,
+	TextureWrap_Repeat
+};
 
-	enum TextureWrap {
-		TextureWrap_MirroredRepeat,
-		TextureWrap_ClampToEdge,
-		TextureWrap_Repeat
-	};
+class SP_API AtlasPage : public SpineObject, public HasRendererObject {
+public:
+	String name;
+	Format format;
+	TextureFilter minFilter;
+	TextureFilter magFilter;
+	TextureWrap uWrap;
+	TextureWrap vWrap;
+	int width, height;
 
-	class SP_API AtlasPage : public SpineObject {
+	explicit AtlasPage(const String &inName) : name(inName), format(Format_RGBA8888), minFilter(TextureFilter_Nearest),
+											   magFilter(TextureFilter_Nearest), uWrap(TextureWrap_ClampToEdge),
+											   vWrap(TextureWrap_ClampToEdge) {
+	}
+
+	virtual ~AtlasPage() { }
+};
+
+class SP_API AtlasRegion : public SpineObject {
+public:
+	AtlasPage *page;
+	String name;
+	int x, y, width, height;
+	float u, v, u2, v2;
+	float offsetX, offsetY;
+	int originalWidth, originalHeight;
+	int index;
+	bool rotate;
+	Vector<int> splits;
+	Vector<int> pads;
+};
+
+class TextureLoader;
+
+class SP_API Atlas : public SpineObject {
+public:
+	Atlas(const String &path, TextureLoader *textureLoader);
+
+	Atlas(const char *data, int length, const char *dir, TextureLoader *textureLoader);
+
+	~Atlas();
+
+	void flipV();
+
+	/// Returns the first region found with the specified name. This method uses String comparison to find the region, so the result
+	/// should be cached rather than calling this method multiple times.
+	/// @return The region, or NULL.
+	AtlasRegion *findRegion(const String &name);
+
+	Vector<AtlasPage*> &getPages();
+
+private:
+	Vector<AtlasPage *> _pages;
+	Vector<AtlasRegion *> _regions;
+	TextureLoader *_textureLoader;
+
+	void load(const char *begin, int length, const char *dir);
+
+	class Str {
 	public:
-		String name;
-		String texturePath;
-		Format format;
-		TEXTURE_FILTER_ENUM minFilter;
-		TEXTURE_FILTER_ENUM magFilter;
-		TextureWrap uWrap;
-		TextureWrap vWrap;
-		int width, height;
-		bool pma;
-        int index;
-        void *texture;
-
-		explicit AtlasPage(const String &inName) : name(inName), format(Format_RGBA8888),
-												   minFilter(TextureFilter_Nearest),
-												   magFilter(TextureFilter_Nearest), uWrap(TextureWrap_ClampToEdge),
-												   vWrap(TextureWrap_ClampToEdge), width(0), height(0), pma(false), index(0), texture(NULL) {
-		}
+		const char *begin;
+		const char *end;
 	};
 
-	class SP_API AtlasRegion : public TextureRegion {
-	public:
-		AtlasPage *page;
-		String name;
-		int index;
-		int x, y;
-		Vector<int> splits;
-		Vector<int> pads;
-		Vector <String> names;
-		Vector<float> values;
-	};
+	static void trim(Str *str);
 
-	class TextureLoader;
+	/// Tokenize string without modification. Returns 0 on failure
+	static int readLine(const char **begin, const char *end, Str *str);
 
-	class SP_API Atlas : public SpineObject {
-	public:
-		Atlas(const String &path, TextureLoader *textureLoader, bool createTexture = true);
+	/// Moves str->begin past the first occurence of c. Returns 0 on failure
+	static int beginPast(Str *str, char c);
 
-		Atlas(const char *data, int length, const char *dir, TextureLoader *textureLoader, bool createTexture = true);
+	/// Returns 0 on failure
+	static int readValue(const char **begin, const char *end, Str *str);
 
-		~Atlas();
+	/// Returns the number of tuple values read (1, 2, 4, or 0 for failure)
+	static int readTuple(const char **begin, const char *end, Str tuple[]);
 
-		void flipV();
+	static char *mallocString(Str *str);
 
-		/// Returns the first region found with the specified name. This method uses String comparison to find the region, so the result
-		/// should be cached rather than calling this method multiple times.
-		/// @return The region, or NULL.
-		AtlasRegion *findRegion(const String &name);
+	static int indexOf(const char **array, int count, Str *str);
 
-		Vector<AtlasPage *> &getPages();
+	static int equals(Str *str, const char *other);
 
-		Vector<AtlasRegion *> &getRegions();
+	static int toInt(Str *str);
 
-	private:
-		Vector<AtlasPage *> _pages;
-		Vector<AtlasRegion *> _regions;
-		TextureLoader *_textureLoader;
-
-		void load(const char *begin, int length, const char *dir, bool createTexture);
-	};
+	static Atlas *abortAtlas(Atlas *atlas);
+};
 }
 
 #endif /* Spine_Atlas_h */

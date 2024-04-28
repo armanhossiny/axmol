@@ -1,75 +1,79 @@
 /******************************************************************************
  * Spine Runtimes License Agreement
- * Last updated July 28, 2023. Replaces all prior versions.
+ * Last updated May 1, 2019. Replaces all prior versions.
  *
- * Copyright (c) 2013-2023, Esoteric Software LLC
+ * Copyright (c) 2013-2019, Esoteric Software LLC
  *
  * Integration of the Spine Runtimes into software or otherwise creating
  * derivative works of the Spine Runtimes is permitted under the terms and
  * conditions of Section 2 of the Spine Editor License Agreement:
  * http://esotericsoftware.com/spine-editor-license
  *
- * Otherwise, it is permitted to integrate the Spine Runtimes into software or
- * otherwise create derivative works of the Spine Runtimes (collectively,
+ * Otherwise, it is permitted to integrate the Spine Runtimes into software
+ * or otherwise create derivative works of the Spine Runtimes (collectively,
  * "Products"), provided that each user of the Products must obtain their own
  * Spine Editor license and redistribution of the Products in any form must
  * include this license and copyright notice.
  *
- * THE SPINE RUNTIMES ARE PROVIDED BY ESOTERIC SOFTWARE LLC "AS IS" AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL ESOTERIC SOFTWARE LLC BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES,
- * BUSINESS INTERRUPTION, OR LOSS OF USE, DATA, OR PROFITS) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THE
- * SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * THIS SOFTWARE IS PROVIDED BY ESOTERIC SOFTWARE LLC "AS IS" AND ANY EXPRESS
+ * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
+ * NO EVENT SHALL ESOTERIC SOFTWARE LLC BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES, BUSINESS
+ * INTERRUPTION, OR LOSS OF USE, DATA, OR PROFITS) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+ * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
+
+#ifdef SPINE_UE4
+#include "SpinePluginPrivatePCH.h"
+#endif
 
 #include <spine/Skeleton.h>
 
-#include <spine/Attachment.h>
+#include <spine/SkeletonData.h>
 #include <spine/Bone.h>
+#include <spine/Slot.h>
 #include <spine/IkConstraint.h>
 #include <spine/PathConstraint.h>
-#include <spine/SkeletonData.h>
-#include <spine/Skin.h>
-#include <spine/Slot.h>
 #include <spine/TransformConstraint.h>
+#include <spine/Skin.h>
+#include <spine/Attachment.h>
 
 #include <spine/BoneData.h>
+#include <spine/SlotData.h>
 #include <spine/IkConstraintData.h>
-#include <spine/MeshAttachment.h>
-#include <spine/PathAttachment.h>
+#include <spine/TransformConstraintData.h>
 #include <spine/PathConstraintData.h>
 #include <spine/RegionAttachment.h>
-#include <spine/SlotData.h>
-#include <spine/TransformConstraintData.h>
+#include <spine/MeshAttachment.h>
+#include <spine/PathAttachment.h>
 
 #include <spine/ContainerUtil.h>
 
-#include <float.h>
-
 using namespace spine;
 
-Skeleton::Skeleton(SkeletonData *skeletonData) : _data(skeletonData),
-												 _skin(NULL),
-												 _color(1, 1, 1, 1),
-												 _scaleX(1),
-												 _scaleY(1),
-												 _x(0),
-												 _y(0) {
+Skeleton::Skeleton(SkeletonData *skeletonData) :
+		_data(skeletonData),
+		_skin(NULL),
+		_color(1, 1, 1, 1),
+		_time(0),
+		_scaleX(1),
+		_scaleY(1),
+		_x(0),
+		_y(0) {
 	_bones.ensureCapacity(_data->getBones().size());
 	for (size_t i = 0; i < _data->getBones().size(); ++i) {
 		BoneData *data = _data->getBones()[i];
 
 		Bone *bone;
 		if (data->getParent() == NULL) {
-			bone = new (__FILE__, __LINE__) Bone(*data, *this, NULL);
+			bone = new(__FILE__, __LINE__) Bone(*data, *this, NULL);
 		} else {
 			Bone *parent = _bones[data->getParent()->getIndex()];
-			bone = new (__FILE__, __LINE__) Bone(*data, *this, parent);
+			bone = new(__FILE__, __LINE__) Bone(*data, *this, parent);
 			parent->getChildren().add(bone);
 		}
 
@@ -82,7 +86,7 @@ Skeleton::Skeleton(SkeletonData *skeletonData) : _data(skeletonData),
 		SlotData *data = _data->getSlots()[i];
 
 		Bone *bone = _bones[data->getBoneData().getIndex()];
-		Slot *slot = new (__FILE__, __LINE__) Slot(*data, *bone);
+		Slot *slot = new(__FILE__, __LINE__) Slot(*data, *bone);
 
 		_slots.add(slot);
 		_drawOrder.add(slot);
@@ -92,7 +96,7 @@ Skeleton::Skeleton(SkeletonData *skeletonData) : _data(skeletonData),
 	for (size_t i = 0; i < _data->getIkConstraints().size(); ++i) {
 		IkConstraintData *data = _data->getIkConstraints()[i];
 
-		IkConstraint *constraint = new (__FILE__, __LINE__) IkConstraint(*data, *this);
+		IkConstraint *constraint = new(__FILE__, __LINE__) IkConstraint(*data, *this);
 
 		_ikConstraints.add(constraint);
 	}
@@ -101,7 +105,7 @@ Skeleton::Skeleton(SkeletonData *skeletonData) : _data(skeletonData),
 	for (size_t i = 0; i < _data->getTransformConstraints().size(); ++i) {
 		TransformConstraintData *data = _data->getTransformConstraints()[i];
 
-		TransformConstraint *constraint = new (__FILE__, __LINE__) TransformConstraint(*data, *this);
+		TransformConstraint *constraint = new(__FILE__, __LINE__) TransformConstraint(*data, *this);
 
 		_transformConstraints.add(constraint);
 	}
@@ -110,7 +114,7 @@ Skeleton::Skeleton(SkeletonData *skeletonData) : _data(skeletonData),
 	for (size_t i = 0; i < _data->getPathConstraints().size(); ++i) {
 		PathConstraintData *data = _data->getPathConstraints()[i];
 
-		PathConstraint *constraint = new (__FILE__, __LINE__) PathConstraint(*data, *this);
+		PathConstraint *constraint = new(__FILE__, __LINE__) PathConstraint(*data, *this);
 
 		_pathConstraints.add(constraint);
 	}
@@ -128,23 +132,10 @@ Skeleton::~Skeleton() {
 
 void Skeleton::updateCache() {
 	_updateCache.clear();
+	_updateCacheReset.clear();
 
 	for (size_t i = 0, n = _bones.size(); i < n; ++i) {
-		Bone *bone = _bones[i];
-		bone->_sorted = bone->_data.isSkinRequired();
-		bone->_active = !bone->_sorted;
-	}
-
-	if (_skin) {
-		Vector<BoneData *> &skinBones = _skin->getBones();
-		for (size_t i = 0, n = skinBones.size(); i < n; i++) {
-			Bone *bone = _bones[skinBones[i]->getIndex()];
-			do {
-				bone->_sorted = false;
-				bone->_active = true;
-				bone = bone->_parent;
-			} while (bone);
-		}
+		_bones[i]->_sorted = false;
 	}
 
 	size_t ikCount = _ikConstraints.size();
@@ -154,7 +145,7 @@ void Skeleton::updateCache() {
 	size_t constraintCount = ikCount + transformCount + pathCount;
 
 	size_t i = 0;
-continue_outer:
+	continue_outer:
 	for (; i < constraintCount; ++i) {
 		for (size_t ii = 0; ii < ikCount; ++ii) {
 			IkConstraint *constraint = _ikConstraints[ii];
@@ -167,7 +158,7 @@ continue_outer:
 
 		for (size_t ii = 0; ii < transformCount; ++ii) {
 			TransformConstraint *constraint = _transformConstraints[ii];
-			if (constraint->getData().getOrder() == i) {
+			if (constraint->getData().getOrder() == (int)i) {
 				sortTransformConstraint(constraint);
 				i++;
 				goto continue_outer;
@@ -176,7 +167,7 @@ continue_outer:
 
 		for (size_t ii = 0; ii < pathCount; ++ii) {
 			PathConstraint *constraint = _pathConstraints[ii];
-			if (constraint->getData().getOrder() == i) {
+			if (constraint->getData().getOrder() == (int)i) {
 				sortPathConstraint(constraint);
 				i++;
 				goto continue_outer;
@@ -206,44 +197,21 @@ void Skeleton::printUpdateCache() {
 }
 
 void Skeleton::updateWorldTransform() {
-	for (size_t i = 0, n = _bones.size(); i < n; i++) {
-		Bone *bone = _bones[i];
-		bone->_ax = bone->_x;
-		bone->_ay = bone->_y;
-		bone->_arotation = bone->_rotation;
-		bone->_ascaleX = bone->_scaleX;
-		bone->_ascaleY = bone->_scaleY;
-		bone->_ashearX = bone->_shearX;
-		bone->_ashearY = bone->_shearY;
+	for (size_t i = 0, n = _updateCacheReset.size(); i < n; ++i) {
+		Bone *boneP = _updateCacheReset[i];
+		Bone &bone = *boneP;
+		bone._ax = bone._x;
+		bone._ay = bone._y;
+		bone._arotation = bone._rotation;
+		bone._ascaleX = bone._scaleX;
+		bone._ascaleY = bone._scaleY;
+		bone._ashearX = bone._shearX;
+		bone._ashearY = bone._shearY;
+		bone._appliedValid = true;
 	}
 
 	for (size_t i = 0, n = _updateCache.size(); i < n; ++i) {
 		_updateCache[i]->update();
-	}
-}
-
-void Skeleton::updateWorldTransform(Bone *parent) {
-	// Apply the parent bone transform to the root bone. The root bone always inherits scale, rotation and reflection.
-	Bone &rootBone = *getRootBone();
-	float pa = parent->_a, pb = parent->_b, pc = parent->_c, pd = parent->_d;
-	rootBone._worldX = pa * _x + pb * _y + parent->_worldX;
-	rootBone._worldY = pc * _x + pd * _y + parent->_worldY;
-
-	float rotationY = rootBone._rotation + 90 + rootBone._shearY;
-	float la = MathUtil::cosDeg(rootBone._rotation + rootBone._shearX) * rootBone._scaleX;
-	float lb = MathUtil::cosDeg(rotationY) * rootBone._scaleY;
-	float lc = MathUtil::sinDeg(rootBone._rotation + rootBone._shearX) * rootBone._scaleX;
-	float ld = MathUtil::sinDeg(rotationY) * rootBone._scaleY;
-	rootBone._a = (pa * la + pb * lc) * _scaleX;
-	rootBone._b = (pa * lb + pb * ld) * _scaleX;
-	rootBone._c = (pc * la + pd * lc) * _scaleY;
-	rootBone._d = (pc * lb + pd * ld) * _scaleY;
-
-	// Update everything except root bone.
-	Bone *rb = getRootBone();
-	for (size_t i = 0, n = _updateCache.size(); i < n; i++) {
-		Updatable *updatable = _updateCache[i];
-		if (updatable != rb) updatable->update();
 	}
 }
 
@@ -265,7 +233,6 @@ void Skeleton::setBonesToSetupPose() {
 		constraint._compress = constraint._data._compress;
 		constraint._stretch = constraint._data._stretch;
 		constraint._mix = constraint._data._mix;
-		constraint._softness = constraint._data._softness;
 	}
 
 	for (size_t i = 0, n = _transformConstraints.size(); i < n; ++i) {
@@ -273,12 +240,10 @@ void Skeleton::setBonesToSetupPose() {
 		TransformConstraint &constraint = *constraintP;
 		TransformConstraintData &constraintData = constraint._data;
 
-		constraint._mixRotate = constraintData._mixRotate;
-		constraint._mixX = constraintData._mixX;
-		constraint._mixY = constraintData._mixY;
-		constraint._mixScaleX = constraintData._mixScaleX;
-		constraint._mixScaleY = constraintData._mixScaleY;
-		constraint._mixShearY = constraintData._mixShearY;
+		constraint._rotateMix = constraintData._rotateMix;
+		constraint._translateMix = constraintData._translateMix;
+		constraint._scaleMix = constraintData._scaleMix;
+		constraint._shearMix = constraintData._shearMix;
 	}
 
 	for (size_t i = 0, n = _pathConstraints.size(); i < n; ++i) {
@@ -288,9 +253,8 @@ void Skeleton::setBonesToSetupPose() {
 
 		constraint._position = constraintData._position;
 		constraint._spacing = constraintData._spacing;
-		constraint._mixRotate = constraintData._mixRotate;
-		constraint._mixX = constraintData._mixX;
-		constraint._mixY = constraintData._mixY;
+		constraint._rotateMix = constraintData._rotateMix;
+		constraint._translateMix = constraintData._translateMix;
 	}
 }
 
@@ -309,17 +273,27 @@ Bone *Skeleton::findBone(const String &boneName) {
 	return ContainerUtil::findWithDataName(_bones, boneName);
 }
 
+int Skeleton::findBoneIndex(const String &boneName) {
+	return ContainerUtil::findIndexWithDataName(_bones, boneName);
+}
+
 Slot *Skeleton::findSlot(const String &slotName) {
 	return ContainerUtil::findWithDataName(_slots, slotName);
 }
 
+int Skeleton::findSlotIndex(const String &slotName) {
+	return ContainerUtil::findIndexWithDataName(_slots, slotName);
+}
+
 void Skeleton::setSkin(const String &skinName) {
-	Skin *foundSkin = skinName.isEmpty() ? NULL : _data->findSkin(skinName);
+	Skin *foundSkin = _data->findSkin(skinName);
+
+	assert(foundSkin != NULL);
+
 	setSkin(foundSkin);
 }
 
 void Skeleton::setSkin(Skin *newSkin) {
-	if (_skin == newSkin) return;
 	if (newSkin != NULL) {
 		if (_skin != NULL) {
 			Skeleton &thisRef = *this;
@@ -340,15 +314,14 @@ void Skeleton::setSkin(Skin *newSkin) {
 	}
 
 	_skin = newSkin;
-	updateCache();
 }
 
 Attachment *Skeleton::getAttachment(const String &slotName, const String &attachmentName) {
-	return getAttachment(_data->findSlot(slotName)->getIndex(), attachmentName);
+	return getAttachment(_data->findSlotIndex(slotName), attachmentName);
 }
 
 Attachment *Skeleton::getAttachment(int slotIndex, const String &attachmentName) {
-	if (attachmentName.isEmpty()) return NULL;
+	assert(attachmentName.length() > 0);
 
 	if (_skin != NULL) {
 		Attachment *attachment = _skin->getAttachment(slotIndex, attachmentName);
@@ -368,7 +341,7 @@ void Skeleton::setAttachment(const String &slotName, const String &attachmentNam
 		if (slot->_data.getName() == slotName) {
 			Attachment *attachment = NULL;
 			if (attachmentName.length() > 0) {
-				attachment = getAttachment((int) i, attachmentName);
+				attachment = getAttachment(i, attachmentName);
 
 				assert(attachment != NULL);
 			}
@@ -422,15 +395,18 @@ PathConstraint *Skeleton::findPathConstraint(const String &constraintName) {
 	return NULL;
 }
 
+void Skeleton::update(float delta) {
+	_time += delta;
+}
+
 void Skeleton::getBounds(float &outX, float &outY, float &outWidth, float &outHeight, Vector<float> &outVertexBuffer) {
-	float minX = FLT_MAX;
-	float minY = FLT_MAX;
-	float maxX = -FLT_MAX;
-	float maxY = -FLT_MAX;
+	float minX = std::numeric_limits<float>::max();
+	float minY = std::numeric_limits<float>::max();
+	float maxX = std::numeric_limits<float>::min();
+	float maxY = std::numeric_limits<float>::min();
 
 	for (size_t i = 0; i < _drawOrder.size(); ++i) {
 		Slot *slot = _drawOrder[i];
-		if (!slot->_bone._active) continue;
 		size_t verticesLength = 0;
 		Attachment *attachment = slot->getAttachment();
 
@@ -441,7 +417,7 @@ void Skeleton::getBounds(float &outX, float &outY, float &outWidth, float &outHe
 			if (outVertexBuffer.size() < 8) {
 				outVertexBuffer.setSize(8, 0);
 			}
-			regionAttachment->computeWorldVertices(*slot, outVertexBuffer, 0);
+			regionAttachment->computeWorldVertices(slot->getBone(), outVertexBuffer, 0);
 		} else if (attachment != NULL && attachment->getRTTI().instanceOf(MeshAttachment::rtti)) {
 			MeshAttachment *mesh = static_cast<MeshAttachment *>(attachment);
 
@@ -450,7 +426,7 @@ void Skeleton::getBounds(float &outX, float &outY, float &outWidth, float &outHe
 				outVertexBuffer.setSize(verticesLength, 0);
 			}
 
-			mesh->computeWorldVertices(*slot, 0, verticesLength, outVertexBuffer.buffer(), 0);
+			mesh->computeWorldVertices(*slot, 0, verticesLength, outVertexBuffer, 0);
 		}
 
 		for (size_t ii = 0; ii < verticesLength; ii += 2) {
@@ -514,6 +490,14 @@ Color &Skeleton::getColor() {
 	return _color;
 }
 
+float Skeleton::getTime() {
+	return _time;
+}
+
+void Skeleton::setTime(float inValue) {
+	_time = inValue;
+}
+
 void Skeleton::setPosition(float x, float y) {
 	_x = x;
 	_y = y;
@@ -552,10 +536,6 @@ void Skeleton::setScaleY(float inValue) {
 }
 
 void Skeleton::sortIkConstraint(IkConstraint *constraint) {
-	constraint->_active = constraint->_target->_active && (!constraint->_data.isSkinRequired() ||
-														   (_skin && _skin->_constraints.contains(&constraint->_data)));
-	if (!constraint->_active) return;
-
 	Bone *target = constraint->getTarget();
 	sortBone(target);
 
@@ -563,26 +543,18 @@ void Skeleton::sortIkConstraint(IkConstraint *constraint) {
 	Bone *parent = constrained[0];
 	sortBone(parent);
 
-	if (constrained.size() == 1) {
-		_updateCache.add(constraint);
-		sortReset(parent->_children);
-	} else {
+	if (constrained.size() > 1) {
 		Bone *child = constrained[constrained.size() - 1];
-		sortBone(child);
-
-		_updateCache.add(constraint);
-
-		sortReset(parent->_children);
-		child->_sorted = true;
+		if (!_updateCache.contains(child)) _updateCacheReset.add(child);
 	}
+
+	_updateCache.add(constraint);
+
+	sortReset(parent->getChildren());
+	constrained[constrained.size() - 1]->_sorted = true;
 }
 
 void Skeleton::sortPathConstraint(PathConstraint *constraint) {
-	constraint->_active = constraint->_target->_bone._active && (!constraint->_data.isSkinRequired() || (_skin &&
-																										 _skin->_constraints.contains(
-																												 &constraint->_data)));
-	if (!constraint->_active) return;
-
 	Slot *slot = constraint->getTarget();
 	int slotIndex = slot->getData().getIndex();
 	Bone &slotBone = slot->getBone();
@@ -611,10 +583,6 @@ void Skeleton::sortPathConstraint(PathConstraint *constraint) {
 }
 
 void Skeleton::sortTransformConstraint(TransformConstraint *constraint) {
-	constraint->_active = constraint->_target->_active && (!constraint->_data.isSkinRequired() ||
-														   (_skin && _skin->_constraints.contains(&constraint->_data)));
-	if (!constraint->_active) return;
-
 	sortBone(constraint->getTarget());
 
 	Vector<Bone *> &constrained = constraint->getBones();
@@ -623,7 +591,7 @@ void Skeleton::sortTransformConstraint(TransformConstraint *constraint) {
 		for (size_t i = 0; i < boneCount; i++) {
 			Bone *child = constrained[i];
 			sortBone(child->getParent());
-			sortBone(child);
+			if (!_updateCache.contains(child)) _updateCacheReset.add(child);
 		}
 	} else {
 		for (size_t i = 0; i < boneCount; ++i) {
@@ -653,7 +621,7 @@ void Skeleton::sortPathConstraintAttachment(Skin *skin, size_t slotIndex, Bone &
 
 void Skeleton::sortPathConstraintAttachment(Attachment *attachment, Bone &slotBone) {
 	if (attachment == NULL || !attachment->getRTTI().instanceOf(PathAttachment::rtti)) return;
-	Vector<int> &pathBones = static_cast<PathAttachment *>(attachment)->getBones();
+	Vector<size_t> &pathBones = static_cast<PathAttachment *>(attachment)->getBones();
 	if (pathBones.size() == 0)
 		sortBone(&slotBone);
 	else {
@@ -678,7 +646,6 @@ void Skeleton::sortBone(Bone *bone) {
 void Skeleton::sortReset(Vector<Bone *> &bones) {
 	for (size_t i = 0, n = bones.size(); i < n; ++i) {
 		Bone *bone = bones[i];
-		if (!bone->_active) continue;
 		if (bone->_sorted) sortReset(bone->getChildren());
 		bone->_sorted = false;
 	}

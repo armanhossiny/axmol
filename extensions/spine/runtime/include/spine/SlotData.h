@@ -1,30 +1,30 @@
 /******************************************************************************
  * Spine Runtimes License Agreement
- * Last updated July 28, 2023. Replaces all prior versions.
+ * Last updated May 1, 2019. Replaces all prior versions.
  *
- * Copyright (c) 2013-2023, Esoteric Software LLC
+ * Copyright (c) 2013-2019, Esoteric Software LLC
  *
  * Integration of the Spine Runtimes into software or otherwise creating
  * derivative works of the Spine Runtimes is permitted under the terms and
  * conditions of Section 2 of the Spine Editor License Agreement:
  * http://esotericsoftware.com/spine-editor-license
  *
- * Otherwise, it is permitted to integrate the Spine Runtimes into software or
- * otherwise create derivative works of the Spine Runtimes (collectively,
+ * Otherwise, it is permitted to integrate the Spine Runtimes into software
+ * or otherwise create derivative works of the Spine Runtimes (collectively,
  * "Products"), provided that each user of the Products must obtain their own
  * Spine Editor license and redistribution of the Products in any form must
  * include this license and copyright notice.
  *
- * THE SPINE RUNTIMES ARE PROVIDED BY ESOTERIC SOFTWARE LLC "AS IS" AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL ESOTERIC SOFTWARE LLC BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES,
- * BUSINESS INTERRUPTION, OR LOSS OF USE, DATA, OR PROFITS) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THE
- * SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * THIS SOFTWARE IS PROVIDED BY ESOTERIC SOFTWARE LLC "AS IS" AND ANY EXPRESS
+ * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
+ * NO EVENT SHALL ESOTERIC SOFTWARE LLC BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES, BUSINESS
+ * INTERRUPTION, OR LOSS OF USE, DATA, OR PROFITS) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+ * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
 
 #ifndef Spine_SlotData_h
@@ -36,86 +36,78 @@
 #include <spine/Color.h>
 
 namespace spine {
-	class BoneData;
+class BoneData;
 
-	class SP_API SlotData : public SpineObject {
-		friend class SkeletonBinary;
+class SP_API SlotData : public SpineObject {
+	friend class SkeletonBinary;
 
-		friend class SkeletonJson;
+	friend class SkeletonJson;
 
-		friend class AttachmentTimeline;
+	friend class AttachmentTimeline;
 
-		friend class RGBATimeline;
+	friend class ColorTimeline;
 
-		friend class RGBTimeline;
+	friend class DeformTimeline;
 
-		friend class AlphaTimeline;
+	friend class DrawOrderTimeline;
 
-		friend class RGBA2Timeline;
+	friend class EventTimeline;
 
-		friend class RGB2Timeline;
+	friend class IkConstraintTimeline;
 
-		friend class DeformTimeline;
+	friend class PathConstraintMixTimeline;
 
-		friend class DrawOrderTimeline;
+	friend class PathConstraintPositionTimeline;
 
-		friend class EventTimeline;
+	friend class PathConstraintSpacingTimeline;
 
-		friend class IkConstraintTimeline;
+	friend class ScaleTimeline;
 
-		friend class PathConstraintMixTimeline;
+	friend class ShearTimeline;
 
-		friend class PathConstraintPositionTimeline;
+	friend class TransformConstraintTimeline;
 
-		friend class PathConstraintSpacingTimeline;
+	friend class TranslateTimeline;
 
-		friend class ScaleTimeline;
+	friend class TwoColorTimeline;
 
-		friend class ShearTimeline;
+public:
+	SlotData(int index, const String &name, BoneData &boneData);
 
-		friend class TransformConstraintTimeline;
+	int getIndex();
 
-		friend class TranslateTimeline;
+	const String &getName();
 
-		friend class TwoColorTimeline;
+	BoneData &getBoneData();
 
-	public:
-		SlotData(int index, const String &name, BoneData &boneData);
+	Color &getColor();
 
-		int getIndex();
+	Color &getDarkColor();
 
-		const String &getName();
+	bool hasDarkColor();
 
-		BoneData &getBoneData();
+	void setHasDarkColor(bool inValue);
 
-		Color &getColor();
+	/// May be empty.
+	const String &getAttachmentName();
 
-		Color &getDarkColor();
+	void setAttachmentName(const String &inValue);
 
-		bool hasDarkColor();
+	BlendMode getBlendMode();
 
-		void setHasDarkColor(bool inValue);
+	void setBlendMode(BlendMode inValue);
 
-		/// May be empty.
-		const String &getAttachmentName();
+private:
+	const int _index;
+	String _name;
+	BoneData &_boneData;
+	Color _color;
+	Color _darkColor;
 
-		void setAttachmentName(const String &inValue);
-
-		BlendMode getBlendMode();
-
-		void setBlendMode(BlendMode inValue);
-
-	private:
-		const int _index;
-		String _name;
-		BoneData &_boneData;
-		Color _color;
-		Color _darkColor;
-
-		bool _hasDarkColor;
-		String _attachmentName;
-		BlendMode _blendMode;
-	};
+	bool _hasDarkColor;
+	String _attachmentName;
+	BlendMode _blendMode;
+};
 }
 
 #endif /* Spine_SlotData_h */

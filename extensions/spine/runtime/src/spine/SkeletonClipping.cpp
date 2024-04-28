@@ -1,36 +1,40 @@
 /******************************************************************************
  * Spine Runtimes License Agreement
- * Last updated July 28, 2023. Replaces all prior versions.
+ * Last updated May 1, 2019. Replaces all prior versions.
  *
- * Copyright (c) 2013-2023, Esoteric Software LLC
+ * Copyright (c) 2013-2019, Esoteric Software LLC
  *
  * Integration of the Spine Runtimes into software or otherwise creating
  * derivative works of the Spine Runtimes is permitted under the terms and
  * conditions of Section 2 of the Spine Editor License Agreement:
  * http://esotericsoftware.com/spine-editor-license
  *
- * Otherwise, it is permitted to integrate the Spine Runtimes into software or
- * otherwise create derivative works of the Spine Runtimes (collectively,
+ * Otherwise, it is permitted to integrate the Spine Runtimes into software
+ * or otherwise create derivative works of the Spine Runtimes (collectively,
  * "Products"), provided that each user of the Products must obtain their own
  * Spine Editor license and redistribution of the Products in any form must
  * include this license and copyright notice.
  *
- * THE SPINE RUNTIMES ARE PROVIDED BY ESOTERIC SOFTWARE LLC "AS IS" AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL ESOTERIC SOFTWARE LLC BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES,
- * BUSINESS INTERRUPTION, OR LOSS OF USE, DATA, OR PROFITS) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THE
- * SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * THIS SOFTWARE IS PROVIDED BY ESOTERIC SOFTWARE LLC "AS IS" AND ANY EXPRESS
+ * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
+ * NO EVENT SHALL ESOTERIC SOFTWARE LLC BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES, BUSINESS
+ * INTERRUPTION, OR LOSS OF USE, DATA, OR PROFITS) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+ * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
+
+#ifdef SPINE_UE4
+#include "SpinePluginPrivatePCH.h"
+#endif
 
 #include <spine/SkeletonClipping.h>
 
-#include <spine/ClippingAttachment.h>
 #include <spine/Slot.h>
+#include <spine/ClippingAttachment.h>
 
 using namespace spine;
 
@@ -48,7 +52,7 @@ size_t SkeletonClipping::clipStart(Slot &slot, ClippingAttachment *clip) {
 
 	_clipAttachment = clip;
 
-	int n = (int) clip->getWorldVerticesLength();
+	int n = clip->getWorldVerticesLength();
 	_clippingPolygon.setSize(n, 0);
 	clip->computeWorldVertices(slot, 0, n, _clippingPolygon, 0, 2);
 	makeClockwise(_clippingPolygon);
@@ -72,7 +76,9 @@ void SkeletonClipping::clipEnd(Slot &slot) {
 }
 
 void SkeletonClipping::clipEnd() {
-	if (_clipAttachment == NULL) return;
+	if (_clipAttachment == NULL) {
+		return;
+	}
 
 	_clipAttachment = NULL;
 	_clippingPolygons = NULL;
@@ -82,8 +88,7 @@ void SkeletonClipping::clipEnd() {
 	_clippingPolygon.clear();
 }
 
-void SkeletonClipping::clipTriangles(Vector<float> &vertices, Vector<unsigned short> &triangles, Vector<float> &uvs,
-									 size_t stride) {
+void SkeletonClipping::clipTriangles(Vector<float> &vertices, Vector<unsigned short> &triangles, Vector<float> &uvs, size_t stride) {
 	clipTriangles(vertices.buffer(), triangles.buffer(), triangles.size(), uvs.buffer(), stride);
 }
 
@@ -101,17 +106,17 @@ void SkeletonClipping::clipTriangles(float *vertices, unsigned short *triangles,
 	clippedTriangles.clear();
 
 	size_t i = 0;
-continue_outer:
+	continue_outer:
 	for (; i < trianglesLength; i += 3) {
-		int vertexOffset = triangles[i] * (int) stride;
+		int vertexOffset = triangles[i] * stride;
 		float x1 = vertices[vertexOffset], y1 = vertices[vertexOffset + 1];
 		float u1 = uvs[vertexOffset], v1 = uvs[vertexOffset + 1];
 
-		vertexOffset = triangles[i + 1] * (int) stride;
+		vertexOffset = triangles[i + 1] * stride;
 		float x2 = vertices[vertexOffset], y2 = vertices[vertexOffset + 1];
 		float u2 = uvs[vertexOffset], v2 = uvs[vertexOffset + 1];
 
-		vertexOffset = triangles[i + 2] * (int) stride;
+		vertexOffset = triangles[i + 2] * stride;
 		float x3 = vertices[vertexOffset], y3 = vertices[vertexOffset + 1];
 		float u3 = uvs[vertexOffset], v3 = uvs[vertexOffset + 1];
 
@@ -119,7 +124,9 @@ continue_outer:
 			size_t s = clippedVertices.size();
 			if (clip(x1, y1, x2, y2, x3, y3, &(*polygons[p]), &clipOutput)) {
 				size_t clipOutputLength = clipOutput.size();
-				if (clipOutputLength == 0) continue;
+				if (clipOutputLength == 0) {
+					continue;
+				}
 				float d0 = y2 - y3, d1 = x3 - x2, d2 = x1 - x3, d4 = y3 - y1;
 				float d = 1 / (d0 * d2 + d1 * (y1 - y3));
 
@@ -143,9 +150,9 @@ continue_outer:
 				clippedTriangles.setSize(s + 3 * (clipOutputCount - 2), 0);
 				clipOutputCount--;
 				for (size_t ii = 1; ii < clipOutputCount; ii++) {
-					clippedTriangles[s] = (unsigned short) (index);
-					clippedTriangles[s + 1] = (unsigned short) (index + ii);
-					clippedTriangles[s + 2] = (unsigned short) (index + ii + 1);
+					clippedTriangles[s] = (unsigned short)(index);
+					clippedTriangles[s + 1] = (unsigned short)(index + ii);
+					clippedTriangles[s + 2] = (unsigned short)(index + ii + 1);
 					s += 3;
 				}
 				index += clipOutputCount + 1;
@@ -168,9 +175,9 @@ continue_outer:
 
 				s = clippedTriangles.size();
 				clippedTriangles.setSize(s + 3, 0);
-				clippedTriangles[s] = (unsigned short) index;
-				clippedTriangles[s + 1] = (unsigned short) (index + 1);
-				clippedTriangles[s + 2] = (unsigned short) (index + 2);
+				clippedTriangles[s] = (unsigned short)index;
+				clippedTriangles[s + 1] = (unsigned short)(index + 1);
+				clippedTriangles[s + 2] = (unsigned short)(index + 2);
 				index += 3;
 				i += 3;
 				goto continue_outer;
@@ -205,8 +212,9 @@ bool SkeletonClipping::clip(float x1, float y1, float x2, float y2, float x3, fl
 	if (clippingArea->size() % 4 >= 2) {
 		input = output;
 		output = &_scratch;
-	} else
+	} else {
 		input = &_scratch;
+	}
 
 	input->clear();
 	input->add(x1);
@@ -288,10 +296,12 @@ bool SkeletonClipping::clip(float x1, float y1, float x2, float y2, float x3, fl
 
 	if (originalOutput != output) {
 		originalOutput->clear();
-		for (size_t i = 0, n = output->size() - 2; i < n; ++i)
+		for (size_t i = 0, n = output->size() - 2; i < n; ++i) {
 			originalOutput->add((*output)[i]);
-	} else
+		}
+	} else {
 		originalOutput->setSize(originalOutput->size() - 2, 0);
+	}
 
 	return clipped;
 }
@@ -299,8 +309,8 @@ bool SkeletonClipping::clip(float x1, float y1, float x2, float y2, float x3, fl
 void SkeletonClipping::makeClockwise(Vector<float> &polygon) {
 	size_t verticeslength = polygon.size();
 
-	float area = polygon[verticeslength - 2] * polygon[1] - polygon[0] * polygon[verticeslength - 1];
-	float p1x, p1y, p2x, p2y;
+	float area =
+			polygon[verticeslength - 2] * polygon[1] - polygon[0] * polygon[verticeslength - 1], p1x, p1y, p2x, p2y;
 
 	for (size_t i = 0, n = verticeslength - 3; i < n; i += 2) {
 		p1x = polygon[i];
@@ -310,11 +320,13 @@ void SkeletonClipping::makeClockwise(Vector<float> &polygon) {
 		area += p1x * p2y - p2x * p1y;
 	}
 
-	if (area < 0) return;
+	if (area < 0) {
+		return;
+	}
 
 	for (size_t i = 0, lastX = verticeslength - 2, n = verticeslength >> 1; i < n; i += 2) {
 		float x = polygon[i], y = polygon[i + 1];
-		int other = (int) (lastX - i);
+		int other = lastX - i;
 		polygon[i] = polygon[other];
 		polygon[i + 1] = polygon[other + 1];
 		polygon[other] = x;

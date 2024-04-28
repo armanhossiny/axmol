@@ -1,31 +1,34 @@
 /******************************************************************************
  * Spine Runtimes License Agreement
- * Last updated July 28, 2023. Replaces all prior versions.
+ * Last updated May 1, 2019. Replaces all prior versions.
  *
- * Copyright (c) 2013-2023, Esoteric Software LLC
+ * Copyright (c) 2013-2019, Esoteric Software LLC
  *
  * Integration of the Spine Runtimes into software or otherwise creating
  * derivative works of the Spine Runtimes is permitted under the terms and
  * conditions of Section 2 of the Spine Editor License Agreement:
  * http://esotericsoftware.com/spine-editor-license
  *
- * Otherwise, it is permitted to integrate the Spine Runtimes into software or
- * otherwise create derivative works of the Spine Runtimes (collectively,
+ * Otherwise, it is permitted to integrate the Spine Runtimes into software
+ * or otherwise create derivative works of the Spine Runtimes (collectively,
  * "Products"), provided that each user of the Products must obtain their own
  * Spine Editor license and redistribution of the Products in any form must
  * include this license and copyright notice.
  *
- * THE SPINE RUNTIMES ARE PROVIDED BY ESOTERIC SOFTWARE LLC "AS IS" AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL ESOTERIC SOFTWARE LLC BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES,
- * BUSINESS INTERRUPTION, OR LOSS OF USE, DATA, OR PROFITS) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THE
- * SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * THIS SOFTWARE IS PROVIDED BY ESOTERIC SOFTWARE LLC "AS IS" AND ANY EXPRESS
+ * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
+ * NO EVENT SHALL ESOTERIC SOFTWARE LLC BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES, BUSINESS
+ * INTERRUPTION, OR LOSS OF USE, DATA, OR PROFITS) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+ * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
+#ifdef SPINE_UE4
+#include "SpinePluginPrivatePCH.h"
+#endif
 
 #include <spine/Triangulator.h>
 
@@ -45,20 +48,20 @@ Vector<int> &Triangulator::triangulate(Vector<float> &vertices) {
 	indices.clear();
 	indices.ensureCapacity(vertexCount);
 	indices.setSize(vertexCount, 0);
-	for (int i = 0; i < (int) vertexCount; ++i) {
+	for (size_t i = 0; i < vertexCount; ++i) {
 		indices[i] = i;
 	}
 
 	Vector<bool> &isConcaveArray = _isConcaveArray;
 	isConcaveArray.ensureCapacity(vertexCount);
 	isConcaveArray.setSize(vertexCount, 0);
-	for (int i = 0, n = (int) vertexCount; i < n; ++i) {
-		isConcaveArray[i] = isConcave(i, (int) vertexCount, vertices, indices);
+	for (size_t i = 0, n = vertexCount; i < n; ++i) {
+		isConcaveArray[i] = isConcave(i, vertexCount, vertices, indices);
 	}
 
 	Vector<int> &triangles = _triangles;
 	triangles.clear();
-	triangles.ensureCapacity(MathUtil::max((int) 0, (int) vertexCount - 2) << 2);
+	triangles.ensureCapacity(MathUtil::max((int)0, (int)vertexCount - 2) << 2);
 
 	while (vertexCount > 3) {
 		// Find ear tip.
@@ -72,25 +75,29 @@ Vector<int> &Triangulator::triangulate(Vector<float> &vertices) {
 				float p2x = vertices[p2], p2y = vertices[p2 + 1];
 				float p3x = vertices[p3], p3y = vertices[p3 + 1];
 				for (size_t ii = (next + 1) % vertexCount; ii != previous; ii = (ii + 1) % vertexCount) {
-					if (!isConcaveArray[ii]) continue;
+					if (!isConcaveArray[ii]) {
+						continue;
+					}
 
 					int v = indices[ii] << 1;
 					float &vx = vertices[v], vy = vertices[v + 1];
 					if (positiveArea(p3x, p3y, p1x, p1y, vx, vy)) {
 						if (positiveArea(p1x, p1y, p2x, p2y, vx, vy)) {
 							if (positiveArea(p2x, p2y, p3x, p3y, vx, vy)) {
-								goto break_outer;// break outer;
+								goto break_outer; // break outer;
 							}
 						}
 					}
 				}
 				break;
 			}
-		break_outer:
+			break_outer:
 
 			if (next == 0) {
 				do {
-					if (!isConcaveArray[i]) break;
+					if (!isConcaveArray[i]) {
+						break;
+					}
 					i--;
 				} while (i > 0);
 				break;
@@ -109,10 +116,10 @@ Vector<int> &Triangulator::triangulate(Vector<float> &vertices) {
 		isConcaveArray.removeAt(i);
 		vertexCount--;
 
-		int previousIndex = (int) ((vertexCount + i - 1) % vertexCount);
-		int nextIndex = (int) (i == vertexCount ? 0 : i);
-		isConcaveArray[previousIndex] = isConcave(previousIndex, (int) vertexCount, vertices, indices);
-		isConcaveArray[nextIndex] = isConcave(nextIndex, (int) vertexCount, vertices, indices);
+		int previousIndex = (vertexCount + i - 1) % vertexCount;
+		int nextIndex = i == vertexCount ? 0 : i;
+		isConcaveArray[previousIndex] = isConcave(previousIndex, vertexCount, vertices, indices);
+		isConcaveArray[nextIndex] = isConcave(nextIndex, vertexCount, vertices, indices);
 	}
 
 	if (vertexCount == 3) {
@@ -126,13 +133,15 @@ Vector<int> &Triangulator::triangulate(Vector<float> &vertices) {
 
 Vector<Vector<float> *> &Triangulator::decompose(Vector<float> &vertices, Vector<int> &triangles) {
 	Vector<Vector<float> *> &convexPolygons = _convexPolygons;
-	for (size_t i = 0, n = convexPolygons.size(); i < n; ++i)
+	for (size_t i = 0, n = convexPolygons.size(); i < n; ++i) {
 		_polygonPool.free(convexPolygons[i]);
+	}
 	convexPolygons.clear();
 
 	Vector<Vector<int> *> &convexPolygonsIndices = _convexPolygonsIndices;
-	for (size_t i = 0, n = convexPolygonsIndices.size(); i < n; ++i)
+	for (size_t i = 0, n = convexPolygonsIndices.size(); i < n; ++i) {
 		_polygonIndicesPool.free(convexPolygonsIndices[i]);
+	}
 	convexPolygonsIndices.clear();
 
 	Vector<int> *polygonIndices = _polygonIndicesPool.obtain();
@@ -215,12 +224,16 @@ Vector<Vector<float> *> &Triangulator::decompose(Vector<float> &vertices, Vector
 		int winding0 = winding(prevPrevX, prevPrevY, prevX, prevY, firstX, firstY);
 
 		for (size_t ii = 0; ii < n; ++ii) {
-			if (ii == i) continue;
+			if (ii == i) {
+				continue;
+			}
 
 			Vector<int> *otherIndicesP = convexPolygonsIndices[ii];
 			Vector<int> &otherIndices = *otherIndicesP;
 
-			if (otherIndices.size() != 3) continue;
+			if (otherIndices.size() != 3) {
+				continue;
+			}
 
 			int otherFirstIndex = otherIndices[0];
 			int otherSecondIndex = otherIndices[1];
@@ -231,7 +244,9 @@ Vector<Vector<float> *> &Triangulator::decompose(Vector<float> &vertices, Vector
 
 			float x3 = otherPoly[otherPoly.size() - 2], y3 = otherPoly[otherPoly.size() - 1];
 
-			if (otherFirstIndex != firstIndex || otherSecondIndex != lastIndex) continue;
+			if (otherFirstIndex != firstIndex || otherSecondIndex != lastIndex) {
+				continue;
+			}
 
 			int winding1 = winding(prevPrevX, prevPrevY, prevX, prevY, x3, y3);
 			int winding2 = winding(x3, y3, firstX, firstY, secondX, secondY);
@@ -251,7 +266,7 @@ Vector<Vector<float> *> &Triangulator::decompose(Vector<float> &vertices, Vector
 	}
 
 	// Remove empty polygons that resulted from the merge step above.
-	for (int i = (int) convexPolygons.size() - 1; i >= 0; --i) {
+	for (int i = (int)convexPolygons.size() - 1; i >= 0; --i) {
 		polygon = convexPolygons[i];
 		if (polygon->size() == 0) {
 			convexPolygons.removeAt(i);
@@ -270,8 +285,7 @@ bool Triangulator::isConcave(int index, int vertexCount, Vector<float> &vertices
 	int current = indices[index] << 1;
 	int next = indices[(index + 1) % vertexCount] << 1;
 
-	return !positiveArea(vertices[previous], vertices[previous + 1],
-						 vertices[current], vertices[current + 1],
+	return !positiveArea(vertices[previous], vertices[previous + 1], vertices[current], vertices[current + 1],
 						 vertices[next], vertices[next + 1]);
 }
 
@@ -281,5 +295,6 @@ bool Triangulator::positiveArea(float p1x, float p1y, float p2x, float p2y, floa
 
 int Triangulator::winding(float p1x, float p1y, float p2x, float p2y, float p3x, float p3y) {
 	float px = p2x - p1x, py = p2y - p1y;
+
 	return p3x * py - p3y * px + px * p1y - p1x * py >= 0 ? 1 : -1;
 }
