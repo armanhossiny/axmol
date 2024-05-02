@@ -167,6 +167,7 @@ void EditBoxImplCommon::setFont(const char* pFontName, int fontSize)
         TTFConfig ttfConfig(pFontName, fontSize);
         _label->setTTFConfig(ttfConfig);
         _label->setSystemFontSize(fontSize);
+        _label->setSystemFontName(pFontName);
     }
     else
     {
@@ -198,7 +199,14 @@ void EditBoxImplCommon::setPlaceholderFont(const char* pFontName, int fontSize)
     {
         TTFConfig ttfConfig(pFontName, fontSize);
         _labelPlaceHolder->setTTFConfig(ttfConfig);
-        _labelPlaceHolder->setSystemFontName(pFontName);
+        if (!_fontName.empty())
+        {
+            _labelPlaceHolder->setSystemFontName(pFontName);
+        }
+        if (fontSize > 0)
+        {
+            _labelPlaceHolder->setSystemFontSize(fontSize);
+        };
     }
     else
     {
