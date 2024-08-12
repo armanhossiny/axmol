@@ -52,7 +52,7 @@
 //   https://curl.se/libcurl/c/curl_easy_getinfo.html
 //   https://curl.se/libcurl/c/curl_easy_setopt.html
 
-#    define AX_CURL_POLL_TIMEOUT_MS 1000  // wait until DNS query done
+#    define AX_CURL_POLL_TIMEOUT_MS 1000
 
 enum
 {
@@ -151,7 +151,7 @@ public:
             dir = _tempFileName.substr(0, found + 1);
             if (!FileUtils::getInstance()->isDirectoryExistInternal(dir))
             {
-                if (!FileUtils::getInstance()->createDirectory(dir))
+                if (!FileUtils::getInstance()->createDirectories(dir))
                 {
                     _errCode         = DownloadTask::ERROR_CREATE_DIR_FAILED;
                     _errCodeInternal = 0;
@@ -611,7 +611,6 @@ private:
 
                         // remove from multi-handle
                         curl_multi_remove_handle(curlmHandle, curlHandle);
-                        bool reinited = false;
                         do
                         {
                             auto coTask = static_cast<DownloadTaskCURL*>(task->_coTask.get());
@@ -623,7 +622,7 @@ private:
                                     curl_easy_getinfo(curlHandle, CURLINFO_RESPONSE_CODE, &responeCode);
                                     fmt::format_to(std::back_inserter(errorMsg), FMT_COMPILE(": {}"), responeCode);
                                 }
-                                
+
                                 coTask->setErrorDesc(DownloadTask::ERROR_IMPL_INTERNAL, errCode, std::move(errorMsg));
                                 break;
                             }
@@ -669,9 +668,12 @@ private:
             }
 
             // process tasks in _requestList
-            auto size = coTaskMap.size();
-            while (0 == countOfMaxProcessingTasks || size < countOfMaxProcessingTasks)
+            while (true)
             {
+                // Check for set task limit
+                if (countOfMaxProcessingTasks && coTaskMap.size() >= countOfMaxProcessingTasks)
+                    break;
+
                 // get task wrapper from request queue
                 std::shared_ptr<DownloadTask> task;
                 {

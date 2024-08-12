@@ -12,7 +12,10 @@ if (WINRT)
     # The minmal deploy target version: Windows 10, version 1809 (Build 10.0.17763) for building msix package
     # refer to: https://learn.microsoft.com/en-us/windows/msix/supported-platforms?source=recommendations
     set(CMAKE_VS_WINDOWS_TARGET_PLATFORM_MIN_VERSION "10.0.17763" CACHE STRING "")
-    set(AX_CPPWINRT_VERSION "2.0.240111.5" CACHE STRING "")
+    set(AX_CPPWINRT_VERSION "2.0.240405.15" CACHE STRING "")
+    # For axmol deprecated policy, we need disable /sdl checks explicitly to avoid compiler traits invoking deprecated functions as error
+    set(CMAKE_C_FLAGS  "/sdl- ${CMAKE_C_FLAGS}")
+    set(CMAKE_CXX_FLAGS  "/sdl- ${CMAKE_CXX_FLAGS}")
 endif()
 
 # config c standard
@@ -186,22 +189,21 @@ endfunction()
 
 if(EMSCRIPTEN)
     set(AX_WASM_THREADS "4" CACHE STRING "Wasm threads count")
-
-    set(_AX_WASM_THREADS_INT 0)
+    set(_threads_hint "")
     if (AX_WASM_THREADS STREQUAL "auto") # not empty string or not 0
         # Enable pthread support globally
+        set(_threads_hint "(auto)")
         include(ProcessorCount)
+        set(_AX_WASM_THREADS_INT 0)
         ProcessorCount(_AX_WASM_THREADS_INT)
-    elseif(AX_WASM_THREADS MATCHES "^([0-9]+)$" OR AX_WASM_THREADS STREQUAL "navigator.hardwareConcurrency")
-        set(_AX_WASM_THREADS_INT ${AX_WASM_THREADS})
+        set(AX_WASM_THREADS "${_AX_WASM_THREADS_INT}" CACHE STRING "Wasm threads count" FORCE)
     endif()
 
-    message(STATUS "AX_WASM_THREADS=${AX_WASM_THREADS}")
-    message(STATUS "_AX_WASM_THREADS_INT=${_AX_WASM_THREADS_INT}")
+    message(STATUS "AX_WASM_THREADS=${AX_WASM_THREADS}${_threads_hint}")
 
-    if (_AX_WASM_THREADS_INT)
+    if(AX_WASM_THREADS MATCHES "^([0-9]+)$" OR AX_WASM_THREADS STREQUAL "navigator.hardwareConcurrency")
         list(APPEND _ax_compile_options -pthread)
-        add_link_options(-pthread -sPTHREAD_POOL_SIZE=${_AX_WASM_THREADS_INT})
+        add_link_options(-pthread -sPTHREAD_POOL_SIZE=${AX_WASM_THREADS})
     endif()
 
     set(AX_WASM_INITIAL_MEMORY "1024MB" CACHE STRING "")
