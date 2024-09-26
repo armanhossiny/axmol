@@ -33,7 +33,8 @@ THE SOFTWARE.
 #include "ui/UIHelper.h"
 #include <algorithm>
 
-NS_AX_BEGIN
+namespace ax
+{
 
 namespace ui
 {
@@ -1001,4 +1002,4 @@ ResourceData Button::getDisabledFile()
 
 }  // namespace ui
 
-NS_AX_END
+}
