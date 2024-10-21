@@ -767,17 +767,16 @@ void SkeletonRenderer::drawDebug(Renderer* renderer, const Mat4& transform, uint
     DrawNode* drawNode = DrawNode::create();
     drawNode->setGlobalZOrder(getGlobalZOrder());
 
-		// Draw bounding rectangle
-		if (_debugBoundingRect) {
-			const axmol::Rect brect = getBoundingBox();
-			const Vec2 points[4] =
-					{
-							brect.origin,
-							{brect.origin.x + brect.size.width, brect.origin.y},
-							{brect.origin.x + brect.size.width, brect.origin.y + brect.size.height},
-							{brect.origin.x, brect.origin.y + brect.size.height}};
-			drawNode->drawPoly(points, 4, true, Color4B::GREEN, 2.0f);
-		}
+    // Draw bounding rectangle
+    if (_debugBoundingRect)
+    {
+        const ax::Rect brect = getBoundingBox();
+        const Vec2 points[4] = {brect.origin,
+                                {brect.origin.x + brect.size.width, brect.origin.y},
+                                {brect.origin.x + brect.size.width, brect.origin.y + brect.size.height},
+                                {brect.origin.x, brect.origin.y + brect.size.height}};
+        drawNode->drawPoly(points, 4, true, Color4F::GREEN);
+    }
 
     if (_debugSlots)
     {
@@ -792,62 +791,24 @@ void SkeletonRenderer::drawDebug(Renderer* renderer, const Mat4& transform, uint
             if (!slot->getAttachment() || !slot->getAttachment()->getRTTI().isExactly(RegionAttachment::rtti))
                 continue;
 
-				RegionAttachment *attachment = (RegionAttachment *) slot->getAttachment();
-				float worldVertices[8];
-				attachment->computeWorldVertices(*slot, worldVertices, 0, 2);
-				const Vec2 points[4] =
-						{
-								{worldVertices[0], worldVertices[1]},
-								{worldVertices[2], worldVertices[3]},
-								{worldVertices[4], worldVertices[5]},
-								{worldVertices[6], worldVertices[7]}};
-				drawNode->drawPoly(points, 4, true, Color4B::BLUE, 2.0f);
-			}
-		}
+            if (slotIsOutRange(*slot, _startSlotIndex, _endSlotIndex))
+            {
+                continue;
+            }
 
-		if (_debugBones) {
-			// Bone lengths.
-			for (int i = 0, n = (int)_skeleton->getBones().size(); i < n; i++) {
-				Bone *bone = _skeleton->getBones()[i];
-				if (!bone->isActive()) continue;
-				float x = bone->getData().getLength() * bone->getA() + bone->getWorldX();
-				float y = bone->getData().getLength() * bone->getC() + bone->getWorldY();
-				drawNode->drawLine(Vec2(bone->getWorldX(), bone->getWorldY()), Vec2(x, y), Color4B::RED, 2.0f);
-			}
-			// Bone origins.
-			auto color = Color4B::BLUE;// Root bone is blue.
-			for (int i = 0, n = (int)_skeleton->getBones().size(); i < n; i++) {
-				Bone *bone = _skeleton->getBones()[i];
-				if (!bone->isActive()) continue;
-				drawNode->drawPoint(Vec2(bone->getWorldX(), bone->getWorldY()), 4, color);
-				if (i == 0) color = Color4B::GREEN;
-			}
-		}
+            RegionAttachment* attachment = (RegionAttachment*)slot->getAttachment();
+            float worldVertices[8];
+            attachment->computeWorldVertices(slot->getBone(), worldVertices, 0, 2);
+            const Vec2 points[4] = {{worldVertices[0], worldVertices[1]},
+                                    {worldVertices[2], worldVertices[3]},
+                                    {worldVertices[4], worldVertices[5]},
+                                    {worldVertices[6], worldVertices[7]}};
+            drawNode->drawPoly(points, 4, true, Color4F::BLUE);
+        }
+    }
 
-		if (_debugMeshes) {
-			// Meshes.
-			for (int i = 0, n = (int)_skeleton->getSlots().size(); i < n; ++i) {
-				Slot *slot = _skeleton->getDrawOrder()[i];
-				if (!slot->getBone().isActive()) continue;
-				if (!slot->getAttachment() || !slot->getAttachment()->getRTTI().isExactly(MeshAttachment::rtti)) continue;
-				MeshAttachment *const mesh = static_cast<MeshAttachment *>(slot->getAttachment());
-				VLA(float, worldCoord, mesh->getWorldVerticesLength());
-				mesh->computeWorldVertices(*slot, 0, mesh->getWorldVerticesLength(), worldCoord, 0, 2);
-				for (size_t t = 0; t < mesh->getTriangles().size(); t += 3) {
-					// Fetch triangle indices
-					const int idx0 = mesh->getTriangles()[t + 0];
-					const int idx1 = mesh->getTriangles()[t + 1];
-					const int idx2 = mesh->getTriangles()[t + 2];
-					const Vec2 v[3] =
-							{
-									worldCoord + (idx0 * 2),
-									worldCoord + (idx1 * 2),
-									worldCoord + (idx2 * 2)};
-					drawNode->drawPoly(v, 3, true, Color4B::YELLOW, 2.0f);
-				}
-				VLA_FREE(worldCoord);
-			}
-		}
+    if (_debugBones)
+    {
 
         for (int i = 0, n = _skeleton->getBones().size(); i < n; i++)
         {
