@@ -198,7 +198,11 @@ public:
         TOP,
         LEFT,
         BOTTOM,
-        RIGHT
+        RIGHT,
+        TOP_MIDDLE,
+        LEFT_MIDDLE,
+        BOTTOM_MIDDLE,
+        RIGHT_MIDDLE,
     };
 
     enum class EventType
@@ -334,7 +338,8 @@ public:
      */
     void setHeaderDockPlace(TabControl::Dock dockPlace);
     TabControl::Dock getHeaderDockPlace() const { return _headerDockPlace; }
-
+    void setPositionContainers(const Vec2& pos);
+    void setContentSizeContainers(const Vec2& contentSize);
     /// @}
 protected:
     TabControl();
@@ -343,6 +348,7 @@ protected:
     void onSizeChanged() override;
     void initTabHeadersPos(int startIndex);
     void initContainers();
+
     virtual void copySpecialProperties(Widget* model) override;
 
     ccTabControlCallback _tabChangedCallback;
@@ -375,6 +381,8 @@ private:
     Dock _headerDockPlace;
     Vec2 _containerPosition;
     Vec2 _containerSize;
+    bool _isSetCustomPosition      = false;
+    bool _isSetCustomContainerSize = false;
     float _currentHeaderZoom;
     bool _ignoreHeaderTextureSize;
 
@@ -384,6 +392,6 @@ private:
 }  // namespace ui
 // end group
 /// @}
-}
+}  // namespace ax
 
 #endif  // __UITABVIEW_H__

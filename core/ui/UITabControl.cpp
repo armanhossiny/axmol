@@ -157,18 +157,22 @@ size_t TabControl::getTabCount() const
 void TabControl::setHeaderWidth(float headerWidth)
 {
     _headerWidth = headerWidth;
-    if (_headerDockPlace == Dock::TOP || _headerDockPlace == Dock::BOTTOM)
+    if (_headerDockPlace == Dock::TOP || _headerDockPlace == Dock::BOTTOM || _headerDockPlace == Dock::TOP_MIDDLE ||
+        _headerDockPlace == Dock::BOTTOM_MIDDLE)
         initTabHeadersPos(0);
-    if (_headerDockPlace == Dock::LEFT || _headerDockPlace == Dock::RIGHT)
+    if (_headerDockPlace == Dock::LEFT || _headerDockPlace == Dock::RIGHT || _headerDockPlace == Dock::LEFT_MIDDLE ||
+        _headerDockPlace == Dock::RIGHT_MIDDLE)
         initContainers();
 }
 
 void TabControl::setHeaderHeight(float headerHeight)
 {
     _headerHeight = headerHeight;
-    if (_headerDockPlace == Dock::LEFT || _headerDockPlace == Dock::RIGHT)
+    if (_headerDockPlace == Dock::LEFT || _headerDockPlace == Dock::RIGHT || _headerDockPlace == Dock::LEFT_MIDDLE ||
+        _headerDockPlace == Dock::RIGHT_MIDDLE)
         initTabHeadersPos(0);
-    if (_headerDockPlace == Dock::TOP || _headerDockPlace == Dock::BOTTOM)
+    if (_headerDockPlace == Dock::TOP || _headerDockPlace == Dock::BOTTOM || _headerDockPlace == Dock::TOP_MIDDLE ||
+        _headerDockPlace == Dock::BOTTOM_MIDDLE)
         initContainers();
 }
 
@@ -194,16 +198,20 @@ ax::Vec2 TabControl::getHeaderAnchorWithDock() const
     switch (_headerDockPlace)
     {
     case Dock::TOP:
+    case Dock::TOP_MIDDLE:
         break;
     case Dock::LEFT:
+    case Dock::LEFT_MIDDLE:
         anpoint.x = 1.f;
         anpoint.y = .5f;
         break;
     case Dock::BOTTOM:
+    case Dock::BOTTOM_MIDDLE:
         anpoint.x = .5f;
         anpoint.y = 1.f;
         break;
     case Dock::RIGHT:
+    case Dock::RIGHT_MIDDLE:
         anpoint.x = 0.f;
         anpoint.y = .5f;
         break;
@@ -247,11 +255,34 @@ void TabControl::initTabHeadersPos(int startIndex)
         originY    = _contentSize.height - _headerHeight * .5f;
         deltaPos.y = 0 - _headerHeight;
         break;
+    case Dock::TOP_MIDDLE:
+        originX    = getAnchorPoint().x == 0.5f
+                         ? (_contentSize.width * 0.5f) - (cellSize * _headerWidth * .5f) + (_headerWidth * .5f)
+                         : (_headerWidth * .5f);
+        deltaPos.x = _headerWidth;
+        break;
+    case Dock::LEFT_MIDDLE:
+        originX    = _headerWidth;
+        originY    = _contentSize.height - _headerHeight * .5f;
+        deltaPos.y = 0 - _headerHeight;
+        break;
+    case Dock::BOTTOM_MIDDLE:
+        originX    = getAnchorPoint().x == 0.5f
+                         ? (_contentSize.width * 0.5f) - (cellSize * _headerWidth * .5f) + (_headerWidth * .5f)
+                         : (_headerWidth * .5f);
+        originY    = _headerHeight;
+        deltaPos.x = _headerWidth;
+        break;
+    case Dock::RIGHT_MIDDLE:
+        originX    = _contentSize.width - _headerWidth;
+        originY    = _contentSize.height - _headerHeight * .5f;
+        deltaPos.y = 0 - _headerHeight;
+        break;
     default:
         break;
     }
 
-    for (int cellI = startIndex; cellI < cellSize; cellI++)
+    for (int cellI = 0; cellI < cellSize; cellI++)
     {
         auto headerCell = _tabItems.at(cellI)->header;
         headerCell->setPosition(Vec2(originX + cellI * deltaPos.x, originY + cellI * deltaPos.y));
@@ -263,20 +294,28 @@ void TabControl::initContainers()
     switch (_headerDockPlace)
     {
     case Dock::TOP:
-        _containerPosition = Vec2(0, 0);
-        _containerSize     = Vec2(_contentSize.width, _contentSize.height - _headerHeight);
+    case Dock::TOP_MIDDLE:
+        _containerPosition = _isSetCustomPosition ? _containerPosition : Vec2(0, 0);
+        _containerSize =
+            _isSetCustomContainerSize ? _containerSize : Vec2(_contentSize.width, _contentSize.height - _headerHeight);
         break;
     case Dock::LEFT:
-        _containerPosition = Vec2(_headerWidth, 0);
-        _containerSize     = Vec2(_contentSize.width - _headerWidth, _contentSize.height);
+    case Dock::LEFT_MIDDLE:
+        _containerPosition = _isSetCustomPosition ? _containerPosition : Vec2(_headerWidth, 0);
+        _containerSize =
+            _isSetCustomContainerSize ? _containerSize : Vec2(_contentSize.width - _headerWidth, _contentSize.height);
         break;
     case Dock::BOTTOM:
-        _containerPosition = Vec2(0, _headerHeight);
-        _containerSize     = Vec2(_contentSize.width, _contentSize.height - _headerHeight);
+    case Dock::BOTTOM_MIDDLE:
+        _containerPosition = _isSetCustomPosition ? _containerPosition : Vec2(0, _headerHeight);
+        _containerSize =
+            _isSetCustomContainerSize ? _containerSize : Vec2(_contentSize.width, _contentSize.height - _headerHeight);
         break;
     case Dock::RIGHT:
-        _containerPosition = Vec2(0, 0);
-        _containerSize     = Vec2(_contentSize.width - _headerWidth, _contentSize.height);
+    case Dock::RIGHT_MIDDLE:
+        _containerPosition = _isSetCustomPosition ? _containerPosition : Vec2(0, 0);
+        _containerSize =
+            _isSetCustomContainerSize ? _containerSize : Vec2(_contentSize.width - _headerWidth, _contentSize.height);
         break;
     default:
         break;
@@ -288,6 +327,21 @@ void TabControl::initContainers()
         container->setPosition(_containerPosition);
         container->setContentSize(_containerSize);
     }
+}
+
+void TabControl::setPositionContainers(const Vec2& pos)
+{
+
+    _isSetCustomPosition = true;
+    _containerPosition   = pos;
+    initContainers();
+}
+
+void TabControl::setContentSizeContainers(const Vec2& contentSize)
+{
+    _isSetCustomContainerSize = true;
+    _containerSize            = contentSize;
+    initContainers();
 }
 
 TabHeader* TabControl::getTabHeader(int index) const
@@ -629,8 +683,14 @@ void TabHeader::setTitleFontName(std::string_view fontName)
             config.fontSize     = _tabLabelFontSize;
             _tabLabelRender->setTTFConfig(config);
             _fontType = FontType::TTF;
-            _fontType = FontType::SYSTEM;
+
             _tabLabelRender->setSystemFontName(fontName);
+            if (_fontType == FontType::TTF)
+            {
+                _tabLabelRender->requestSystemFontRefresh();
+            }
+            _tabLabelRender->setSystemFontSize(_tabLabelFontSize);
+            _fontType = FontType::SYSTEM;
         }
     }
     else
