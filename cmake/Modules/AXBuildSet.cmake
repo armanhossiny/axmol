@@ -63,4 +63,4 @@ message(STATUS "PROJECT_BINARY_DIR:" ${PROJECT_BINARY_DIR})
 message(STATUS "ENGINE_BINARY_PATH:" ${ENGINE_BINARY_PATH})
 message(STATUS "ARCH_ALIAS:" ${ARCH_ALIAS})
 
-_1k_deprecated_32bit(axmol 2.2.0)
+_1k_deprecated_32bit(axmol 3.0.0)
