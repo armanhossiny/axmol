@@ -11286,8 +11286,7 @@ int lua_ax_base_Node_setProgramStateByProgramId(lua_State* tolua_S)
     {
         unsigned long long arg0;
 
-        #pragma warning NO CONVERSION TO NATIVE FOR unsigned long long
-		ok = false;
+        ok &= luaval_to_long_long(tolua_S, 2,(long long*)&arg0, "ax.Node:setProgramStateByProgramId");
         if(!ok)
         {
             tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_Node_setProgramStateByProgramId'", nullptr);

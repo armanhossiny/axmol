@@ -216,7 +216,7 @@ $manifest = @{
     # _EMIT_STL_ERROR(STL1000, "Unexpected compiler version, expected Clang xx.x.x or newer.");
     # clang-cl msvc14.37 require 16.0.0+
     # clang-cl msvc14.40 require 17.0.0+
-    llvm         = '17.0.6+'; 
+    llvm         = '17.0.6+';
     gcc          = '9.0.0+';
     cmake        = '3.23.0~3.31.1+';
     ninja        = '1.10.0+';
@@ -655,7 +655,7 @@ function find_prog($name, $path = $null, $mode = 'ONLY', $cmd = $null, $params =
         if (!$usefv) {
             $verStr = $(. $cmd @params 2>$null) | Select-Object -First 1
             if ($LASTEXITCODE) {
-                Write-Warning '1kiss: Get version of $cmd fail'
+                Write-Warning "1kiss: Get version of $cmd fail"
                 $LASTEXITCODE = 0
             }
             if (!$verStr -or $verStr.Contains('--version')) {
@@ -2029,7 +2029,7 @@ if (!$setupOnly) {
 
                     if ($options.t) { $cmake_target = $options.t }
                     if ($cmake_target) {
-                        $cmake_targets = $cmake_target.Split(',') | Sort-Object | Get-Unique
+                        $cmake_targets = $cmake_target.Split(',')
                         foreach ($target in $cmake_targets) {
                             $1k.println("cmake --build $BUILD_DIR $BUILD_ALL_OPTIONS --target $target")
                             cmake --build $BUILD_DIR $BUILD_ALL_OPTIONS --target $target $forward_options | Out-Host
