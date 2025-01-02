@@ -243,6 +243,7 @@ $channels = @{}
 $cmdlinetools_rev = '11076708' # 12.0
 
 $ndk_r23d_rev = '12186248'
+# $ndk_r25d_rev = '12161346'
 
 $android_sdk_tools = @{
     'build-tools' = '34.0.0'
@@ -269,6 +270,7 @@ $options = @{
     dm     = $false # dump compiler preprocessors
     i      = $false # perform install
     scope  = 'local'
+    aab    = $false
 }
 
 $optName = $null
@@ -1949,11 +1951,12 @@ if (!$setupOnly) {
             $build_tool_dir = Split-Path $build_tool -Parent
             Push-Location $build_tool_dir
             if (!$configOnly) {
+                $build_task = @('assemble', 'bundle')[$options.aab]
                 if ($optimize_flag -eq 'Debug') {
-                    & $build_tool assembleDebug $CONFIG_ALL_OPTIONS | Out-Host
+                    & $build_tool ${build_task}Debug $CONFIG_ALL_OPTIONS | Out-Host
                 }
                 else {
-                    & $build_tool assembleRelease $CONFIG_ALL_OPTIONS | Out-Host
+                    & $build_tool ${build_task}Release $CONFIG_ALL_OPTIONS | Out-Host
                 }
             }
             else {
