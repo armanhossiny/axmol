@@ -5,6 +5,9 @@ param(
 
 # Set-StrictMode -Version Latest
 
+# clear last exit code
+$Global:LASTEXITCODE = 0
+
 # pwsh function alias
 function println($message) { Write-Host "axmol: $message" }
 

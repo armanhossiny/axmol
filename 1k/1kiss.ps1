@@ -65,6 +65,8 @@ param(
 
 $myRoot = $PSScriptRoot
 
+$ErrorActionPreference = 'Stop'
+
 $HOST_WIN = 0 # targets: win,uwp,android
 $HOST_LINUX = 1 # targets: linux,android
 $HOST_MAC = 2 # targets: android,ios,osx(macos),tvos,watchos
@@ -320,7 +322,7 @@ if ($options.xb.GetType() -eq [string]) {
     $options.xb = $options.xb.Split(' ')
 }
 
-$pwsh_ver = $PSVersionTable.PSVersion.ToString()
+[VersionEx]$pwsh_ver = [Regex]::Match($PSVersionTable.PSVersion.ToString(), '(\d+\.)+(\*|\d+)').Value
 if ([VersionEx]$pwsh_ver -lt [VersionEx]"7.0") {
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 }
@@ -658,7 +660,7 @@ function find_prog($name, $path = $null, $mode = 'ONLY', $cmd = $null, $params =
             $verStr = $(. $cmd @params 2>$null) | Select-Object -First 1
             if ($LASTEXITCODE) {
                 Write-Warning "1kiss: Get version of $cmd fail"
-                $LASTEXITCODE = 0
+                $Global:LASTEXITCODE = 0
             }
             if (!$verStr -or $verStr.Contains('--version')) {
                 $verInfo = $cmd_info.Version
@@ -739,7 +741,7 @@ function download_and_expand($url, $out, $dest) {
             tar xf "$out" -C $dest | Out-Host
         }
         elseif ($out.EndsWith('.7z') -or $out.EndsWith('.exe')) {
-            7z x "$out" "-o$dest" -bsp1 -snld -y | Out-Host
+            7z x "$out" "-o$dest" -bsp1 -y | Out-Host
         }
         elseif ($out.EndsWith('.sh')) {
             chmod 'u+x' "$out" | Out-Host
@@ -1762,6 +1764,7 @@ elseif ($Global:is_wasm) {
 
 $is_host_target = $Global:is_win32 -or $Global:is_linux -or $Global:is_mac
 $is_host_cpu = $HOST_CPU -eq $TARGET_CPU
+$cmake_target = $null
 
 if (!$setupOnly) {
     $BUILD_DIR = $null
@@ -2030,10 +2033,25 @@ if (!$setupOnly) {
                         $forward_options += '--', '-quiet'
                     }
 
-                    if ($options.t) { $cmake_target = $options.t }
-                    if ($cmake_target) {
-                        $cmake_targets = $cmake_target.Split(',')
-                        foreach ($target in $cmake_targets) {
+                    $cm_targets = $options.t
+
+                    if($cm_targets) {
+                        if($cm_targets -isnot [array]) {
+                            $cm_targets = "$cm_targets".Split(',')
+                        }
+                    } else {
+                        $cm_targets = @()
+                    }
+                    if($cmake_target) {
+                        if ($cm_targets.Contains($cmake_target)) {
+                            $cm_targets += $cmake_target
+                        }
+                    } else {
+                        $cmake_target = $cm_targets[-1]
+                    }
+
+                    if ($cm_targets) {
+                        foreach ($target in $cm_targets) {
                             $1k.println("cmake --build $BUILD_DIR $BUILD_ALL_OPTIONS --target $target")
                             cmake --build $BUILD_DIR $BUILD_ALL_OPTIONS --target $target $forward_options | Out-Host
                             if (!$?) {
