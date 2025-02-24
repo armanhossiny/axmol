@@ -1522,8 +1522,10 @@ function preprocess_win() {
         $vs_ver = [VersionEx]$Global:VS_INST.installationVersion
         if ($vs_ver -ge [VersionEx]'16.0') {
             $outputOptions += '-A', $arch
-            if ($TOOLCHAIN_VER) {
+            if ($TOOLCHAIN_VER -match '^\d+$') {
                 $outputOptions += "-Tv$TOOLCHAIN_VER"
+            } elseif($TOOLCHAIN_VER -match '^\d+\.\d+$') {
+                $outputOptions += '-T', "version=$TOOLCHAIN_VER"
             }
         }
         else {

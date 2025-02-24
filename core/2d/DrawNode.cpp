@@ -577,7 +577,7 @@ void DrawNode::drawSegment(const Vec2& from,
     _drawSegment(from, to, color, thickness, etStart, etEnd);
 }
 
-void DrawNode::drawPolygon(Vec2* verts,
+void DrawNode::drawPolygon(const Vec2* verts,
                            int count,
                            const Color4B& fillColor,
                            float thickness,
@@ -592,7 +592,7 @@ void DrawNode::drawPolygon(Vec2* verts,
     _drawPolygon(verts, count, fillColor, borderColor, true, thickness, isconvex);
 }
 
-void DrawNode::drawPolygon(Vec2* verts, int count, float thickness, const Color4B& borderColor, bool isconvex)
+void DrawNode::drawPolygon(const Vec2* verts, int count, float thickness, const Color4B& borderColor, bool isconvex)
 {
     if (thickness < 0.0f)
     {
@@ -602,7 +602,7 @@ void DrawNode::drawPolygon(Vec2* verts, int count, float thickness, const Color4
     _drawPolygon(verts, count, Color4B::TRANSPARENT, borderColor, true, thickness, isconvex);
 }
 
-void DrawNode::drawSolidPolygon(Vec2* verts,
+void DrawNode::drawSolidPolygon(const Vec2* verts,
                                 int count,
                                 const Color4B& fillColor,
                                 float thickness,

@@ -478,16 +478,16 @@ public:
      * @param borderColor The border of line color.
      * @js NA
      */
-    void drawPolygon(Vec2* verts,
+    void drawPolygon(const Vec2* verts,
                      int count,
                      const Color4B& fillColor,
                      float thickness,
                      const Color4B& borderColor,
                      bool isconvex = false);
 
-    void drawPolygon(Vec2* verts, int count, float thickness, const Color4B& borderColor, bool isconvex = false);
+    void drawPolygon(const Vec2* verts, int count, float thickness, const Color4B& borderColor, bool isconvex = false);
 
-    void drawSolidPolygon(Vec2* verts,
+    void drawSolidPolygon(const Vec2* verts,
                           int count,
                           const Color4B& fillColor,
                           float thickness,

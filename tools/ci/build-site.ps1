@@ -164,7 +164,9 @@ configure_file './doc_index.html.in' "$site_dist/manual/index.html" @{'@VERSION@
 mkdirs "$site_dist/assets/css"
 Copy-Item './style.css'  "$site_dist/assets/css/style.css"
 Copy-Item './index.html' "$site_dist/index.html"
-Copy-Item './donate.html' "$site_dist/donate.html"
+
+mkdir "$site_dist/donate"
+Copy-Item './donate.html' "$site_dist/donate/index.html"
 
 # copy images used in axmol home page
 Copy-Item './logo.png' "$site_dist/logo.png"

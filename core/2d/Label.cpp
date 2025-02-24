@@ -1503,7 +1503,9 @@ void Label::enableUnderline()
     {
         _lineDrawNode = DrawNode::create();
         _lineDrawNode->setGlobalZOrder(getGlobalZOrder());
-        _lineDrawNode->properties.setFactor(_lineDrawNode->properties.getFactor() * 2.0f);  // 2.0f: Makes the line smaller 
+        _lineDrawNode->setOpacity(_displayedOpacity);
+        _lineDrawNode->properties.setFactor(_lineDrawNode->properties.getFactor() *
+                                            2.0f);  // 2.0f: Makes the line smaller 
         addChild(_lineDrawNode, 100000);
     }
 }
@@ -1520,7 +1522,9 @@ void Label::enableStrikethrough()
     {
         _lineDrawNode = DrawNode::create();
         _lineDrawNode->setGlobalZOrder(getGlobalZOrder());
-        _lineDrawNode->properties.setFactor(_lineDrawNode->properties.getFactor() * 2.0f); // 2.0f: Makes the line smaller 
+        _lineDrawNode->setOpacity(_displayedOpacity);
+        _lineDrawNode->properties.setFactor(_lineDrawNode->properties.getFactor() *
+                                            2.0f);  // 2.0f: Makes the line smaller 
         addChild(_lineDrawNode, 100000); 
     }
 }
@@ -1749,28 +1753,33 @@ void Label::updateContent()
 
         _lineDrawNode->clear();
 
-        if (_numberOfLines && _currentLabelType != LabelType::STRING_TEXTURE)
+        if (_numberOfLines > 0 && _currentLabelType != LabelType::STRING_TEXTURE)
         {
             // This is the logic for TTF fonts
-            const float charheight = (_textDesiredHeight / _numberOfLines);
-            float thickness        = charheight / 6;
+            float thickness         = std::max(std::ceil(_lineHeight * _fontScale * 0.12f * 2) / 2.f, 2.f);
+            float nextY             = _letterOffsetY;
+            auto contentScaleFactor = AX_CONTENT_SCALE_FACTOR();
+            float lineSpacing       = _lineSpacing;
+            float lineHeight        = _lineHeight * _fontScale / contentScaleFactor;
 
             // atlas font
             for (int i = 0; i < _numberOfLines; ++i)
             {
                 if (_strikethroughEnabled)
                 {
-                    float y = (_numberOfLines - i - 1) * charheight + charheight / 2;
+                    auto y = nextY - lineHeight / 2;
                     _lineDrawNode->drawLine(Vec2(_linesOffsetX[i], y), Vec2(_linesWidth[i] + _linesOffsetX[i], y),
                                             Color4F(lineColor), thickness);
                 }
 
                 if (_underlineEnabled)
                 {
-                    float y = (_numberOfLines - i - 1) * charheight;
+                    auto y = nextY - lineHeight;
                     _lineDrawNode->drawLine(Vec2(_linesOffsetX[i], y), Vec2(_linesWidth[i] + _linesOffsetX[i], y),
                                             Color4F(lineColor), thickness);
                 }
+
+                nextY -= lineHeight + lineSpacing;
             }
         }
         else if (_textSprite) // ...and is the logic for System fonts
@@ -1780,24 +1789,26 @@ void Label::updateContent()
 
             // FIXME: system fonts don't report the height of the font correctly. only the size of the texture, which is POT
             // FIXME: Might not work with different vertical alignments
-            float offsety         = spriteSize.height / _numberOfLines;
-            float thickness       = spriteSize.height / 6 / _numberOfLines;
-    
+            const auto lineSize  = spriteSize.height / static_cast<float>(_numberOfLines);
+            const auto thickness = std::max(std::ceil(lineSize * 0.12f * 2) / 2.f, 2.f);
+
             if (_underlineEnabled)
-            {       
+            {
+                const auto baseY = spriteSize.height / (static_cast<float>(_numberOfLines) * lineSize);
                 for (int i = 0; i < _numberOfLines; ++i)
                 {
-                    float y = offsety * i;
+                    float y = baseY + lineSize * i;
                     _lineDrawNode->drawLine(Vec2(0.0f, y), Vec2(spriteSize.width, y), Color4F(lineColor), thickness);
                 }
             }
 
             if (_strikethroughEnabled)
             {  
-                float _of = spriteSize.height / _numberOfLines / 2;
+                const auto baseY = lineSize - lineSize / 2;
+                
                 for (int i = 0; i < _numberOfLines; ++i)
                 {
-                    float y = _of + offsety * i;
+                    float y = baseY + lineSize * i;
                     _lineDrawNode->drawLine(Vec2(0.0f, y), Vec2(spriteSize.width, y), Color4F(lineColor), thickness);
                 }
             }
@@ -2423,6 +2434,12 @@ void Label::updateDisplayedOpacity(uint8_t parentOpacity)
     for (auto&& it : _letters)
     {
         it.second->updateDisplayedOpacity(_displayedOpacity);
+    }
+
+    if (_lineDrawNode)
+    {
+        _lineDrawNode->setOpacity(_displayedOpacity);
+        _contentDirty = true;
     }
 }
 

@@ -1,4 +1,4 @@
-## axmol-2.3.3 ?? 2025
+## axmol-2.4.0 Feb.23 2025
 
 ### Bug fixes
 
@@ -7,9 +7,12 @@
 - Fix #2371 Video freezes on the first frame when played on Apple TV by @halx99
 - Fix tile animation logic to use correct time per frame by @rh101 in https://github.com/axmolengine/axmol/pull/2345
 - Fix: when these extensions set to OFF, compiles by @blairwang in https://github.com/axmolengine/axmol/pull/2347
+- Fix tilemap culling by @DelinWorks in https://github.com/axmolengine/axmol/pull/2403
 
 ### Improvements
 
+- Improve build system, support select msvc toolset version by @halx99
+- Improve Label: underline, strikethrough and color by @aismann in https://github.com/axmolengine/axmol/pull/2382
 - Disable Spine references if Spine is not enabled by @rh101 in https://github.com/axmolengine/axmol/pull/2346
 - Increase MAX_AUDIOINSTANCES value to 128 in AudioEngine by @MartinLutherSu in https://github.com/axmolengine/axmol/pull/2348
 - Clipper2 ver. 1.5.0 by @aismann in https://github.com/axmolengine/axmol/pull/2350
@@ -32,6 +35,14 @@
   - Improve gradle scripts
 - Remove unused 3rd lib: yaml-cpp by @halx99
 - Fix wasm compile warnings
+- Added methods to modify audio pitch by @Janglee123 in https://github.com/axmolengine/axmol/pull/2381
+- Improve webgl render fps by @halx99 in https://github.com/axmolengine/axmol/pull/2379
+- Add missing const qualifiers for DrawNode by @crazyhappygame in https://github.com/axmolengine/axmol/pull/2394
+- Ensure opacity is applied to DrawNode used in Label by @rh101 in https://github.com/axmolengine/axmol/pull/2396
+- Update button size if title renderer is changed and ignore size is true by @rh101 in https://github.com/axmolengine/axmol/pull/2401
+- Calculate correct positions for underline and strikethrough by @rh101 in https://github.com/axmolengine/axmol/pull/2398
+- [Android] Add a way to disable interactions on the SurfaceView by @AlexandreK38 in https://github.com/axmolengine/axmol/pull/2410
+
 
 ### SDKs updates
 
@@ -39,9 +50,12 @@
 
 ### 3rdparty updates
 
+- astcenc: 5.1.0 ==> 5.2.0
 - clipper2: 1.4.0 ==> 1.5.2
-- libpng: 1.6.45 ==> 1.6.46
+- curl: 8.11.1 ==> 8.12.1
+- libpng: 1.6.45 ==> 1.6.47
 - fmt: 11.1.2 ==> 11.1.3
+- openssl: 3.0.15 ==> 3.0.16
 
 ## axmol-2.3.2 Jan.21 2025
 
@@ -71,6 +85,7 @@
 
 - libpng: 1.6.44 ==> 1.6.45
 - fmt: 11.1.1 ==> 11.1.2
+- luajit: 2.1-f73e649 ==> 2.1-a4f56a4
 
 ## axmol-2.3.1 Jan.5 2025
 

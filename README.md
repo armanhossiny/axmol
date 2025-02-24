@@ -138,7 +138,7 @@ How to contribute:
 * Please do not forget to add the topic `axmol` and `axmolengine` to any related repository you create!
 * Adding a star on GitHub will help Axmol grow as well. Thank you!
 
-If you find **Axmol Engine** helpful, please consider donating in [https://axmol.dev/donate.html](https://axmol.dev/donate.html). Thank you very much!
+If you find **Axmol Engine** helpful, please consider donating in [https://axmol.dev/donate](https://axmol.dev/donate). Thank you very much!
 
 ## Sponsors
 
@@ -154,7 +154,7 @@ If you find **Axmol Engine** helpful, please consider donating in [https://axmol
 
 #### More Sponsors
 
-Please visit: [https://axmol.dev/donate.html](https://axmol.dev/donate.html)
+Please visit: [https://axmol.dev/donate](https://axmol.dev/donate)
 
 ## Community
 
