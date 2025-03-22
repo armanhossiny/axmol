@@ -35,6 +35,7 @@ android {
 
 dependencies {
     implementation fileTree(dir: '../java/libs', include: ['*.jar'])
+    implementation 'androidx.appcompat:appcompat:1.7.0'
 
     def media3_ver = buildProfiles['media3']
     def annotation_ver = buildProfiles['annotation']

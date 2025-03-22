@@ -52,8 +52,9 @@ import javax.microedition.khronos.egl.EGL10;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.egl.EGLDisplay;
 import javax.microedition.khronos.egl.EGLContext;
+import androidx.appcompat.app.AppCompatActivity;
 
-public abstract class AxmolActivity extends Activity implements AxmolEngineListener {
+public abstract class AxmolActivity extends AppCompatActivity implements AxmolEngineListener {
     // ===========================================================
     // Constants
     // ===========================================================
