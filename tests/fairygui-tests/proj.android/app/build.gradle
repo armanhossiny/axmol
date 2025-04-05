@@ -11,17 +11,17 @@ android {
     def targetSdk = buildProfiles['targetSdk']
 
     // Apply build profiles
-    namespace packageName
-    compileSdk targetSdk.toInteger()
+    namespace = packageName
+    compileSdk = targetSdk.toInteger()
     ndkVersion = buildProfiles['ndkVer']
     if(buildProfiles.containsKey('ndkPath')) {
         ndkPath = buildProfiles['ndkPath']
     }
 
     defaultConfig {
-        applicationId packageName
-        minSdkVersion minSdk
-        targetSdkVersion targetSdk
+        applicationId = packageName
+        minSdkVersion = minSdk
+        targetSdkVersion = targetSdk
         versionCode 1
         versionName "1.0"
 
@@ -48,7 +48,7 @@ android {
 
     externalNativeBuild {
         cmake {
-            version "$cmakeVer"
+            version = cmakeVer
             path "../../CMakeLists.txt"
         }
     }

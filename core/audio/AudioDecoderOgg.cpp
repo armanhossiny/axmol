@@ -24,8 +24,6 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-#define LOG_TAG "AudioDecoderOgg"
-
 #include "audio/AudioDecoderOgg.h"
 #include "audio/AudioMacros.h"
 #include "platform/FileUtils.h"
@@ -117,5 +115,3 @@ bool AudioDecoderOgg::seek(uint32_t frameOffset)
     return 0 == ov_pcm_seek(&_vf, frameOffset);
 }
 }  // namespace ax
-
-#undef LOG_TAG

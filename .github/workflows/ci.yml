@@ -1,4 +1,4 @@
-name: build
+name: ci
 
 on:
   push:
@@ -15,6 +15,20 @@ on:
       - '**.md'
       - '**/*.md.in'
       - 'docs/**'
+  workflow_dispatch:
+    inputs:
+      cxxstd:
+        # actions run ID
+        description: 'Please input cxxstd, example: 23'
+        # Default value if no value is explicitly provided
+        default: '23'
+        # Input has to be provided for the workflow to run
+        required: false
+
+env:
+  __1K_CXXSTD: '${{ inputs.cxxstd }}'
+
+run-name: 'ci@c++${{ inputs.cxxstd || 20 }}'
 
 jobs:
   win32:
@@ -49,7 +63,7 @@ jobs:
             submodules: 'recursive'
         - name: Build
           shell: pwsh
-          run: .\tools\cmdline\axmol -p winuwp -a x64 -O0
+          run: .\tools\cmdline\axmol -p winuwp -a x64 -O3
   win32-clang:
         runs-on: windows-latest
         env:

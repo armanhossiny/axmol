@@ -690,10 +690,9 @@ int FastTMXLayer::getTileGIDAt(const Vec2& tileCoordinate, TMXTileFlags* flags /
 
     // Bits on the far end of the 32-bit global tile ID are used for tile flags
     int tile = _tiles[idx];
-    auto it  = _spriteContainer.find(idx);
-
+    decltype(_spriteContainer)::iterator it;
     // converted to sprite.
-    if (tile == 0 && it != _spriteContainer.end())
+    if (tile == 0 && (it = _spriteContainer.find(idx)) != _spriteContainer.end())
     {
         tile = it->second.second;
     }

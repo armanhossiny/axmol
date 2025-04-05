@@ -254,17 +254,15 @@ else {
         }
     }
 
-    if ($env:SHELL -like '*/zsh') {
+    if ("$env:SHELL" -like '*/zsh') {
         updateUnixProfile ~/.zshrc
     }
-    elseif($env:SHELL -like '*/bash') {
+    else { # traits undetermined shell as bash
         if (!$IsMacOS) {
             updateUnixProfile ~/.bashrc
         } else {
             updateUnixProfile ~/.bash_profile
         }
-    } else {
-        Write-Error "Warning: current shell: $env:SHELL isn't officially supported by axmol community"
     }
 
     if ($IsMacOS) {

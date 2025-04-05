@@ -41,7 +41,7 @@ if (WINDOWS)
         # refer to:
         #  - https://github.com/axmolengine/axmol/issues/991
         #  - https://github.com/axmolengine/axmol/issues/1246
-        message(WARNING "Forcing set CMAKE_C_STANDARD to 99 when winsdk < 10.0.22000.0")
+        message(AUTHOR_WARNING "Forcing set CMAKE_C_STANDARD to 99 when winsdk < 10.0.22000.0")
         set(CMAKE_C_STANDARD 99)
     endif()
 else()
@@ -64,6 +64,8 @@ if (CMAKE_CXX_STANDARD GREATER_EQUAL ${_AX_MIN_CXX_STD})
 else()
     message(STATUS "Building axmol require c++ std >= ${_AX_MIN_CXX_STD}")
 endif()
+
+# used to set 3rdparty c++ standard same with axmol
 set(_AX_CXX_STD ${CMAKE_CXX_STANDARD} CACHE STRING "" FORCE)
 
 if(NOT DEFINED CMAKE_CXX_STANDARD_REQUIRED)
@@ -115,9 +117,14 @@ endif()
 set(CMAKE_DEBUG_POSTFIX "" CACHE STRING "Library postfix for debug builds. Normally left blank." FORCE)
 set(CMAKE_PLATFORM_NO_VERSIONED_SONAME TRUE CACHE BOOL "Disable dynamic libraries symblink." FORCE)
 
-# set hash style to both for android old device compatible
-# see also: https://github.com/axmolengine/axmol/discussions/614
+
 if (ANDROID)
+    # Ensure fseeko available on ndk > 23
+    math(EXPR _ARCH_BITS "${CMAKE_SIZEOF_VOID_P} * 8")
+    add_definitions(-D_FILE_OFFSET_BITS=${_ARCH_BITS})
+
+    # set hash style to both for android old device compatible
+    # see also: https://github.com/axmolengine/axmol/discussions/614
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--hash-style=both")
 endif()
 
@@ -131,7 +138,6 @@ function(use_ax_compile_define target)
 
     if(APPLE)
         target_compile_definitions(${target} PUBLIC __APPLE__)
-        target_compile_definitions(${target} PUBLIC USE_FILE32API)
         if(AX_USE_GL)
             target_compile_definitions(${target}
                 PUBLIC AX_USE_GL=1
@@ -149,7 +155,6 @@ function(use_ax_compile_define target)
             target_compile_definitions(${target} PUBLIC AX_GLES_PROFILE=${AX_GLES_PROFILE})
         endif()
         target_compile_definitions(${target} PUBLIC AX_GLES_PROFILE=${AX_GLES_PROFILE})
-        target_compile_definitions(${target} PUBLIC USE_FILE32API)
     elseif(EMSCRIPTEN)
         target_compile_definitions(${target} PUBLIC AX_GLES_PROFILE=${AX_GLES_PROFILE})
     elseif(WINDOWS)
@@ -233,7 +238,7 @@ enable_language(ASM_NASM OPTIONAL)
 
 if(NOT EXISTS "${CMAKE_ASM_NASM_COMPILER}")
    set(CMAKE_ASM_NASM_COMPILER_LOADED FALSE CACHE BOOL "Does cmake asm nasm compiler loaded" FORCE)
-   message(WARNING "The nasm compiler doesn't present on your system PATH, please download from: https://www.nasm.us/pub/nasm/releasebuilds/2.16.01/")
+   message(AUTHOR_WARNING "The nasm compiler doesn't present on your system PATH, please download from: https://www.nasm.us/pub/nasm/releasebuilds/2.16.01/")
 endif()
 
 # we don't need cmake BUILD_TESTING feature

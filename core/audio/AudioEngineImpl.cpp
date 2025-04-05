@@ -23,8 +23,6 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.
  ****************************************************************************/
-#define LOG_TAG "AudioEngineImpl"
-
 #include "platform/PlatformConfig.h"
 
 #include "audio/AudioEngineImpl.h"
@@ -830,6 +828,11 @@ float AudioEngineImpl::getCurrentTime(AUDIO_ID audioID)
                 AXLOGE("{}, audio id:{},error code:{:#x}", __FUNCTION__, audioID, error);
             }
         }
+
+        if (ret == 0.0f && player->isFinished())
+        {
+            ret = player->_audioCache->_duration;
+        }
     }
 
     return ret;
@@ -995,4 +998,3 @@ void AudioEngineImpl::uncacheAll()
     _audioCaches.clear();
 }
 }
-#undef LOG_TAG

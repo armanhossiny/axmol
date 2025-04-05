@@ -88,7 +88,6 @@ class PolygonInfo;
  - [Zwoptex](https://zwopple.com/zwoptex/)
 
  @since v0.9
- @js cc.spriteFrameCache
  */
 class AX_DLL SpriteFrameCache
 {
@@ -96,17 +95,14 @@ public:
     /** Returns the shared instance of the Sprite Frame cache.
      *
      * @return The instance of the Sprite Frame Cache.
-     * @js NA
      */
     static SpriteFrameCache* getInstance();
 
     /** Destroys the cache. It releases all the Sprite Frames and the retained instance.
-     * @js NA
      */
     static void destroyInstance();
 
     /** Destructor.
-     * @js NA
      * @lua NA
      */
     virtual ~SpriteFrameCache();
@@ -121,7 +117,6 @@ public:
      * A texture will be loaded automatically. The texture name will composed by replacing the .plist suffix with .png.
      * If you want to use another texture, you should use the addSpriteFramesWithFile(std::string_view plist, const
      * std::string& textureFileName) method.
-     * @js addSpriteFrames
      * @lua addSpriteFrames
      *
      * @param spriteSheetFileName file name.
@@ -132,7 +127,6 @@ public:
 
     /** Adds multiple Sprite Frames from a plist file. The texture will be associated with the created sprite frames.
      @since v0.99.5
-     * @js addSpriteFrames
      * @lua addSpriteFrames
      *
      * @param spriteSheetFileName Plist file name.
@@ -144,7 +138,6 @@ public:
                                  uint32_t spriteSheetFormat = SpriteSheetFormat::PLIST);
 
     /** Adds multiple Sprite Frames from a plist file. The texture will be associated with the created sprite frames.
-     * @js addSpriteFrames
      * @lua addSpriteFrames
      *
      * @param spriteSheetFileName file name.
@@ -157,7 +150,6 @@ public:
 
     /** Adds multiple Sprite Frames from a plist file content. The texture will be associated with the created sprite
      * frames.
-     * @js NA
      * @lua addSpriteFrames
      *
      * @param content file content string.
@@ -177,7 +169,6 @@ public:
     void addSpriteFrame(SpriteFrame* frame, std::string_view frameName);
 
     /** Check if multiple Sprite Frames from a plist file have been loaded.
-     * @js NA
      * @lua NA
      *
      * @param plist Plist file name.
@@ -196,7 +187,6 @@ public:
     /** Removes unused sprite frames.
      * Sprite Frames that have a retain count of 1 will be deleted.
      * It is convenient to call this method after when starting a new Scene.
-     * @js NA
      */
     void removeUnusedSpriteFrames();
 
@@ -222,7 +212,6 @@ public:
      * It is convenient to call this method when a specific texture needs to be removed.
      *
      * @param plist_content The string of the plist content that needs to removed.
-     * @js NA
      */
     void removeSpriteFramesFromFileContent(std::string_view plist_content);
 
@@ -237,7 +226,6 @@ public:
     /** Returns an Sprite Frame that was previously added.
      If the name is not found it will return nil.
      You should retain the returned copy if you are going to use it.
-     * @js getSpriteFrame
      * @lua getSpriteFrame
      *
      * @param name A certain sprite frame name.
@@ -249,7 +237,8 @@ public:
 
     SpriteFrame* findFrame(std::string_view frame);
 
-    std::string_view getSpriteFrameName(SpriteFrame* frame);
+    // @DEPRECATED, use frame->getName() instead
+    std::string_view getSpriteFrameName(SpriteFrame* frame) { return frame->getName(); }
 
     /**  Record SpriteFrame with plist and frame name, add frame name
      *    and plist to index
@@ -261,7 +250,7 @@ public:
     /** Delete frame from cache, rebuild index
      */
     bool eraseFrame(std::string_view frameName);
-
+    
     void addSpriteFrameCapInset(SpriteFrame* spriteFrame, const Rect& capInsets, Texture2D* texture);
 
     void registerSpriteSheetLoader(std::shared_ptr<ISpriteSheetLoader> loader);
@@ -273,6 +262,9 @@ protected:
     // MARMALADE: Made this protected not private, as deriving from this class is pretty useful
     SpriteFrameCache() {}
 
+    SpriteFrame* findFrame(uint64_t frameId);
+    bool eraseFrame(uint64_t frameId);
+
     /** Removes multiple Sprite Frames from Dictionary.
      * @since v0.99.5
      */
@@ -280,38 +272,37 @@ protected:
 
     /** Delete a list of frames from cache, rebuild index
      */
-    bool eraseFrames(const std::vector<std::string_view>& frame);
+    bool eraseFrames(const std::vector<uint64_t>& frame);
     /** Delete frame from index and SpriteFrame is kept.
      */
-    bool removeSpriteSheet(std::string_view spriteSheetFileName);
+    bool removeSpriteSheet(uint64_t sheetId);
     /** Clear index and all SpriteFrames.
      */
     void clear();
 
-    inline bool hasFrame(std::string_view frame) const;
-    inline bool isSpriteSheetInUse(std::string_view spriteSheetFileName) const;
+    inline bool isSpriteSheetInUse(uint64_t sheetId) const;
 
-    inline StringMap<SpriteFrame*>& getSpriteFrames();
+    inline const ax::Map<uint64_t, SpriteFrame*>& getSpriteFrames();
 
-    void markPlistFull(std::string_view spriteSheetFileName, bool full)
+    void markPlistFull(uint64_t sheetId, bool full)
     {
         // _spriteSheets[spriteSheetFileName]->full = full;
-        auto it = _spriteSheets.find(spriteSheetFileName);
+        auto it = _spriteSheets.find(sheetId);
         if (it != _spriteSheets.end())
         {
             it.value()->full = full;
         }
     }
-    bool isPlistFull(std::string_view spriteSheetFileName) const
+    bool isPlistFull(uint64_t sheetId) const
     {
-        auto it = _spriteSheets.find(spriteSheetFileName);
-        return it == _spriteSheets.end() ? false : it->second->full;
+        auto it = _spriteSheets.find(sheetId);
+        return it != _spriteSheets.end() && it->second->full;
     }
 
 private:
-    StringMap<SpriteFrame*> _spriteFrames;
-    hlookup::string_map<std::shared_ptr<SpriteSheet>> _spriteSheets;
-    hlookup::string_map<std::shared_ptr<SpriteSheet>> _spriteFrameToSpriteSheetMap;
+    ax::Map<uint64_t, SpriteFrame*> _spriteFrames;
+    tsl::robin_map<uint64_t, std::shared_ptr<SpriteSheet>> _spriteSheets;
+    tsl::robin_map<uint64_t, std::shared_ptr<SpriteSheet>> _spriteFrameToSpriteSheetMap;
 
     std::map<uint32_t, std::shared_ptr<ISpriteSheetLoader>> _spriteSheetLoaders;
 };

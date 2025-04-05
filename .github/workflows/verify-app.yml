@@ -1,0 +1,141 @@
+# verify axmol cmdline to new & build a empty cpp project
+name: verify-app
+
+on:
+  workflow_dispatch:
+    inputs:
+      pr_id:
+        # actions run ID
+        description: 'Please input release version, example: 2426'
+        # Default value if no value is explicitly provided
+        default: ''
+        # Input has to be provided for the workflow to run
+        required: false
+        
+run-name: verify-app-pr${{ inputs.pr_id }}
+
+# env:
+#   pr_id: '${{ inputs.pr_id }}'
+
+jobs:
+  win32:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        ref: 'refs/pull/${{ inputs.pr_id }}/merge'
+    - name: Build
+      shell: pwsh
+      run: |
+        ./setup.ps1
+        axmol new HelloCpp
+        axmol -d HelloCpp
+  winuwp:
+    # build uwp debug avoid github CI fail with memory issue
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        ref: 'refs/pull/${{ inputs.pr_id }}/merge'
+    - name: Build
+      shell: pwsh
+      run: |
+        ./setup.ps1
+        axmol new HelloCpp
+        axmol -d HelloCpp -p winuwp
+  win32-clang:
+    runs-on: windows-latest
+    env:
+      # Test winsdk < 10.0.22000.0 (missing C11 standard stdalign.h), axmol will auto fallback to C99 for resolving compiling issue.
+      WINSDK_VER: '10.0.19041.0'
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        ref: 'refs/pull/${{ inputs.pr_id }}/merge'
+    - name: Build
+      shell: pwsh
+      run: |
+        ./setup.ps1
+        axmol new HelloCpp
+        axmol -d HelloCpp -cc clang
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        ref: 'refs/pull/${{ inputs.pr_id }}/merge'
+    - name: Install deps
+      run: |
+        echo -e "y" | pwsh ./setup.ps1
+    - name: Build
+      shell: pwsh
+      run: |
+        axmol new HelloCpp
+        axmol -d HelloCpp
+  osx-arm64:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        ref: 'refs/pull/${{ inputs.pr_id }}/merge'
+    - name: Build
+      shell: pwsh
+      run: |
+        ./setup.ps1
+        axmol new HelloCpp
+        axmol -d HelloCpp
+  osx-x64:
+    runs-on: macos-13
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        ref: 'refs/pull/${{ inputs.pr_id }}/merge'
+    - name: Build
+      shell: pwsh
+      run: |
+        ./setup.ps1
+        axmol new HelloCpp
+        axmol -d HelloCpp
+  android:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        ref: 'refs/pull/${{ inputs.pr_id }}/merge'
+    - name: Build
+      shell: pwsh
+      run: |
+        ./setup.ps1
+        axmol new HelloCpp
+        axmol -p android -d HelloCpp
+  ios:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        target_os:
+          - ios
+          - tvos
+    env:
+      TARGET_OS: ${{ matrix.target_os }}
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        ref: 'refs/pull/${{ inputs.pr_id }}/merge'
+    - name: Build
+      shell: pwsh
+      run: |
+        ./setup.ps1
+        axmol new HelloCpp
+        axmol -p $env:TARGET_OS -a x64 -d HelloCpp
+  wasm:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        ref: 'refs/pull/${{ inputs.pr_id }}/merge'
+    - name: Build
+      shell: pwsh
+      run: |
+        ./setup.ps1
+        axmol new HelloCpp
+        axmol -p wasm -d HelloCpp

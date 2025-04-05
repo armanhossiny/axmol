@@ -2,7 +2,7 @@
   'use strict';
 
   var url_re =  /(axmol\.dev\/manual\/)(latest|(\d\.\d+|\d\.\d+\.\d+)(-beta\d)?)\//;
-  var url_local =  /docs\/dist\/manual\/(latest|(\d\.\d+|\d\.\d+\.\d+)(-beta\d)?)\//;
+  var url_local =  /dist\/site1\/manual\/(latest|(\d\.\d+|\d\.\d+\.\d+)(-beta\d)?)\//;
   var current_version_local = '@VERSION@'
   var all_versions = [
       @VERLIST@
@@ -43,7 +43,7 @@
       return url.replace(url_re, 'axmol.dev/manual/' + new_version + '/');
     }
     else {
-      return url.replace(url_local, 'docs/dist/manual/' + new_version + '/');
+      return url.replace(url_local, 'dist/site1/manual/' + new_version + '/');
     }
   }
 

@@ -1,11 +1,9 @@
 
 # Can runs on Windows,Linux
 param(
-    $wasm_artifact_dir = $null
+    $site_dist = $null
 )
-if ($wasm_artifact_dir) {
-    $wasm_artifact_dir = (Resolve-Path $wasm_artifact_dir).Path
-}
+
 $myRoot = $PSScriptRoot
 
 $isWin = $IsWindows -or ("$env:OS" -eq 'Windows_NT')
@@ -46,7 +44,7 @@ if (!(Test-Path "$prefix" -PathType Container)) {
 }
 
 function setup_doxygen() {
-    $doxygen_ver = '1.9.7'
+    $doxygen_ver = '1.13.2'
 
     $doxygen_pkg_name = if ($isWin) { "doxygen-$doxygen_ver.windows.x64.bin.zip" } else { "doxygen-$doxygen_ver.linux.bin.tar.gz" }
     $doxygen_pkg_path = Join-Path $prefix $doxygen_pkg_name
@@ -105,7 +103,9 @@ function query_axmol_latest() {
 }
 
 $site_src = (Resolve-Path "$myRoot/../../docs").Path
-$site_dist = Join-Path $site_src 'dist'
+if (!$site_dist) {
+    $site_dist = Join-Path $site_src 'dist'
+}
 mkdirs $site_dist
 
 $store_cwd = (Get-Location).Path
@@ -117,28 +117,6 @@ function  configure_file($infile, $outfile, $vars) {
         $content = [Regex]::Replace($content, $var.Key, $var.Value)
     }
     Set-Content -Path $outfile -Value "$content"
-}
-
-# build site_dist2 aka isolated site wasm demos preview with pthread support
-if ($wasm_artifact_dir) {
-    $site_dist2 = Join-Path $site_src 'dist2'
-    $wasm_dist2 = Join-Path $site_dist2 'wasm/'
-    mkdirs $wasm_dist2
-    Copy-Item $(Join-Path $site_src 'isolated.html') $(Join-Path $site_dist2 'index.html')
-    Copy-Item $(Join-Path $site_src '_headers') $site_dist2
-    function copy_tree_if($source, $dest) {
-        if (Test-Path $source) {
-            Copy-Item $source $dest -Container -Recurse
-        }
-    }
-
-    $cpp_tests_dir = $(Join-Path $wasm_artifact_dir 'cpp-tests')
-    if (!(Test-Path $cpp_tests_dir -PathType Container)) {
-        throw "Missing wasm cpp-tests, caused by last wasm ci build fail."
-    }
-    copy_tree_if $cpp_tests_dir $wasm_dist2
-    copy_tree_if $(Join-Path $wasm_artifact_dir 'fairygui-tests') $wasm_dist2
-    copy_tree_if $(Join-Path $wasm_artifact_dir 'HelloLua') $wasm_dist2
 }
 
 # build manuals
@@ -159,19 +137,6 @@ Write-Host "$(Out-String -InputObject $verMap)"
 # set default doc ver to 'latest'
 mkdirs "$site_dist/manual"
 configure_file './doc_index.html.in' "$site_dist/manual/index.html" @{'@VERSION@' = 'latest' }
-
-# build home site
-mkdirs "$site_dist/assets/css"
-Copy-Item './style.css'  "$site_dist/assets/css/style.css"
-Copy-Item './index.html' "$site_dist/index.html"
-
-mkdir "$site_dist/donate"
-Copy-Item './donate.html' "$site_dist/donate/index.html"
-
-# copy images used in axmol home page
-Copy-Item './logo.png' "$site_dist/logo.png"
-Copy-Item './alipay.jpg' "$site_dist/alipay.jpg"
-Copy-Item './wxpay.png' "$site_dist/wxpay.png"
 
 $branches = $(git branch -a)
 $canon_branches = @{}
@@ -197,7 +162,7 @@ foreach ($item in $verMap.GetEnumerator()) {
     else {
         git checkout $release_tag
     }
-    configure_file './Doxyfile.in' './Doxyfile' @{'@VERSION@' = $release_tag; '@HTML_OUTPUT@' = "manual/$ver" }
+    configure_file './Doxyfile.in' './Doxyfile' @{'@VERSION@' = $release_tag; '@OUTPUT_DIR@' = $site_dist; './dist' = $site_dist; '@HTML_OUTPUT@' = "manual/$ver" }
 
     Write-Host "Generating docs for $ver ..." -NoNewline
     doxygen "./Doxyfile" # 1>$null 2>$null
@@ -208,29 +173,7 @@ foreach ($item in $verMap.GetEnumerator()) {
     configure_file './menu_version.js.in' "$html_out/menu_version.js" @{'@VERLIST@' = $strVerList; '@VERSION@' = $ver }
 }
 
-# redirect cpp_tests.html to isolated site
-# don't modify, released news: gitee, github releases inuse
-$fake_cpp_tests = Join-Path $site_dist 'axmol/wasm/cpp_tests/'
-mkdirs $fake_cpp_tests
-$fake_cpp_tests_html = Join-Path $fake_cpp_tests 'cpp_tests.html'
-$redirect_content = @'
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>Redirecting</title>
-  <noscript>
-    <meta http-equiv="refresh" content="1; url={0}" />
-  </noscript>
-  <script>
-    window.location.href = '{0}';
-  </script>
-</head>
-<body>
-  Redirecting to <a href="{0}">{0}</a>
-</body>
-</html>
-'@ -f 'https://axmol.netlify.app/wasm/cpp-tests/cpp-tests'
-Set-Content -Path $fake_cpp_tests_html -Value $redirect_content
+# checkout back to dev
+git checkout dev
 
 Set-Location $store_cwd

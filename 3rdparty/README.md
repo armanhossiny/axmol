@@ -62,12 +62,12 @@
 
 ## flatbuffers
 - [![Upstream](https://img.shields.io/github/v/release/google/flatbuffers?label=Upstream)](https://github.com/google/flatbuffers)
-- Version: 24.12.23
+- Version: 25.2.10
 - License: Apache-2.0
 
 ## {fmt}
 - [![Upstream](https://img.shields.io/github/v/release/fmtlib/fmt?label=Upstream)](https://github.com/fmtlib/fmt)
-- Version: 11.1.3
+- Version: 11.1.4
 
 - License: MIT
 
@@ -162,10 +162,15 @@
 - Version: 1.9.3
 - License: Apache-2.0
 
-## ogg & vorbis
+## ogg
 - ogg
   - [![Upstream](https://img.shields.io/github/v/release/xiph/ogg?label=Upstream)](https://github.com/xiph/ogg)
   - Version: 1.3.5
+  - License: BSD-3-Clause
+
+- opus
+  - [![Upstream](https://img.shields.io/github/v/release/xiph/opus?label=Upstream)](https://github.com/xiph/opus)
+  - Version: 1.5.2
   - License: BSD-3-Clause
 
 - vorbis
@@ -212,9 +217,10 @@
 
 ## robin-map
 - [![Upstream](https://img.shields.io/github/v/tag/Tessil/robin-map?label=Upstream)](https://github.com/Tessil/robin-map)
-- Version: 1.2.1 with modified for more compatible with stl
+- Version: 1.4.0 with modified for stl compatibility
     - Modify `robin_map::iterator->second` to mutable same with `stl map/unordered_map`
     - Forward `robin_map::operator[]` key by `std::forward` same with `stl map/unordered_map`
+    - Improve code compiler compatibility, i.g. `std::max` ==> `(std::max)`
 - License: MIT
 
 ## simdjson
@@ -249,7 +255,7 @@
 
 ## yasio
 - [![Upstream](https://img.shields.io/github/v/release/yasio/yasio?label=Upstream)](https://github.com/yasio/yasio)
-- Version: 4.3.1
+- Version: 4.3.2
 - License: MIT WITH Anti-996
 
 ## zlib

@@ -106,6 +106,7 @@ endif()
 option(AX_ENABLE_PHYSICS "Build Physics support" ON)
 cmake_dependent_option(AX_ENABLE_MEDIA "Build media support" ON "AX_ENABLE_MFMEDIA OR AX_ENABLE_VLC_MEDIA OR APPLE OR ANDROID" OFF)
 option(AX_ENABLE_AUDIO "Build audio support" ON)
+option(AX_ENABLE_OPUS "Build with opus support" ON)
 option(AX_ENABLE_CONSOLE "Build axmol debug tool: console support" ON)
 
 option(AX_ENABLE_3D "Build 3D support" ON)
@@ -364,7 +365,7 @@ if(XCODE OR VS)
     ax_mark_code_files("${_AX_CORE_LIB}")
 endif()
 
-message("CMake ${_AX_CORE_LIB} target_precompile_headers")
+message(STATUS "CMake precompile headers for ${_AX_CORE_LIB}")
 target_precompile_headers(${_AX_CORE_LIB} PRIVATE
   "$<$<COMPILE_LANGUAGE:CXX>:axmol.h>"
 )
@@ -456,6 +457,18 @@ endif()
 
 if(ANDROID)
     add_subdirectory(${_AX_ROOT}/core/platform/android ${ENGINE_BINARY_PATH}/core/cpp-android)
+    if (BUILD_SHARED_LIBS)
+        # whole archive for jni
+        target_link_libraries(${_AX_CORE_LIB} -Wl,--whole-archive cpp_android_spec -Wl,--no-whole-archive)
+        if (_AX_LUA_PROJ)
+            add_subdirectory(${_AX_ROOT}/extensions/scripting/lua-bindings/proj.android ${ENGINE_BINARY_PATH}/extensions/lua-android)
+            target_link_libraries(${_AX_CORE_LIB} -Wl,--whole-archive lua_android_spec -Wl,--no-whole-archive)
+        endif()
+
+        if (_AX_LUA_PROJ OR AX_ENABLE_EXT_LUA)
+            target_link_libraries(${_AX_CORE_LIB} ${AX_LUA_ENGINE})
+        endif()
+    endif()
 endif()
 
 if(LINUX)
