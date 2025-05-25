@@ -50,6 +50,13 @@ class Image;
 
 namespace utils
 {
+enum class DigestPresent
+{
+    Hex,
+    Base64,
+    Binary,
+};
+
 /** Returns the Next Power of Two value.
 
 Examples:
@@ -205,23 +212,25 @@ AX_DLL std::string getStringMD5Hash(std::string_view str);
  *  Gets the hash for the given buffer with specific algorithm.
  *  @param data The buffer to calculate the hash.
  *  @param algorithm The hash algorithm, support "md5", "sha1", "sha256", "sha512" and more
- *  @param toHex Convert to lowercase hex string
+ *  @param present Hex,Base64,Binary
  *  @return The hash for the data
  */
-AX_DLL std::string computeDigest(std::string_view data, std::string_view algorithm, bool toHex = true);
+AX_DLL std::string computeDigest(std::string_view data,
+                                 std::string_view algorithm,
+                                 DigestPresent present = DigestPresent::Hex);
 
 /**
  *  Gets the hash for the given file with specific algorithm.
  *  @param filename The path of the file to hash.
  *  @param algorithm The hash algorithm, support "md5", "sha1", "sha256", "sha512" and more
  *  @param bufferSize Chunk size used for hashing
- *  @param toHex Convert to lowercase hex string
+ *  @param present Hex,Base64,Binary
  *  @return The hash for the file
  */
 AX_DLL std::string computeFileDigest(std::string_view filename,
                                      std::string_view algorithm,
                                      uint32_t bufferSize = 16 * 1024,
-                                     bool toHex          = true);
+                                     DigestPresent present = DigestPresent::Hex);
 
 /**
 @brief Converts language iso 639-1 code to LanguageType enum.

@@ -27301,11 +27301,11 @@ int lua_ax_base_BezierBy_initWithDuration(lua_State* tolua_S)
     if (argc == 2) 
     {
         double arg0;
-        ax::_ccBezierConfig arg1;
+        ax::BezierConfig arg1;
 
         ok &= luaval_to_number(tolua_S, 2,&arg0, "ax.BezierBy:initWithDuration");
 
-        #pragma warning NO CONVERSION TO NATIVE FOR _ccBezierConfig
+        #pragma warning NO CONVERSION TO NATIVE FOR BezierConfig
 		ok = false;
         if(!ok)
         {
@@ -27413,11 +27413,11 @@ int lua_ax_base_BezierTo_initWithDuration(lua_State* tolua_S)
     if (argc == 2) 
     {
         double arg0;
-        ax::_ccBezierConfig arg1;
+        ax::BezierConfig arg1;
 
         ok &= luaval_to_number(tolua_S, 2,&arg0, "ax.BezierTo:initWithDuration");
 
-        #pragma warning NO CONVERSION TO NATIVE FOR _ccBezierConfig
+        #pragma warning NO CONVERSION TO NATIVE FOR BezierConfig
 		ok = false;
         if(!ok)
         {

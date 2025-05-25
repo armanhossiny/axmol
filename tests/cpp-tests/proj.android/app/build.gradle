@@ -19,9 +19,9 @@ android {
     }
 
     defaultConfig {
-        applicationId = packageName
-        minSdkVersion = minSdk
-        targetSdkVersion = targetSdk
+        applicationId packageName
+        minSdkVersion minSdk
+        targetSdkVersion targetSdk
         versionCode 1
         versionName "1.0"
 
@@ -35,6 +35,7 @@ android {
         }
 
         ndk {
+            // noinspection ChromeOsAbiSupport
             abiFilters = __1K_ARCHS.split(':').collect{it as String}
         }
     }
@@ -68,7 +69,6 @@ android {
         release {
             debuggable false
             jniDebuggable false
-            renderscriptDebuggable false
             minifyEnabled true
             shrinkResources = true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
@@ -80,7 +80,6 @@ android {
         debug {
             debuggable true
             jniDebuggable true
-            renderscriptDebuggable true
         }
     }
 

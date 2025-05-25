@@ -383,6 +383,8 @@ public:
      */
     MediaState getState() const;
 
+    Node* getVirtualRenderer() override;
+
     void setMediaController(MediaController* controller);
     MediaController* getMediaController() const { return _mediaController; }
 
