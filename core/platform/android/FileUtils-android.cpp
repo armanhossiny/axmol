@@ -28,8 +28,6 @@ THE SOFTWARE.
 #include "platform/Common.h"
 #include "platform/android/jni/JniHelper.h"
 #include "platform/android/jni/Java_dev_axmol_lib_AxmolEngine.h"
-#include "android/asset_manager.h"
-#include "android/asset_manager_jni.h"
 #include "base/ZipUtils.h"
 
 #include <stdlib.h>
@@ -48,19 +46,28 @@ THE SOFTWARE.
 
 namespace ax
 {
-
+static jobject s_assetmanager_hold = nullptr;
 AAssetManager* FileUtilsAndroid::assetmanager = nullptr;
 ZipFile* FileUtilsAndroid::obbfile            = nullptr;
 
-void FileUtilsAndroid::setassetmanager(AAssetManager* a)
+void FileUtilsAndroid::setAssetManagerFromJava(jobject a)
 {
-    if (nullptr == a)
+    auto env = JniHelper::getEnv();
+    if (!s_assetmanager_hold)
+        s_assetmanager_hold = env->NewGlobalRef(a);
+    /*
+    Note: that the caller is responsible for obtaining and holding a VM reference to the jobject to 
+        prevent its being garbage collected while the native object is in use.
+    refer: https://developer.android.com/ndk/reference/group/asset#aassetmanager_fromjava
+    */
+    auto aassetMgr = AAssetManager_fromJava(env, s_assetmanager_hold);
+    if (nullptr == aassetMgr)
     {
         LOGD("setassetmanager : received unexpected nullptr parameter");
         return;
     }
 
-    ax::FileUtilsAndroid::assetmanager = a;
+    ax::FileUtilsAndroid::assetmanager = aassetMgr;
 }
 
 FileUtils* FileUtils::getInstance()

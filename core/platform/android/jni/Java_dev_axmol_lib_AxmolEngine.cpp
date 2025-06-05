@@ -29,7 +29,6 @@ THE SOFTWARE.
 #include <string>
 #include "platform/android/jni/JniHelper.h"
 #include "platform/android/FileUtils-android.h"
-#include "android/asset_manager_jni.h"
 #include "platform/android/jni/Java_dev_axmol_lib_AxmolEngine.h"
 
 #include "base/UTF8.h"
@@ -55,7 +54,7 @@ JNIEXPORT void JNICALL Java_dev_axmol_lib_AxmolEngine_nativeSetContext(JNIEnv* e
                                                                              jobject assetManager)
 {
     JniHelper::setClassLoaderFrom(context);
-    FileUtilsAndroid::setassetmanager(AAssetManager_fromJava(env, assetManager));
+    FileUtilsAndroid::setAssetManagerFromJava(assetManager);
 }
 
 JNIEXPORT void JNICALL Java_dev_axmol_lib_AxmolEngine_nativeSetEditTextDialogResult(JNIEnv* env,

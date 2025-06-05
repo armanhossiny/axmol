@@ -32,8 +32,7 @@ Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 #include <vector>
 #include <unordered_map>
 #include <memory>
-#include "jni.h"
-#include "android/asset_manager.h"
+#include <android/asset_manager_jni.h>
 
 namespace ax
 {
@@ -57,7 +56,7 @@ public:
      */
     virtual ~FileUtilsAndroid();
 
-    static void setassetmanager(AAssetManager* a);
+    static void setAssetManagerFromJava(jobject a);
     static AAssetManager* getAssetManager() { return assetmanager; }
     static ZipFile* getObbFile() { return obbfile; }
 
