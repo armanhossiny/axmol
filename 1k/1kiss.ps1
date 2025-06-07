@@ -5,7 +5,7 @@
 #
 # The MIT License (MIT)
 #
-# Copyright (c) 2012-2024 HALX99
+# Copyright (c) 2012-2025 HALX99
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -253,7 +253,10 @@ $cmake_generators = @{
 $channels = @{}
 
 # refer to: https://developer.android.com/studio#command-line-tools-only
-$cmdlinetools_rev = '11076708' # 12.0
+$cmdlinetools_revs = @{
+    '12.0' = '11076708'
+    '19.0' = '13114758'
+}
 
 $ndk_r23d_rev = '12186248'
 # $ndk_r25d_rev = '12161346'
@@ -561,6 +564,12 @@ function version_in_range($ver1, $verMin, $verMax) {
 # validate $env:PATH to avoid unexpected shell script behavior
 if ([Regex]::Match($env:PATH, "`'|`"").Success) {
     throw "Please remove any `' or `" from your PATH list"
+}
+
+# trim and get preferred version
+function trim_ver($pattern) {
+    $vers = $pattern.Split('~')
+    return $vers[$vers.Count -gt 1].TrimLast('+')
 }
 
 # validate cmd follow symlink recurse
@@ -1331,7 +1340,9 @@ function setup_android_sdk() {
     $sdk_comps = @()
 
     ### cmdline-tools ###
-    $cmdlinetools_ver = $manifest['cmdlinetools']
+    $cmdlinetools_ver = trim_ver $manifest['cmdlinetools']
+    $cmdlinetools_rev = $cmdlinetools_revs[$cmdlinetools_ver]
+
     $sdkmanager_prog, $sdkmanager_ver = $null, $null
     $cmdlinetools_prefix = Join-Path $sdk_root "cmdline-tools"
     $cmdlinetools_bin = Join-Path $cmdlinetools_prefix "$cmdlinetools_ver/bin"
@@ -1649,6 +1660,7 @@ function preprocess_andorid() {
         $cmake_toolchain_file = Join-Path $ndk_root 'build/cmake/android.toolchain.cmake'
         $arch = $t_archs[$options.a]
         $outputOptions += "-DCMAKE_TOOLCHAIN_FILE=$cmake_toolchain_file", "-DANDROID_ABI=$arch"
+        $outputOptions += "-DANDROID_USE_LEGACY_TOOLCHAIN_FILE=false"
         # If set to ONLY, then only the roots in CMAKE_FIND_ROOT_PATH will be searched
         # If set to BOTH, then the host system paths and the paths in CMAKE_FIND_ROOT_PATH will be searched
         # If set to NEVER, then the roots in CMAKE_FIND_ROOT_PATH will be ignored and only the host system root will be used

@@ -32,7 +32,7 @@
 
 ## Clipper2
 - [![Upstream](https://img.shields.io/github/v/tag/AngusJohnson/Clipper2?label=Upstream)](https://github.com/AngusJohnson/Clipper2)
-- Version: 1.5.3
+- Version: 1.5.4
 - License: BSL-1.0
 
 ## ConcurrentQueue
@@ -124,7 +124,7 @@
 
 - luajit
   - Upstream: https://github.com/LuaJIT/LuaJIT
-  - Version: 2.1-eec7a80
+  - Version: 2.1-f9140a6
   - License: MIT
 
 - tolua
@@ -185,7 +185,7 @@
 
 ## OpenSSL
 - [![Upstream](https://img.shields.io/github/v/tag/openssl/openssl?label=Upstream)](https://github.com/openssl/openssl)
-- Version: 3.5.0
+- Version: 3.0.16
 - License: Apache-2.0
 
 ## png
