@@ -33,7 +33,7 @@ Please [visit our Wiki](https://github.com/axmolengine/axmol/wiki) to know more 
 
 ## ⚡️Building
 
-* [Download the latest release](https://github.com/axmolengine/axmol/releases) / [Mirror](https://gitee.com/simdsoft/axmol)
+* Download it: [Latest Release](https://github.com/axmolengine/axmol/releases) / [SourceForge Mirror](https://sourceforge.net/projects/axmol-engine.mirror) / [Gitee Mirror](https://gitee.com/simdsoft/axmol) 
 * [How to install](docs/DevSetup.md)
 
 If you have a Cocos2d-x project, migrating to Axmol Engine is easy. We have prepared a [Migration Guide](https://github.com/axmolengine/axmol/wiki/Cocos2d%E2%80%90x-migration-guide).
@@ -169,7 +169,7 @@ In order to see some of our community works, please check our Axmol Showcase: [M
 ## Reference links
 
 - [1kiss](https://github.com/simdsoft/1kiss): A cross-platform one step build powershell script, with auto setup general dependent tools.
-- [axslcc](https://github.com/axmolengine/axslcc): A fork of `glslcc`, for Axmol new shader workflow tool.
+- [axslcc](https://github.com/axmolengine/axslcc): The axmol new shader workflow tool, forked from `glslcc`.
 - [Official Cocos2d-x](https://github.com/cocos2d/cocos2d-x)
 
 ## Axmol Stats

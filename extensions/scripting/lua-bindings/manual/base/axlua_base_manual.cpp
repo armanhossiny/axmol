@@ -5486,37 +5486,45 @@ static void cloneMouseHandler(const EventListenerMouse* src,
         {
         case ScriptHandlerMgr::HandlerType::EVENT_MOUSE_DOWN:
         {
-            dst->onMouseDown = [=](Event* event) {
+            dst->onMouseDown = [=](Event* event) -> bool {
                 LuaEventMouseData mouseData(event);
                 BasicScriptData data((void*)dst, (void*)&mouseData);
                 LuaEngine::getInstance()->handleEvent(type, (void*)&data);
+
+                return true;
             };
         }
         break;
         case ScriptHandlerMgr::HandlerType::EVENT_MOUSE_UP:
         {
-            dst->onMouseUp = [=](Event* event) {
+            dst->onMouseUp = [=](Event* event) -> bool {
                 LuaEventMouseData mouseData(event);
                 BasicScriptData data((void*)dst, (void*)&mouseData);
                 LuaEngine::getInstance()->handleEvent(type, (void*)&data);
+
+                return true;
             };
         }
         break;
         case ScriptHandlerMgr::HandlerType::EVENT_MOUSE_MOVE:
         {
-            dst->onMouseMove = [=](Event* event) {
+            dst->onMouseMove = [=](Event* event) -> bool {
                 LuaEventMouseData mouseData(event);
                 BasicScriptData data((void*)dst, (void*)&mouseData);
                 LuaEngine::getInstance()->handleEvent(type, (void*)&data);
+
+                return true;
             };
         }
         break;
         case ScriptHandlerMgr::HandlerType::EVENT_MOUSE_SCROLL:
         {
-            dst->onMouseScroll = [=](Event* event) {
+            dst->onMouseScroll = [=](Event* event) -> bool {
                 LuaEventMouseData mouseData(event);
                 BasicScriptData data((void*)dst, (void*)&mouseData);
                 LuaEngine::getInstance()->handleEvent(type, (void*)&data);
+
+                return true;
             };
         }
         break;
@@ -5622,19 +5630,21 @@ static int toaxlua_EventListenerMouse_registerScriptHandler(lua_State* tolua_S)
         {
             ScriptHandlerMgr::getInstance()->addObjectHandler((void*)self, handler, type);
 
-            self->onMouseDown = [=](Event* event) {
+            self->onMouseDown = [=](Event* event) -> bool {
                 LuaEventMouseData mouseData(event);
                 BasicScriptData data((void*)self, (void*)&mouseData);
                 LuaEngine::getInstance()->handleEvent(type, (void*)&data);
+                return true;
             };
         }
         break;
         case ScriptHandlerMgr::HandlerType::EVENT_MOUSE_UP:
         {
-            self->onMouseUp = [=](Event* event) {
+            self->onMouseUp = [=](Event* event) -> bool {
                 LuaEventMouseData mouseData(event);
                 BasicScriptData data((void*)self, (void*)&mouseData);
                 LuaEngine::getInstance()->handleEvent(type, (void*)&data);
+                return true;
             };
 
             ScriptHandlerMgr::getInstance()->addObjectHandler((void*)self, handler, type);
@@ -5642,10 +5652,11 @@ static int toaxlua_EventListenerMouse_registerScriptHandler(lua_State* tolua_S)
         break;
         case ScriptHandlerMgr::HandlerType::EVENT_MOUSE_MOVE:
         {
-            self->onMouseMove = [=](Event* event) {
+            self->onMouseMove = [=](Event* event) -> bool {
                 LuaEventMouseData mouseData(event);
                 BasicScriptData data((void*)self, (void*)&mouseData);
                 LuaEngine::getInstance()->handleEvent(type, (void*)&data);
+                return true;
             };
 
             ScriptHandlerMgr::getInstance()->addObjectHandler((void*)self, handler, type);
@@ -5653,10 +5664,11 @@ static int toaxlua_EventListenerMouse_registerScriptHandler(lua_State* tolua_S)
         break;
         case ScriptHandlerMgr::HandlerType::EVENT_MOUSE_SCROLL:
         {
-            self->onMouseScroll = [=](Event* event) {
+            self->onMouseScroll = [=](Event* event) -> bool {
                 LuaEventMouseData mouseData(event);
                 BasicScriptData data((void*)self, (void*)&mouseData);
                 LuaEngine::getInstance()->handleEvent(type, (void*)&data);
+                return true;
             };
 
             ScriptHandlerMgr::getInstance()->addObjectHandler((void*)self, handler, type);

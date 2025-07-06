@@ -36,6 +36,16 @@ bool EventListenerMouse::checkAvailable()
     return true;
 }
 
+void EventListenerMouse::setSwallowMouse(bool needSwallow)
+{
+    _needSwallow = needSwallow;
+}
+
+bool EventListenerMouse::isSwallowMouse()
+{
+    return _needSwallow;
+}
+
 EventListenerMouse* EventListenerMouse::create()
 {
     auto ret = new EventListenerMouse();
@@ -60,6 +70,7 @@ EventListenerMouse* EventListenerMouse::clone()
         ret->onMouseDown   = onMouseDown;
         ret->onMouseMove   = onMouseMove;
         ret->onMouseScroll = onMouseScroll;
+        ret->_needSwallow  = _needSwallow;
     }
     else
     {
@@ -69,37 +80,16 @@ EventListenerMouse* EventListenerMouse::clone()
 }
 
 EventListenerMouse::EventListenerMouse()
-    : onMouseDown(nullptr), onMouseUp(nullptr), onMouseMove(nullptr), onMouseScroll(nullptr)
+    : onMouseDown(nullptr)
+    , onMouseUp(nullptr)
+    , onMouseMove(nullptr)
+    , onMouseScroll(nullptr)
+    , _needSwallow(false)
 {}
 
 bool EventListenerMouse::init()
 {
-    auto listener = [this](Event* event) {
-        auto mouseEvent = static_cast<EventMouse*>(event);
-        switch (mouseEvent->_mouseEventType)
-        {
-        case EventMouse::MouseEventType::MOUSE_DOWN:
-            if (onMouseDown != nullptr)
-                onMouseDown(mouseEvent);
-            break;
-        case EventMouse::MouseEventType::MOUSE_UP:
-            if (onMouseUp != nullptr)
-                onMouseUp(mouseEvent);
-            break;
-        case EventMouse::MouseEventType::MOUSE_MOVE:
-            if (onMouseMove != nullptr)
-                onMouseMove(mouseEvent);
-            break;
-        case EventMouse::MouseEventType::MOUSE_SCROLL:
-            if (onMouseScroll != nullptr)
-                onMouseScroll(mouseEvent);
-            break;
-        default:
-            break;
-        }
-    };
-
-    if (EventListener::init(Type::MOUSE, LISTENER_ID, listener))
+    if (EventListener::init(Type::MOUSE, LISTENER_ID, nullptr))
     {
         return true;
     }

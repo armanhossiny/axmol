@@ -4,7 +4,7 @@
 
 ## A Multi-platform Engine for Mobile, Desktop and Xbox.
 
-[Axmol Engine](https://axmol.dev) 是一个开源的专为移动、桌面和XBox设备设计的 C++ 多平台引擎。该项目于2019年11月作为`Cocos2d-X-4.0`的一个分支启动。
+[Axmol Engine](https://axmol.dev) 是一个开源的专为移动、桌面和 XBox 设备设计的 C++ 多平台引擎。该项目于 2019 年 11 月作为 `Cocos2d-X-4.0` 的一个分支启动。
 
 请 [访问我们的 Wiki](https://github.com/axmolengine/axmol/wiki) 了解关于 Axmol 的更多信息。
 
@@ -33,7 +33,7 @@
 
 ## ⚡️构建
 
-* [下载最新版本](https://github.com/axmolengine/axmol/releases) / [镜像仓库](https://gitee.com/simdsoft/axmol)
+* 下载: [官方最新发布](https://github.com/axmolengine/axmol/releases) / [SourceForge 镜像](https://sourceforge.net/projects/axmol-engine.mirror) / [Gitee 镜像仓库](https://gitee.com/simdsoft/axmol)
 * [如何安装](docs/DevSetup.md)
 
 如果你有一个 Cocos2d-x 项目, 可以很容易迁移到 Axmol。 我们准备了 [迁移指导](https://github.com/axmolengine/axmol/wiki/Cocos2d%E2%80%90x-migration-guide)。

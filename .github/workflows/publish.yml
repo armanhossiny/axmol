@@ -40,12 +40,12 @@ jobs:
       if: ${{ steps.check_ver.outputs.release_ver == '' }}
       shell: pwsh
       run: |
-        # commit message template: xxxx [release 2.1.0]
+        # commit message template: Version 2.7.0
         $commit_msg = "$(git show -s --format=%s)"
         echo "commit_msg: $commit_msg"
-        $matchInfo = [Regex]::Match($commit_msg, '\[release\s(\d+\.)+(-)?(\*|\d+)\]')
+        $matchInfo = [Regex]::Match($commit_msg, 'Version\s(\d+\.)+(-)?(\*|\d+)')
         if ($matchInfo.Success) { $matchInfo = [Regex]::Match($matchInfo.Value, '(\d+\.)+(-)?(\*|\d+)') }
-        $release_ver = if($matchInfo.Success) { $matchInfo.Value }
+        $release_ver = if($matchInfo.Success) { $matchInfo.Value.TrimStart('Version ') }
         echo "release_ver=$release_ver" >> ${env:GITHUB_ENV}
 
     - name: Forward release ver to step make_pkg

@@ -1044,10 +1044,10 @@ void Director::reset()
 
     stopAnimation();
 
-    AX_SAFE_RELEASE_NULL(_notificationNode);
     AX_SAFE_RELEASE_NULL(_FPSLabel);
     AX_SAFE_RELEASE_NULL(_drawnBatchesLabel);
     AX_SAFE_RELEASE_NULL(_drawnVerticesLabel);
+    _isStatusLabelUpdated = true;
 
     // purge bitmap cache
     FontFNT::purgeCachedData();
@@ -1076,14 +1076,8 @@ void Director::cleanupDirector()
 {
     reset();
 
-    // cleanup graphics before release glView, otherwise, will cause crash on linux
-    AX_SAFE_RELEASE(_FPSLabel);
-    AX_SAFE_RELEASE(_drawnVerticesLabel);
-    AX_SAFE_RELEASE(_drawnBatchesLabel);
-
-    AX_SAFE_RELEASE(_runningScene);
-    AX_SAFE_RELEASE(_notificationNode);
-
+    // If any graphics resources not cleanup or leaked, will crash on linux when destroy graphics context,
+    // so we should cleanup any graphics resources.
     AX_SAFE_DELETE(_renderer);
     backend::DriverBase::destroyInstance();
 

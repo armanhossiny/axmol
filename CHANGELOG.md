@@ -1,3 +1,54 @@
+# axmol-2.7.0 Jul.6 2025
+
+## Significant changes relative to 2.6.x
+
+- The minimum required version of Android Studio has been updated to 2025.1.1
+- Add mouse events listener for Widgets by @AlexandreK38 in https://github.com/axmolengine/axmol/pull/2580 (the callback function return type was changed from `void` to `bool`)
+- Refactor imgui axmol backend by @halx99 in https://github.com/axmolengine/axmol/pull/2584, now both android and PC platform backends share it.
+- The `ImGuiPresenter`'s APIs `mergeFontGlyphs`,`clearGlyphRanges`,`removeGlyphRanges`,`addGlyphRanges`,`getGlyphRangesId` have been removed(no longer needed), benefit from imgui-1.92.0 dynamic font atlas support, see imgui 1.92.0 release notes: https://github.com/ocornut/imgui/releases/tag/v1.92.0
+- Add `ImGuiPresenter::getMainScale`, mark `ImGuiPresenter::getContentZoomFactor` as DEPRECATED
+- Remove all overload stubs of API `ImGuiPresenter::addFont`, now only `void ImGuiPresenter::addFont(std::string_view fontFile, float fontSize = DEFAULT_FONT_SIZE);` available
+
+## Bug fixes
+
+- Fix Calling Label::setString after Label::getLetter causes layout issues by @halx99 in https://github.com/axmolengine/axmol/pull/2572
+- Fix Label wrapping, overflow and alignment issues by @rh101 in https://github.com/axmolengine/axmol/pull/2567
+- Fix https://github.com/axmolengine/axmol/issues/2569 build fail on ubuntu-22.04 by @halx99
+- Fix statsLabel not show after Director::restart() by @remtori in https://github.com/axmolengine/axmol/pull/2581
+- Fix linux crash on exiting cpp-tests after running Scene3DTest by @halx99 in https://github.com/axmolengine/axmol/pull/2582
+
+## Improvements
+
+- Improve system font text rendering under WASM by @halx99, also fix issue: https://github.com/axmolengine/axmol/issues/2349
+- Improve prompt when cmd 'xcodebuild' missing by @halx99
+- Fix Bug-350.cpp of cpp-tests by @aismann in https://github.com/axmolengine/axmol/pull/2568
+- Update Clipper2 to 1.5.4 by @aismann in https://github.com/axmolengine/axmol/pull/2563
+- Update 3rdparty README.md (Clipper2 1.5.4) by @aismann in https://github.com/axmolengine/axmol/pull/2564
+- Update and re-enable Scene3D test by @rh101 in https://github.com/axmolengine/axmol/pull/2562
+- Update SDFGen.cpp (fix typo) by @aismann in https://github.com/axmolengine/axmol/pull/2565
+- Change wasm initial memory to 128MB, allow memory increase by @AlexandreK38 in https://github.com/axmolengine/axmol/pull/2575
+- Add locating visual studio build tools without full vs installed by @martinking71 in https://github.com/axmolengine/axmol/pull/2576
+- Add click listener for WASM (without touches AKA on desktop) to cancel the current 'touches' by @AlexandreK38 in https://github.com/axmolengine/axmol/pull/2577
+- `WASM` Option to use main loop timing 'timeout' instead of 'requestAnimationFrame' (RAF) by @AlexandreK38 in https://github.com/axmolengine/axmol/pull/2578
+- Remove Director redundant release statements by @halx99,@remtori
+- Add close code and reason for Websocket close / onClose by @AlexandreK38 https://github.com/axmolengine/axmol/pull/2579
+- Fix typo for 1kiss.ps1 by @halx99
+
+## SDKs & Tools updates
+
+- AGP: 8.10.0 => 8.11.0
+- gradle: 8.13 => 8.14.3
+
+## 3rdparty updates
+
+- Clipper2: 1.5.3 => 1.5.4
+- libpng: 1.6.48 => 1.6.49
+- imgui: 1.91.6 => 1.92.0
+- jpeg-turbo: 3.1.0 => 3.1.1
+- ogg: 1.3.5 => 1.3.6
+- openssl: 3.0.16 => 3.0.17
+- plainlua: 5.4.7 => 5.4.8
+
 # axmol-2.6.1 Jun.6 2025
 
 ## Bug fixes
@@ -85,7 +136,7 @@
 
 ## SDKs & Tools updates
 
-- agp: 8.7.3 => 8.10.0
+- AGP: 8.7.3 => 8.10.0
 - android target sdk: 35 => 36
 - android sdk build tools: 34.0.0 => 35.0.0
 
@@ -146,16 +197,16 @@
 
 ## SDKs & Tools updates
 
-- gradle: 8.11.1 ==> 8.13
-- cmake: 3.31.5 ==> 4.0.0
-- emsdk: 4.0.3 ==> 4.0.6
+- gradle: 8.11.1 => 8.13
+- cmake: 3.31.5 => 4.0.0
+- emsdk: 4.0.3 => 4.0.6
 
 ## 3rdparty updates
 
-- yasio: 4.3.1 ==> 4.3.2
-- fmtlib: 11.1.3 ==> 11.1.4
-- flatbuffers: 24.3.25 ==> 25.2.10
-- robin_map: 1.2.1 ==> 1.4.0
+- yasio: 4.3.1 => 4.3.2
+- fmtlib: 11.1.3 => 11.1.4
+- flatbuffers: 24.12.23 => 25.2.10
+- robin_map: 1.2.1 => 1.4.0
 
 # axmol-2.4.0 Feb.23 2025
 
@@ -205,16 +256,16 @@
 
 ## SDKs updates
 
-- emsdk: 3.1.73 ==> 4.0.3
+- emsdk: 3.1.73 => 4.0.3
 
 ## 3rdparty updates
 
-- astcenc: 5.1.0 ==> 5.2.0
-- clipper2: 1.4.0 ==> 1.5.2
-- curl: 8.11.1 ==> 8.12.1
-- libpng: 1.6.45 ==> 1.6.47
-- fmtlib: 11.1.2 ==> 11.1.3
-- openssl: 3.0.15 ==> 3.0.16
+- astcenc: 5.1.0 => 5.2.0
+- clipper2: 1.4.0 => 1.5.2
+- curl: 8.11.1 => 8.12.1
+- libpng: 1.6.45 => 1.6.47
+- fmtlib: 11.1.2 => 11.1.3
+- openssl: 3.0.15 => 3.0.16
 
 # axmol-2.3.2 Jan.21 2025
 
@@ -242,9 +293,9 @@
 
 ## 3rdparty updates
 
-- libpng: 1.6.44 ==> 1.6.45
-- fmtlib: 11.1.1 ==> 11.1.2
-- luajit: 2.1-f73e649 ==> 2.1-a4f56a4
+- libpng: 1.6.44 => 1.6.45
+- fmtlib: 11.1.1 => 11.1.2
+- luajit: 2.1-f73e649 => 2.1-a4f56a4
 
 # axmol-2.3.1 Jan.5 2025
 
@@ -261,7 +312,7 @@
 
 ## 3rdparty updates
 
-- xxhash: 0.8.2 ==> 0.8.3
+- xxhash: 0.8.2 => 0.8.3
 
 # axmol-2.3.0 Jan.1 2025
 
@@ -303,22 +354,23 @@
 
 ## SDKs updates
 
-- emsdk: 3.1.67 ==> 3.1.73
-- AGP: 8.4.0 ==> 8.7.3
-- gradle: 8.8.0 ==> 8.11.1
-- android target sdk: 34 ==> 35
+- emsdk: 3.1.67 => 3.1.73
+- AGP: 8.4.0 => 8.7.3
+- gradle: 8.8.0 => 8.11.1
+- android target sdk: 34 => 35
 
 ## 3rdparty updates
 
-- astcenc: 4.8.0 ==> 5.1.0
-- c-ares: 1.34.1 ==> 1.34.4
-- curl: 8.10.1 ==> 8.11.1
-- fmtlib: 11.0.1 ==> 11.1.1
-- oboe: 1.9.0 ==> 1.9.3
-- webp: 1.4.0 ==> 1.5.0
-- jpeg-turbo: 3.0.4 ==> 3.1.0
-- luajit: 2.1-97813fb ==> 2.1-f73e649
-- imgui: 1.90.6 ==> 1.91.6
+- astcenc: 4.8.0 => 5.1.0
+- c-ares: 1.34.1 => 1.34.4
+- curl: 8.10.1 => 8.11.1
+- flatbuffers: 24.3.25 => 24.12.23
+- fmtlib: 11.0.1 => 11.1.1
+- oboe: 1.9.0 => 1.9.3
+- webp: 1.4.0 => 1.5.0
+- jpeg-turbo: 3.0.4 => 3.1.0
+- luajit: 2.1-97813fb => 2.1-f73e649
+- imgui: 1.90.6 => 1.91.6
 
 # axmol-2.2.1 Oct.22 2024
 
@@ -392,22 +444,22 @@
 
 ## SDKs updates
 
-- emsdk: 3.1.63 ==> 3.1.67
+- emsdk: 3.1.63 => 3.1.67
 
 ## 3rdparty updates
 
-- glad: 2.0.6 ==> 2.0.8
-- curl: 8.9.1 ==> 8.10.1
-- simdjson: 3.10.0 ==> 3.10.1
-- libpng: 1.6.43 ==> 1.6.44
-- c-ares: 1.33.0 ==> 1.34.1
-- openssl: 3.3.1 ==> 3.0.15
-- yasio: 4.2.4 ==> 4.3.1
-- jpeg-turbo: 3.0.3 ==> 3.0.4
-- luajit: 2.1-04dca79 ==> 2.1-97813fb
-- simdjson: 3.10.0 ==> 3.10.1
-- rapidjson: 1.1.0-b4a6da3 ==> 1.1.0-815e6e7
-- freetype: 2.13.2 ==> 2.13.3
+- glad: 2.0.6 => 2.0.8
+- curl: 8.9.1 => 8.10.1
+- simdjson: 3.10.0 => 3.10.1
+- libpng: 1.6.43 => 1.6.44
+- c-ares: 1.33.0 => 1.34.1
+- openssl: 3.3.1 => 3.0.15
+- yasio: 4.2.4 => 4.3.1
+- jpeg-turbo: 3.0.3 => 3.0.4
+- luajit: 2.1-04dca79 => 2.1-97813fb
+- simdjson: 3.10.0 => 3.10.1
+- rapidjson: 1.1.0-b4a6da3 => 1.1.0-815e6e7
+- freetype: 2.13.2 => 2.13.3
 
 # axmol-2.1.5 Aug.11 2024
 
@@ -456,15 +508,15 @@
 
 ## SDKs updates
 
-- cppwinrt: 2.0.240111.5 ==> 2.0.240405.15
+- cppwinrt: 2.0.240111.5 => 2.0.240405.15
 
 ## 3rdparty updates
 
-- box2d: 2.4.1 ==> 2.4.2
-- curl: 8.8.0 ==> 8.9.1
-- simdjson: 3.9.5 ==> 3.10.0
-- lz4: 1.9.4 ==> 1.10.0
-- c-ares: 1.32.2 ==> 1.33.0
+- box2d: 2.4.1 => 2.4.2
+- curl: 8.8.0 => 8.9.1
+- simdjson: 3.9.5 => 3.10.0
+- lz4: 1.9.4 => 1.10.0
+- c-ares: 1.32.2 => 1.33.0
 
 # axmol-2.1.4 Jun.20 2024
 
@@ -531,21 +583,21 @@
 
 ## sdks & tools updates
 
-- gradle: 8.7 ==> 8.8
-- AGP: 8.2.2 ==> 8.4.0
-- emsdk: 3.1.59 ==> 3.1.63
+- gradle: 8.7 => 8.8
+- AGP: 8.2.2 => 8.4.0
+- emsdk: 3.1.59 => 3.1.63
 
 ## 3rdparty updates
 
-- openssl: 3.0.13 ==> 3.3.1
-- Clipper2: 1.3.0 ==> 1.4.0
-- simdjson: 3.9.2 ==> 3.9.5
-- fmtlib: 10.2.1 ==> 11.0.1
-- yasio: 4.2.2 ==> 4.2.3
-- oboe: 1.8.1 ==> 1.9.0
-- plainlua: 5.4.6 ==> 5.4.7
-- c-ares: 1.29.0 ==> 1.32.2
-- luajit: 2.1-d06beb0 ==> 2.1-04dca79
+- openssl: 3.0.13 => 3.3.1
+- Clipper2: 1.3.0 => 1.4.0
+- simdjson: 3.9.2 => 3.9.5
+- fmtlib: 10.2.1 => 11.0.1
+- yasio: 4.2.2 => 4.2.3
+- oboe: 1.8.1 => 1.9.0
+- plainlua: 5.4.6 => 5.4.7
+- c-ares: 1.29.0 => 1.32.2
+- luajit: 2.1-d06beb0 => 2.1-04dca79
 
 # axmol-2.1.3 May.26 2024
 
@@ -572,7 +624,7 @@
 
 ## Breaking Changes
 
-- Rename `ax::Ref` ==> `ax::Object`
+- Rename `ax::Ref` => `ax::Object`
 - Remove `ax::log`, use `AXLOGD` instead
 - Remove cmake function: `ax_uwp_set_all_targets_deploy_min_version`
 - Remove deprecated pixel formats L8, A8, LA8 in https://github.com/axmolengine/axmol/pull/1839
@@ -603,8 +655,8 @@
 - Fix a regression introduced by 2.1.2 that template gradlew permission incorrect
 - Fix build android with axmol cmdline arch not working
 - Fix crash on iOS by @smilediver in https://github.com/axmolengine/axmol/pull/1799
-- Fix typo: BLEND_CLOLOR ==> BLEND_COLOR
-- Fix typo: RESERVE_SUBTRACT ==> REVERSE_SUBTRACT
+- Fix typo: BLEND_CLOLOR => BLEND_COLOR
+- Fix typo: RESERVE_SUBTRACT => REVERSE_SUBTRACT
 - Fix video player crash on apple platforms, reported by @asnagni in https://github.com/axmolengine/axmol/issues/1815
 - Fix an issue where ProgressTimer didn't properly set or cascade its opacity by @TyelorD in https://github.com/axmolengine/axmol/pull/1830
 - Fix ClippingNode stencil needing global z set manually by @TyelorD in https://github.com/axmolengine/axmol/pull/1831
@@ -634,7 +686,7 @@
 - Removing EditBox should not result in logging an error message by @rh101 in https://github.com/axmolengine/axmol/pull/1740
 - Update LUA config for new build options by @rh101 in https://github.com/axmolengine/axmol/pull/1772
 - Update TLD axmol.org -> axmol.dev
-- Rename folder thirdparty ==> 3rdparty
+- Rename folder thirdparty => 3rdparty
 - Update spine to 4.1-54fac9d
 - Update axmol cmdline preferred cmake to 3.29.3+ for supress xcode 15 duplicated linking warnings
 - Remove unnecessary cmake option: `AX_VS_DEPLOYMENT_TARGET`
@@ -667,25 +719,25 @@
 
 ## sdks & tools updates
 
-- emsdk: 3.1.53 ==> 3.1.60
-- AGP: 8.2.1 ==> 8.2.2
-- androidx.media3: 1.0.2 ==> 1.2.1
-- glslcc: 1.9.4 ==> 1.9.5
+- emsdk: 3.1.53 => 3.1.60
+- AGP: 8.2.1 => 8.2.2
+- androidx.media3: 1.0.2 => 1.2.1
+- glslcc: 1.9.4 => 1.9.5
 
 ## 3rdparty updates
 
-- simdjson: 3.7.0 ==> 3.9.2
-- flatbuffers: 2.0.8 ==> 24.3.25
-- curl: 8.6.0 ==> 8.8.0
-- glad: 2.0.5 ==> 2.0.6
-- yasio: 4.2.1 ==> 4.2.2
-- llhttp: 9.2.0 ==> 9.2.1
-- libwebp: 1.3.2 ==> 1.4.0
-- astcenc: 4.7.0 ==> 4.8.0
-- stb_image: 2.28 ==> 2.29
-- luajit: 2.1-9cc2e42 ==> 2.1-d06beb0
-- c-ares: 1.25.0 ==> 1.29.0
-- imgui: 1.90.4 ==> 1.90.6
+- simdjson: 3.7.0 => 3.9.2
+- flatbuffers: 2.0.8 => 24.3.25
+- curl: 8.6.0 => 8.8.0
+- glad: 2.0.5 => 2.0.6
+- yasio: 4.2.1 => 4.2.2
+- llhttp: 9.2.0 => 9.2.1
+- libwebp: 1.3.2 => 1.4.0
+- astcenc: 4.7.0 => 4.8.0
+- stb_image: 2.28 => 2.29
+- luajit: 2.1-9cc2e42 => 2.1-d06beb0
+- c-ares: 1.25.0 => 1.29.0
+- imgui: 1.90.4 => 1.90.6
 
 # axmol-2.1.2 Feb.25 2024
 
@@ -736,18 +788,18 @@
 
 ## SDKs updates
 
-- cppwinrt: 2.0.230706.1 ==> 2.0.240111.5
+- cppwinrt: 2.0.230706.1 => 2.0.240111.5
 
 ## 3rdparty updates
 
-- glad: 2.0.4 ==> 2.0.5
-- yasio: 4.2.0 ==> 4.2.1
+- glad: 2.0.4 => 2.0.5
+- yasio: 4.2.0 => 4.2.1
 - llhttp: 9.1.3 == > 9.2.0
-- oboe: 1.8.0 ==> 1.8.1
-- libpng: 1.6.42 ==> 1.6.43
-- glfw: git b4c3ef9 ==> 3.4
-- simdjson: 3.6.4 ==> 3.7.0
-- imgui: 1.90.1 ==> 1.90.4
+- oboe: 1.8.0 => 1.8.1
+- libpng: 1.6.42 => 1.6.43
+- glfw: git b4c3ef9 => 3.4
+- simdjson: 3.6.4 => 3.7.0
+- imgui: 1.90.1 => 1.90.4
 
 # axmol-2.1.1 Feb.2 2024
 
@@ -766,7 +818,7 @@
 
 ## Breaking changes
 
-- Rename android entrypoint: `cocos_android_app_init` ==> `axmol_android_app_init`
+- Rename android entrypoint: `cocos_android_app_init` => `axmol_android_app_init`
 
 ## Improvements
 
@@ -774,14 +826,14 @@
 
 ## 3rdparties updates
 
-- simdjson: 3.6.3 ==> 3.6.4
-- curl: 8.5.0 ==> 8.6.0
-- openssl: 3.0.12 ==> 3.0.13
-- yasio: 4.1.4 ==> 4.2.0(5.0.0)
-- zlib: 1.3 ==> 1.3.1
-- jpeg-turbo: 3.0.1 ==> 3.0.2
-- libpng: 1.6.40 ==> 1.6.42
-- luajit: 2.1-43d0a19 ==> 2.1-9cc2e42
+- simdjson: 3.6.3 => 3.6.4
+- curl: 8.5.0 => 8.6.0
+- openssl: 3.0.12 => 3.0.13
+- yasio: 4.1.4 => 4.2.0(5.0.0)
+- zlib: 1.3 => 1.3.1
+- jpeg-turbo: 3.0.1 => 3.0.2
+- libpng: 1.6.40 => 1.6.42
+- luajit: 2.1-43d0a19 => 2.1-9cc2e42
 
 
 # axmol-2.1.0 Jan.20 2024
@@ -906,33 +958,33 @@
 - Improve gradle scripts, config each build-variants for easy add custom build-variant, refer #1571
 - Allow to override AX_USE_COMPAT_GL from user's `CMakeLists.txt` by @smilediver
 - Fix android gradle AGP8 warnings, and rename keystore props:
-  - RELEASE_STORE_FILE ==> KEY_STORE_FILE
-  - RELEASE_KEY_STORE_PASSWORD ==> KEY_STORE_PASSWORD
-  - RELEASE_KEY_ALIAS ==> KEY_ALIAS
-  - RELEASE_KEY_PASSWORD ==> KEY_PASSWORD
+  - RELEASE_STORE_FILE => KEY_STORE_FILE
+  - RELEASE_KEY_STORE_PASSWORD => KEY_STORE_PASSWORD
+  - RELEASE_KEY_ALIAS => KEY_ALIAS
+  - RELEASE_KEY_PASSWORD => KEY_PASSWORD
 - Enable template projects' `aidl` by default for In-app purchases by @armanhossiny
 
 ## Breaking changes
 
-- Rename glview to correct representative name: `OpenGLView` ==> `GLView` by @paulocoutinhox
+- Rename glview to correct representative name: `OpenGLView` => `GLView` by @paulocoutinhox
 
 ## 3rdparties updates
 
-- astcenc: 4.5.0 ==> 4.7.0
-- c-ares: 1.19.1 ==> 1.25.0
-- clipper2: 1.2.2 ==> 1.3.0
-- curl: 8.2.1 ==> 8.5.0
-- jpeg-turbo: 3.0.0 ==> 3.0.1
-- llhttp: 9.0.1 ==> 9.1.3
-- ntcvt: 1.0.0 ==> 1.0.1
-- oboe: 1.7.0 ==> 1.8.0
-- openssl: 3.0.10 ==> 3.0.12
-- rapidjson: 1.1.0 ==> 1.1.0-b4a6da3
+- astcenc: 4.5.0 => 4.7.0
+- c-ares: 1.19.1 => 1.25.0
+- clipper2: 1.2.2 => 1.3.0
+- curl: 8.2.1 => 8.5.0
+- jpeg-turbo: 3.0.0 => 3.0.1
+- llhttp: 9.0.1 => 9.1.3
+- ntcvt: 1.0.0 => 1.0.1
+- oboe: 1.7.0 => 1.8.0
+- openssl: 3.0.10 => 3.0.12
+- rapidjson: 1.1.0 => 1.1.0-b4a6da3
 - simdjson(NEW): 3.6.3
-- webp: 1.3.1 ==> 1.3.2
-- yasio: 4.1.0 ==> 4.1.4
-- fmtlib: 10.1.1 ==> 10.2.1
-- imgui: 1.89.8 ==> 1.90.1
+- webp: 1.3.1 => 1.3.2
+- yasio: 4.1.0 => 4.1.4
+- fmtlib: 10.1.1 => 10.2.1
+- imgui: 1.89.8 => 1.90.1
 
 Notes:
 
@@ -967,15 +1019,15 @@ Notes:
 - Improve ASTC hardware support detection
 - Use ANGLE(d3d11) as default renderer library on win32
 - Thirdparty Updates
-    - ANGLE: 113.0.5672.128 ==> 115.0.5790.173
-    - curl: 8.1.2 ==> 8.2.1
-    - fmtlib: 10.0.0 ==> 10.1.0
-    - FreeType: 2.13.0 ==> 2.13.2
-    - llhttp: 8.1.1 ==> 9.0.1
-    - OpenSSL: 3.0.9 ==> 3.0.10
-    - webp: 1.3.0 ==> 1.3.1
-    - xxHash: 0.8.1 ==> 0.8.2
-    - zlib: 1.2.13 ==> 1.3
+    - ANGLE: 113.0.5672.128 => 115.0.5790.173
+    - curl: 8.1.2 => 8.2.1
+    - fmtlib: 10.0.0 => 10.1.0
+    - FreeType: 2.13.0 => 2.13.2
+    - llhttp: 8.1.1 => 9.0.1
+    - OpenSSL: 3.0.9 => 3.0.10
+    - webp: 1.3.0 => 1.3.1
+    - xxHash: 0.8.1 => 0.8.2
+    - zlib: 1.2.13 => 1.3
 - API changes:
     - CHANGED: The prototype of [`ProgramManager::registerCustomProgram`](https://axmol.dev/manual/latest/d1/db2/classax_1_1backend_1_1_program_manager.html#ab0c9fa9f0ebef5f20a868e2ea6cdc631) was changed
     - ADDED: `ProgramManager::loadProgram`

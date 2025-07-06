@@ -854,7 +854,7 @@ function find_vs() {
 
         # refer: https://learn.microsoft.com/en-us/visualstudio/install/workload-and-component-ids?view=vs-2022
         $require_comps = @('Microsoft.VisualStudio.Component.VC.Tools.x86.x64', 'Microsoft.VisualStudio.Product.BuildTools')
-        $vs_installs = ConvertFrom-Json "$(&$VSWHERE_EXE -version $required_vs_ver.TrimEnd('+') -format 'json' -requires $require_comps -requiresAny -prerelease)"
+        $vs_installs = ConvertFrom-Json "$(&$VSWHERE_EXE -products * -version $required_vs_ver.TrimEnd('+') -format 'json' -requires $require_comps -requiresAny -prerelease)"
         $ErrorActionPreference = $eap
 
         if ($vs_installs) {
@@ -1083,7 +1083,7 @@ function setup_cmake($skipOS = $false) {
             }
         }
         elseif ($IsLinux) {
-            if ($option.scope -ne 'global') {
+            if ($options.scope -ne 'global') {
                 $1k.mkdirs($cmake_root)
                 & "$cmake_pkg_path" '--skip-license' '--exclude-subdir' "--prefix=$cmake_root" 1>$null 2>$null
             }
@@ -1197,8 +1197,16 @@ function setup_unzip() {
     if ($IsWin) { return }
     $unzip_cmd_info = Get-Command 'unzip' -ErrorAction SilentlyContinue
     if (!$unzip_cmd_info) {
-        elseif ($IsLinux) {
-            if ($(which dpkg)) { sudo apt install unzip }
+        if ($IsLinux) {
+            if ($(which dpkg)) { 
+                sudo apt install unzip
+            }
+            elseif($(which pacman)) {
+                sudo pacman -S --needed --noconfirm unzip
+            }
+            else {
+                Write-Warning 'Current linux distro is not official supported'
+            }
         }
         elseif ($IsMacOS) {
             brew install unzip
@@ -1522,7 +1530,7 @@ function setup_msvc() {
 function setup_xcode() {
     $xcode_prog, $xcode_ver = find_prog -name 'xcode' -cmd "xcodebuild" -params @('-version')
     if (!$xcode_prog) {
-        throw "Missing Xcode, please install"
+        throw "The command 'xcodebuild' not work, if you confirm Xcode was installed on this computer, please execute 'sudo xcode-select -switch /Applications/Xcode.app' and try again"
     }
 }
 
