@@ -29,10 +29,8 @@
 
 #if defined(AX_ENABLE_3D_PHYSICS)
 
-#    if (AX_ENABLE_BULLET_INTEGRATION)
-
-#        include "bullet/btBulletCollisionCommon.h"
-#        include "bullet/btBulletDynamicsCommon.h"
+#    include "bullet/btBulletCollisionCommon.h"
+#    include "bullet/btBulletDynamicsCommon.h"
 
 namespace ax
 {
@@ -373,8 +371,8 @@ bool Physics3DRigidBody::isKinematic() const
 class btCollider : public btGhostObject
 {
 public:
-    btCollider(Physics3DCollider* collider) : _collider(collider){};
-    ~btCollider(){};
+    btCollider(Physics3DCollider* collider) : _collider(collider) {};
+    ~btCollider() {};
 
     /// this method is mainly for expert/internal use only.
     virtual void addOverlappingObjectInternal(btBroadphaseProxy* otherProxy,
@@ -551,8 +549,6 @@ ax::Mat4 Physics3DCollider::getWorldTransform() const
     return convertbtTransformToMat4(_btGhostObject->getWorldTransform());
 }
 
-}
-
-#    endif  // AX_ENABLE_BULLET_INTEGRATION
+}  // namespace ax
 
 #endif  // defined(AX_ENABLE_3D_PHYSICS)

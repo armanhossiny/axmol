@@ -27,7 +27,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ****************************************************************************/
 
-// cocos2d includes
+// axmol includes
 #include "base/Director.h"
 
 // standard includes
@@ -308,7 +308,7 @@ void Director::drawScene()
 
     if (_runningScene)
     {
-#if (defined(AX_ENABLE_PHYSICS) || (defined(AX_ENABLE_3D_PHYSICS) && AX_ENABLE_BULLET_INTEGRATION) || \
+#if (defined(AX_ENABLE_PHYSICS) || defined(AX_ENABLE_3D_PHYSICS) || \
      defined(AX_ENABLE_NAVMESH))
         _runningScene->stepPhysicsAndNavigation(_deltaTime);
 #endif

@@ -481,9 +481,22 @@ if ($1k.isfile($manifest_file)) {
 
 if($1k.isfile($Global:__1k_user_profile)) {
     $1k.println("Loading user build profile: $__1k_user_profile")
-    $user_profile = ConvertFrom-Props (Get-Content $__1k_user_profile)
-    foreach($entry in $user_profile.GetEnumerator()) {
+    $profile_entries = ConvertFrom-Props (Get-Content $__1k_user_profile)
+    foreach($entry in $profile_entries.GetEnumerator()) {
         $manifest[$entry.Key] = $entry.Value
+    }
+}
+
+function unescape_path([string]$Path) {
+    return ($Path -replace '\\:', ':') -replace '\\\\', '\'
+}
+
+$Script:preferred_sdk_dir = $null
+if($1k.isfile($Global:__1k_android_local_profile)) {
+    $1k.println("Loading android local profile: $__1k_android_local_profile")
+    $profile_entries = ConvertFrom-Props (Get-Content $__1k_android_local_profile)
+    if ($profile_entries.Contains('sdk.dir')) {
+        $Script:preferred_sdk_dir = unescape_path $profile_entries['sdk.dir']
     }
 }
 
@@ -1278,17 +1291,21 @@ function setup_android_sdk() {
         $ndk_ver = $ndk_ver.Substring(0, $ndk_ver.Length - 1)
     }
 
-    $__1k_sdk_root = Join-Path $install_prefix 'adt/sdk'
-
     $sdk_dirs = @()
-    $1k.insert([ref]$sdk_dirs, $env:ANDROID_HOME)
-    $1k.insert([ref]$sdk_dirs, $env:ANDROID_SDK_ROOT)
-    $1k.insert([ref]$sdk_dirs, $__1k_sdk_root)
+    if ($Script:preferred_sdk_dir) {
+        $1k.println("Add preferred android sdk dir: $Script:preferred_sdk_dir")
+        $sdk_dirs += $Script:preferred_sdk_dir
+    } else {
+        $__1k_sdk_root = Join-Path $install_prefix 'adt/sdk'
+        $1k.insert([ref]$sdk_dirs, $env:ANDROID_HOME)
+        $1k.insert([ref]$sdk_dirs, $env:ANDROID_SDK_ROOT)
+        $1k.insert([ref]$sdk_dirs, $__1k_sdk_root)
+    }
 
     $ndk_minor_base = [int][char]'a'
 
     # looking up require ndk installed in exists sdk roots
-    $sdk_root = $null
+    $selected_sdk_root = $null
     foreach ($sdk_dir in $sdk_dirs) {
         if (!$sdk_dir -or !$1k.isdir($sdk_dir)) {
             continue
@@ -1332,17 +1349,30 @@ function setup_android_sdk() {
         }
 
         if ($null -ne $ndk_root) {
+            $selected_sdk_root = $sdk_root
             $1k.println("Found $ndk_root in $sdk_root ...")
             break
         }
     }
 
-    if(!$sdk_root) {
-        $sdk_root = Join-Path $install_prefix 'adt/sdk'
-        $1k.mkdirs($sdk_root)
+    if(!$selected_sdk_root) {
+        if($Script:preferred_sdk_dir) {
+            $selected_sdk_root = $Script:preferred_sdk_dir
+        }
+        elseif ($env:ANDROID_HOME) {
+            $selected_sdk_root = $env:ANDROID_HOME
+        }
+        elseif($env:ANDROID_SDK_ROOT) {
+            $selected_sdk_root = $env:ANDROID_SDK_ROOT
+        }
+        else {
+            $selected_sdk_root = Join-Path $install_prefix 'adt/sdk'
+        }
+        $1k.mkdirs($selected_sdk_root)
     }
 
     # C:\Users\halx99\AppData\Roaming\Google\AndroidStudio2024.3\options\android.sdk.path.xml
+    $sdk_root = $selected_sdk_root
     $1k.println("Using android sdk dir: $sdk_root")
 
     $sdk_comps = @()

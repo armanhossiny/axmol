@@ -205,9 +205,18 @@ struct AX_DLL HSL : public Vec4Base<HSL>
 };
 
 inline Color3B::Color3B(const Color4B& color) : r(color.r), g(color.g), b(color.b) {}
-inline Color3B::Color3B(const Color4F& color) : r(color.r * 255.0f), g(color.g * 255.0f), b(color.b * 255.0f) {}
+inline Color3B::Color3B(const Color4F& color)
+    : r(static_cast<uint8_t>(color.r * 255))
+    , g(static_cast<uint8_t>(color.g * 255))
+    , b(static_cast<uint8_t>(color.b * 255))
+{}
 
-inline Color4B::Color4B(const Color4F& color) : r(color.r * 255), g(color.g * 255), b(color.b * 255), a(color.a * 255) {}
+inline Color4B::Color4B(const Color4F& color)
+    : r(static_cast<uint8_t>(color.r * 255))
+    , g(static_cast<uint8_t>(color.g * 255))
+    , b(static_cast<uint8_t>(color.b * 255))
+    , a(static_cast<uint8_t>(color.a * 255))
+{}
 
 NS_AX_MATH_END
 

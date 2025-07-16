@@ -2,7 +2,9 @@ param(
     $packageName,
     $directory,
     $lang,
-    [switch]$isolated
+    [switch]$isolated,
+    [switch]$repair,
+    [switch]$forceOverwrite
 )
 
 $params = [System.Collections.ArrayList]$args
@@ -40,12 +42,13 @@ if(!(Test-Path $sourcePath)) {
 
 $destinationPath = Join-Path $directory $projectName
 
-if(!(Test-Path $destinationPath -PathType Container)) {
-    Copy-Item $sourcePath $destinationPath -Recurse -Container -Force
-} else {
+$projectExists = Test-Path $destinationPath -PathType Container
+if($projectExists -and !$repair) {
     println "$destinationPath folder is already exist."
     return
 }
+
+if(!$projectExists) { $repair = $false }
 
 # replace, file/files, from/pattern
 
@@ -53,24 +56,61 @@ $template_cfg_file = Join-Path $sourcePath 'axproj-template.json'
 $template_cfg = ConvertFrom-Json (Get-Content $template_cfg_file -Raw)
 
 # variable for replace
-$projectDir = $(Resolve-Path $destinationPath).Path
-
-println "Creating project $projectName ..."
+if(!$repair) {
+    println "Creating project $projectName ..."
+} else {
+    println "Repairing project $projectName ..."
+}
 println "==> packageName: $packageName"
 println "==> destinationPath: $destinationPath"
 println "==> lang: $lang"
 println "==> is_portrait: $is_portrait"
 
-# actionParam
-#   rep
-#     from
-#     to
-#     files
-#   cp
-#     from
-#     to
-#   del:
-#     files
+# copy language spec files
+if(!$projectExists) {
+    Copy-Item $sourcePath $destinationPath -Recurse -Container -Force
+}
+
+$projectDir = $(Resolve-Path $destinationPath).Path
+
+function repair_directories ($Source, $Destination) {
+    if($Source -match '[\\/]\*$') {
+        $Source = $Source -replace '[\\/]\*$', ''
+    }
+
+    if (-not (Test-Path -LiteralPath $Source)) {
+        Throw "Source path '$Source' does not exist."
+    }
+
+    if (-not (Test-Path -LiteralPath $Destination)) {
+        New-Item -ItemType Directory $Destination | Out-Null
+    }
+
+    Get-ChildItem -LiteralPath $Source | ForEach-Object {
+        $target = Join-Path -Path $Destination -ChildPath $_.Name
+
+        if ($_.PSIsContainer) {
+            if (-not (Test-Path -LiteralPath $target)) {
+                New-Item -ItemType Directory $target | Out-Null
+            }
+            repair_directories -Source $_.FullName -Destination $target
+        }
+        else {
+            if (!(Test-Path $target -PathType Leaf)) {
+                println "Repairing: $target"
+                Copy-Item $_.FullName -Destination $target -Force
+            }
+            elseif($forceOverwrite) {
+                println "Overwriting: $target"
+                Copy-Item $_.FullName -Destination $target -Force
+            }
+            else {
+                println "Skipping repairing: $target, already exists."
+            }
+        }
+    }
+}
+
 function perform_action($actionParam) {
     $from = if ($actionParam.from){ . (Invoke-Expression "{ ""$($actionParam.from)"" }") } else { $actionParam.pattern } # expand envs/vars
     $to = . (Invoke-Expression "{ ""$($actionParam.to)"" } ") # expand envs/vars
@@ -92,14 +132,36 @@ function perform_action($actionParam) {
             }
         }
         'cp' {
-            if (!$actionParam.is_dir) {
-                Copy-Item -Path $from -Destination $to -Force
+            $to = realpath $to
+            if(!$repair) {
+                if(!$actionParam.is_dir) {
+                    Copy-Item -Path $from -Destination $to -Force
+                }
+                else {
+                    Copy-Item -Path $from -Destination $to -Recurse -Container -Force
+                }
             } else {
-                Copy-Item -Path $from -Destination $to -Recurse -Container -Force
+                if (!$actionParam.is_dir) {
+                    if (!(Test-Path $to -PathType Leaf)) { 
+                        println "Repairing: $to"
+                        Copy-Item -Path $from -Destination $to -Force 
+                    }
+                    elseif($forceOverwrite) {
+                        println "Overwriting: $to"
+                        Copy-Item -Path $from -Destination $to -Force
+                    }
+                    else { println "Skipping repairing: $to, already exists." }
+                } else {
+                    repair_directories -Source $from -Destination $to
+                }
             }
         }
         'ren' {
-            Rename-Item $from $to -Force
+            if (!$repair -or !(Test-Path $to)) {
+                Rename-Item $from $to -Force
+            } else {
+                println "Skipping repairing: $to, already exists."
+            }
         }
         'del' {
             foreach($filepath in $actionParam.files) {
@@ -138,6 +200,11 @@ if($isolated) {
     )
     foreach($path in $_ax_source_folders) {
         $source_path = Join-Path $env:AX_ROOT $path
+        $dest_path = Join-Path $_ax_root $path
+        if ($repair -and (Test-Path $dest_path)) {
+            println println "Skipping repairing: $dest_path, already exists."
+            continue
+        }
         if(Test-Path $source_path -PathType Container) {
             Copy-Item $source_path $_ax_root -Container -Recurse -Force
         } else {
@@ -146,8 +213,42 @@ if($isolated) {
     }
 }
 
-# write .axproj
-$axprojInfo = "package_name=$packageName`nengine_version=$axmolVersion`nproject_type=$lang"
-Set-Content -Path "$projectDir/.axproj" -Value $axprojInfo
+# updating .axproj
+$proj_file = Join-Path $projectDir '.axproj'
 
-println "Create project $projectName done."
+. $(Join-Path $AX_ROOT '1k/extensions.ps1')
+if (Test-Path $proj_file -PathType Leaf) {
+    $proj_props = ConvertFrom-Props (Get-Content $proj_file)
+} else {
+    $proj_props = @{}
+}
+
+$Script:update_axproj_mods = 0
+function update_axproj_prop($props, $prop_name, $prop_val) {
+    if($props.Contains($prop_name)) {
+        $old_val = $props[$prop_name]
+        if($old_val -ne $prop_val) {
+            $props[$prop_name] = $prop_val
+            ++$Script:update_axproj_mods
+            println "Update .axproj '$prop_name': $old_val => $prop_val"
+        }
+    }
+    else {
+        $props[$prop_name] = $prop_val
+        ++$Script:update_axproj_mods
+    }
+}
+
+update_axproj_prop $proj_props 'package_name' $packageName
+update_axproj_prop $proj_props 'engine_version' $axmolVersion
+update_axproj_prop $proj_props 'project_type' $lang
+
+if ($update_axproj_mods) {
+    Set-Content -Path $proj_file -Value (ConvertTo-Props $proj_props)
+}
+
+if(!$repair) {
+    println "Create project $projectName done."
+} else {
+    println "Repair project $projectName done."
+}

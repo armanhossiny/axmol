@@ -3787,7 +3787,7 @@ tolua_lerror:
     return 0;
 }
 
-#if defined(AX_ENABLE_3D_PHYSICS) && AX_ENABLE_BULLET_INTEGRATION
+#if defined(AX_ENABLE_3D_PHYSICS)
 #    include "physics3d/Physics3DWorld.h"
 int axlua_Scene_getPhysics3DWorld(lua_State* tolua_S)
 {
@@ -3896,7 +3896,7 @@ static void extendScene(lua_State* tolua_S)
     lua_rawget(tolua_S, LUA_REGISTRYINDEX);
     if (lua_istable(tolua_S, -1))
     {
-#if defined(AX_ENABLE_3D_PHYSICS) && AX_ENABLE_BULLET_INTEGRATION
+#if defined(AX_ENABLE_3D_PHYSICS)
         tolua_function(tolua_S, "getPhysics3DWorld", axlua_Scene_getPhysics3DWorld);
         tolua_function(tolua_S, "setPhysics3DDebugCamera", axlua_Scene_setPhysics3DDebugCamera);
 #endif

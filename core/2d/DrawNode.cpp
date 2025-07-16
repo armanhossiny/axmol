@@ -519,13 +519,13 @@ void DrawNode::drawCardinalSpline(const PointArray* configIn,
         Vec2 pp3 = config->getControlPointAtIndex(p + 2);
 
         lt           = (dt - deltaT * (float)p) / deltaT;
-        _vertices[i] = ccCardinalSplineAt(pp0, pp1, pp2, pp3, tension, lt);
+        _vertices[i] = cardinalSplineAt(pp0, pp1, pp2, pp3, tension, lt);
     }
 
     // Dont draw the first and the last point
     if (closed && config->count() > 2)
     {
-        auto seg = segments / (config->count() - 2);
+        auto seg = static_cast<int>(segments / (config->count() - 2));
         for (int i = seg; i < segments - seg; i++)
             _vertices[i - seg] = _vertices[i];
         segments -= (seg + seg);

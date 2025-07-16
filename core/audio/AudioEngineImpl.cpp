@@ -50,9 +50,11 @@ static ALCdevice* s_ALDevice       = nullptr;
 static ALCcontext* s_ALContext     = nullptr;
 static ax::AudioEngineImpl* s_instance = nullptr;
 
-static void ccALPauseDevice()
+namespace ax
 {
-    AXLOGD("{}", "===> ccALPauseDevice");
+static void pauseAudioDevice()
+{
+    AXLOGD("{}", "===> pauseAudioDevice");
 #if AX_USE_ALSOFT
     alcDevicePauseSOFT(s_ALDevice);
 #else
@@ -61,9 +63,9 @@ static void ccALPauseDevice()
 #endif
 }
 
-static void ccALResumeDevice()
+static void resumeAudioDevice()
 {
-    AXLOGD("{}", "===> ccALResumeDevice");
+    AXLOGD("{}", "===> resumeAudioDevice");
 #if AX_USE_ALSOFT
     alcDeviceResumeSOFT(s_ALDevice);
 #else
@@ -71,6 +73,7 @@ static void ccALResumeDevice()
         alcMakeContextCurrent(nullptr);
     alcMakeContextCurrent(s_ALContext);
 #endif
+}
 }
 
 #if AX_TARGET_PLATFORM == AX_PLATFORM_IOS
@@ -127,7 +130,6 @@ static void ccALResumeDevice()
 {
     static bool isAudioSessionInterrupted = false;
     static bool resumeOnBecomingActive    = false;
-    static bool pauseOnResignActive       = false;
 
     if ([notification.name isEqualToString:AVAudioSessionInterruptionNotification])
     {
@@ -136,21 +138,10 @@ static void ccALResumeDevice()
         {
             isAudioSessionInterrupted = true;
 
-            if ([UIApplication sharedApplication].applicationState != UIApplicationStateActive)
-            {
-                AXLOGD(
-                    "AVAudioSessionInterruptionTypeBegan, application != UIApplicationStateActive, "
-                    "alcMakeContextCurrent(nullptr)");
-            }
-            else
-            {
-                AXLOGD(
-                    "AVAudioSessionInterruptionTypeBegan, application == UIApplicationStateActive, "
-                    "pauseOnResignActive = true");
-            }
+            AXLOGD("AVAudioSessionInterruptionTypeBegan, alcMakeContextCurrent(nullptr)");
 
             // We always pause device when interruption began
-            ccALPauseDevice();
+            ax::pauseAudioDevice();
         }
         else if (reason == AVAudioSessionInterruptionTypeEnded)
         {
@@ -163,7 +154,7 @@ static void ccALResumeDevice()
                     "alcMakeContextCurrent(s_ALContext)");
                 NSError* error = nil;
                 [[AVAudioSession sharedInstance] setActive:YES error:&error];
-                ccALResumeDevice();
+                ax::resumeAudioDevice();
                 if (ax::Director::getInstance()->isPaused())
                 {
                     AXLOGD("AVAudioSessionInterruptionTypeEnded, director was paused, try to resume it.");
@@ -182,12 +173,6 @@ static void ccALResumeDevice()
     else if ([notification.name isEqualToString:UIApplicationWillResignActiveNotification])
     {
         AXLOGD("UIApplicationWillResignActiveNotification");
-        if (pauseOnResignActive)
-        {
-            pauseOnResignActive = false;
-            AXLOGD("UIApplicationWillResignActiveNotification, alcMakeContextCurrent(nullptr)");
-            ccALPauseDevice();
-        }
     }
     else if ([notification.name isEqualToString:UIApplicationDidBecomeActiveNotification])
     {
@@ -195,7 +180,10 @@ static void ccALResumeDevice()
         if (resumeOnBecomingActive)
         {
             resumeOnBecomingActive = false;
-            AXLOGD("UIApplicationDidBecomeActiveNotification, alcMakeContextCurrent(s_ALContext)");
+            if (!isAudioSessionInterrupted)
+                ax::pauseAudioDevice();
+            
+            AXLOGD("UIApplicationDidBecomeActiveNotification, resume audio device");
             NSError* error = nil;
             BOOL success   = [[AVAudioSession sharedInstance] setCategory:AVAUDIOSESSION_DEFAULT_CATEGORY error:&error];
             if (!success)
@@ -205,7 +193,7 @@ static void ccALResumeDevice()
             }
             [[AVAudioSession sharedInstance] setActive:YES error:&error];
 
-            ccALResumeDevice();
+            ax::resumeAudioDevice();
         }
         else if (isAudioSessionInterrupted)
         {
@@ -214,8 +202,24 @@ static void ccALResumeDevice()
     }
     else if ([notification.name isEqualToString:AVAudioSessionRouteChangeNotification])
     {  // replay
-        ccALPauseDevice();
-        ccALResumeDevice();
+        /*
+         If app in background, just record we need resume audio device when app becoming active,
+         otherwise, the newer iphone device (at least iphone13) will report follow error:
+         AURemoteIO.cpp:1666  AUIOClient_StartIO failed (561015905) 'perm', see issue: https://github.com/axmolengine/axmol/issues/2479
+         Note: older device (e.g iphone7) will not receive route change notifiaction when app in background
+         */
+        if ([UIApplication sharedApplication].applicationState == UIApplicationStateActive)
+        { // older device (e.g iphone7)
+            ax::pauseAudioDevice();
+            ax::resumeAudioDevice();
+        }
+        else
+        { // newer device (at least iphone13)
+            AXLOGD(
+                "AVAudioSessionRouteChangeNotification, application != UIApplicationStateActive, "
+                "resumeOnBecomingActive = true");
+            resumeOnBecomingActive = true;
+        }
     }
 }
 

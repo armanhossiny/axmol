@@ -68,7 +68,7 @@ int lua_module_register(lua_State* L)
 #endif // defined(AX_ENABLE_EXT_SPINE)
     register_cocos3d_module(L);
     register_audioengine_module(L);
-#if defined(AX_ENABLE_3D_PHYSICS) && AX_ENABLE_BULLET_INTEGRATION
+#if defined(AX_ENABLE_3D_PHYSICS)
     register_physics3d_module(L);
 #endif
 #if defined(AX_ENABLE_NAVMESH)

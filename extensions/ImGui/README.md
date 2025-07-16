@@ -1,7 +1,27 @@
 # The ImGui extension for axmol
-Sync from https://github.com/Xrysnow/cocos2d-x-imgui and do a little changes
+
+forked from https://github.com/Xrysnow/cocos2d-x-imgui and add many improvements
+
+## axmol spec sources
+
+- src/ImGuiPresenter.h
+- src/ImGuiPresenter.cpp
+- src/backends/imgui_impl_axmol.h
+- src/backends/imgui_impl_axmol.cpp
+- src/backends/imgui_impl_glfw.h
+- src/backends/imgui_impl_glfw.cpp
+- src/backends/imgui_impl_android.h
+- src/backends/imgui_impl_android.cpp
+
+## Updating imgui
+
+- Sync all files src/ImGui/imgui* from Dear ImGui official, but reserve imgui_conf.h macros: `IMGUI_DISABLE_OBSOLETE_FUNCTIONS`, `IMGUI_ENABLE_FREETYPE`
+- Compare src/backends/imgui_impl_glfw with Dear ImGui official, merge necessary change lines
 
 ## Improvements
+
+* Refactor imgui axmol render backend
+* Add android platform backend support
 * Simplify API, use add/remove renderLoop present ImGui GUI widgets
 * Optimize call pipeline flow, support add/remove Node to Scene at ImGui render loop without container iterator damage
 * Calculate deltaTime at ```ImGui_ImplCocos2dx_NewFrame``` to avoid error when ```cc.Director``` paused
@@ -14,6 +34,7 @@ and then specify the glyph ranges id while calling `addFont`
 to use those with specific font.
 
 ## How to use
+
 ```cpp
 #include "ImGui/ImGuiPresenter.h"
 using namespace ax;
@@ -49,12 +70,16 @@ public:
 More about use imgui widgets, please see: https://github.com/ocornut/imgui
 
 ## Tested devices
+
 * win32
 * macOS
+* Android
 
 ## Known issues
-* Can't enable muti-viewports on macOS, so we disable this feature for macOS.
+
+- ~Can't enable muti-viewports on macOS, so we disable this feature for macOS.~ , since axmol-2.7.1, multi-viewports on macOS works
 
 ## Other resources of ImGui
+
 * https://github.com/ocornut/imgui/wiki/Bindings
 * https://github.com/CedricGuillemet/ImGuizmo

@@ -48,13 +48,13 @@
 #define PACKAGE "WebP"
 
 /* Define to the address where bug reports for this package should be sent. */
-#define PACKAGE_BUGREPORT "https://bugs.chromium.org/p/webp"
+#define PACKAGE_BUGREPORT "https://issues.webmproject.org"
 
 /* Define to the full name of this package. */
 #define PACKAGE_NAME "WebP"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "WebP 1.3.1"
+#define PACKAGE_STRING "WebP 1.6.0"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "WebP"
@@ -63,10 +63,10 @@
 #define PACKAGE_URL "https://developers.google.com/speed/webp"
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "1.3.1"
+#define PACKAGE_VERSION "1.6.0"
 
 /* Version number of package */
-#define VERSION "1.3.1"
+#define VERSION "1.6.0"
 
 /* Set to 1 if GIF library is installed */
 /* #undef WEBP_HAVE_GIF */
@@ -95,6 +95,9 @@
 
 /* Set to 1 if SSE4.1 is supported */
 //#define WEBP_HAVE_SSE41 1
+
+/* Set to 1 if AVX2 is supported */
+//#define WEBP_HAVE_AVX2 1
 
 /* Set to 1 if TIFF library is installed */
 /* #undef WEBP_HAVE_TIFF */
