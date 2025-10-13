@@ -25,7 +25,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ****************************************************************************/
 #include "platform/PlatformConfig.h"
-#include "platform/winrt/GLViewImpl-winrt.h"
+#include "platform/winrt/RenderViewImpl-winrt.h"
 #include "base/Director.h"
 #include <algorithm>
 #include "platform/FileUtils.h"
@@ -33,7 +33,7 @@ THE SOFTWARE.
 #include "platform/Application.h"
 
 #include "pugixml/pugixml.hpp"
-#include "fmt/format.h"
+#include "base/format.h"
 
 #include <winrt/Windows.ApplicationModel.h>
 #include <winrt/Windows.System.UserProfile.h>
@@ -83,7 +83,7 @@ int Application::run()
 
     QueryPerformanceCounter(&m_nLast);
 
-    GLViewImpl::sharedGLView()->Run();
+    RenderViewImpl::sharedRenderView()->Run();
     return 0;
 }
 
@@ -163,7 +163,7 @@ std::string Application::getVersion()
 
 bool Application::openURL(std::string_view url)
 {
-    auto dispatcher = ax::GLViewImpl::sharedGLView()->getDispatcher();
+    auto dispatcher = ax::RenderViewImpl::sharedRenderView()->getDispatcher();
     dispatcher.get().RunAsync(Windows::UI::Core::CoreDispatcherPriority::Normal, DispatchedHandler([url]() {
                                   auto uri = Windows::Foundation::Uri(PlatformStringFromString(url));
                                   Windows::System::Launcher::LaunchUriAsync(uri);

@@ -27,20 +27,20 @@
 #include "../NetworkTest.h"
 #include "testResource.h"
 
-#include "WebSocketTest.h"
+#include "base/format.h"
 
-#include "fmt/format.h"
-#include "fmt/compile.h"
-
-/* "ws://echo.websocket.org no longer avaiable: https://www.lob.com/blog/websocket-org-is-down-here-is-an-alternative
- list of public test servers:
-   - wss://echo.websocket.events/.ws
-   - wss://ws.postman-echo.com/raw
-   - wss://ws.postman-echo.com/socketio handshake path: random, handling
-   - wss://socketsbay.com/wss/v2/1/demo/
+/* https://websocket.org/
+ list of public test servers: (Note, on china mainland, may need VPN):
+   - wss://ws.ifelse.io (available, test on Sep.5 2025)
+   - wss://echo.websocket.org (available, test on Sep.5 2025)
+   - wss://echo.websocket.events/.ws (unavailable, test on Sep.5 2025)
+   - wss://ws.postman-echo.com/raw (not test)
+   - wss://ws.postman-echo.com/socketio handshake path: random, handling (not test)
+   - wss://socketsbay.com/wss/v2/1/demo/ (not test)
    - https://blog.postman.com/introducing-postman-websocket-echo-service/
+   - other https://www.lob.com/blog/websocket-org-is-down-here-is-an-alternative
 */
-#define ECHO_SERVER_URL "wss://echo.websocket.events/.ws" //"wss://ws.postman-echo.com/raw"
+#define ECHO_SERVER_URL "wss://ws.ifelse.io"
 #define SOCKETIO_SERVICE "wss://ws.postman-echo.com/socketio"
 
 using namespace ax;
@@ -188,8 +188,8 @@ void WebSocketTest::startTestCallback(Object* sender)
 // Delegate methods
 void WebSocketTest::onOpen(network::WebSocket* ws)
 {
-    char status[256] = {0};
-    fmt::format_to(status, "Opened, url: {}, protocol: {}", ws->getUrl(), ws->getProtocol());
+    char status[256];
+    fmt::format_to_z(status, "Opened, url: {}, protocol: {}", ws->getUrl(), ws->getProtocol());
 
     AXLOGI("Websocket ({}) was opened, url: {}, protocol: {}", fmt::ptr(ws), ws->getUrl(), ws->getProtocol());
     if (ws == _wsiSendText)
@@ -220,8 +220,8 @@ void WebSocketTest::onMessage(network::WebSocket* ws, const network::WebSocket::
     else
     {
         _sendBinaryTimes++;
-        char times[100] = {0};
-        fmt::format_to(times, "{}", _sendBinaryTimes);
+        char times[100];
+        fmt::format_to_z(times, "{}", _sendBinaryTimes);
 
         std::string binaryStr = "response bin msg: ";
 
@@ -270,8 +270,8 @@ void WebSocketTest::onClose(network::WebSocket* ws, uint16_t code, std::string_v
 void WebSocketTest::onError(network::WebSocket* ws, const network::WebSocket::ErrorCode& error)
 {
     AXLOGD("Error was fired, error code: {}", static_cast<int>(error));
-    char buf[100] = {0};
-    fmt::format_to(buf, "An error was fired, code: {}", static_cast<int>(error));
+    char buf[100];
+    fmt::format_to_z(buf, "An error was fired, code: {}", static_cast<int>(error));
 
     if (ws == _wsiSendText)
     {
@@ -431,8 +431,8 @@ WebSocketDelayTest::WebSocketDelayTest()
     addChild(menuRequest);
 
     // Send Text
-    char cmdLabel[60] = {0};
-    snprintf(cmdLabel, 60, "Send %d Text", SEND_TEXT_TIMES);
+    char buf[60];
+    auto cmdLabel = fmt::format_to_z(buf, "Send {} Text", SEND_TEXT_TIMES);
     auto labelSendText = Label::createWithTTF(cmdLabel, "fonts/arial.ttf", 20);
     auto itemSendText =
         MenuItemLabel::create(labelSendText, AX_CALLBACK_1(WebSocketDelayTest::onMenuSendTextClicked, this));
@@ -502,9 +502,9 @@ void WebSocketDelayTest::doSendText()
         return;
     }
 
-    char statueBuffer[80] = {0};
-    snprintf(statueBuffer, 80, "Sending #%d/%d text", _sendTextTimes, SEND_TEXT_TIMES);
-    _sendTextStatus->setString(statueBuffer);
+    char buf[80];
+    auto status = fmt::format_to_z(buf, "Sending #{}/{} text", _sendTextTimes, SEND_TEXT_TIMES);
+    _sendTextStatus->setString(status);
     _sendTimeMircoSec = getNowMircroSeconds();
     _wsiSendText->send("Hello WebSocket, I'm a text message.");
 }
@@ -520,8 +520,8 @@ void WebSocketDelayTest::doReceiveText()
 // Delegate methods
 void WebSocketDelayTest::onOpen(network::WebSocket* ws)
 {
-    char status[256] = {0};
-    fmt::format_to(status, "Opened, url: {}, protocol: {}", ws->getUrl(), ws->getProtocol());
+    char status[256];
+    fmt::format_to_z(status, "Opened, url: {}, protocol: {}", ws->getUrl(), ws->getProtocol());
 
     AXLOGD("Websocket ({}) was opened, url: {}, protocol: {}", fmt::ptr(ws), ws->getUrl(), ws->getProtocol());
     if (ws == _wsiSendText)
@@ -535,14 +535,14 @@ void WebSocketDelayTest::onMessage(network::WebSocket* ws, const network::WebSoc
     if (!data.isBinary)
     {
         _receiveTextTimes++;
-        char times[100] = {0};
-        fmt::format_to(times, "{}", _receiveTextTimes);
-        std::string textStr = std::string("response text msg: ") + data.bytes + ", " + times;
+        char buf[100];
+        auto infoStr = fmt::format_to_z(buf, "{}", _receiveTextTimes);
+        std::string textStr = (std::string("response text msg: ") + data.bytes + ", ");
+        textStr += infoStr;
         AXLOGD("{}", textStr);
         doReceiveText();
-        memset(times, 0, 100);
-        snprintf(times, 100, "total delay %f seconds", (float)(_totalDelayMircoSec / 1000000.0));
-        _progressStatus->setString(times);
+        infoStr = fmt::format_to_z(buf, "total delay {} seconds", (float)(_totalDelayMircoSec / 1000000.0));
+        _progressStatus->setString(infoStr);
     }
 }
 
@@ -562,8 +562,8 @@ void WebSocketDelayTest::onClose(network::WebSocket* ws, uint16_t code, std::str
 void WebSocketDelayTest::onError(network::WebSocket* ws, const network::WebSocket::ErrorCode& error)
 {
     AXLOGD("Error was fired, error code: {}", static_cast<int>(error));
-    char buf[100] = {0};
-    fmt::format_to(buf, "An error was fired, code: {}", static_cast<int>(error));
+    char buf[100];
+    fmt::format_to_z(buf, "An error was fired, code: {}", static_cast<int>(error));
 
     if (ws == _wsiSendText)
     {

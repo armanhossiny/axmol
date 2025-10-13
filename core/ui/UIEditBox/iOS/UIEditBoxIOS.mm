@@ -30,7 +30,7 @@
 #import "ui/UIEditBox/iOS/UISingleLineTextField.h"
 #import "ui/UIEditBox/iOS/UIMultilineTextField.h"
 
-#import "platform/ios/EAGLView-ios.h"
+#import "platform/ios/RenderHostView-ios.h"
 #include "base/Director.h"
 
 #define getEditBoxImplIOS() ((ax::ui::EditBoxImplIOS*)_editBox)
@@ -319,10 +319,10 @@
 
 - (void)doAnimationWhenKeyboardMoveWithDuration:(float)duration distance:(float)distance
 {
-    auto view            = ax::Director::getInstance()->getGLView();
-    EAGLView* eaglView = (EAGLView*)view->getEAGLView();
+    auto view            = ax::Director::getInstance()->getRenderView();
+    RenderHostView* eaView = (__bridge RenderHostView*)view->getEARenderView();
 
-    [eaglView doAnimationWhenKeyboardMoveWithDuration:duration distance:distance];
+    [eaView doAnimationWhenKeyboardMoveWithDuration:duration distance:distance];
 }
 
 - (void)updateFrame:(CGRect)rect
@@ -336,10 +336,10 @@
 
 - (void)openKeyboard
 {
-    auto view            = ax::Director::getInstance()->getGLView();
-    EAGLView* eaglView = (EAGLView*)view->getEAGLView();
+    auto view            = ax::Director::getInstance()->getRenderView();
+    RenderHostView* eaView = (__bridge RenderHostView*)view->getEARenderView();
 
-    [eaglView addSubview:self.textInput];
+    [eaView addSubview:self.textInput];
     [self.textInput becomeFirstResponder];
 }
 
@@ -361,10 +361,10 @@
 
 - (void)animationSelector
 {
-    auto view            = ax::Director::getInstance()->getGLView();
-    EAGLView* eaglView = (EAGLView*)view->getEAGLView();
+    auto view            = ax::Director::getInstance()->getRenderView();
+    RenderHostView* eaView = (__bridge RenderHostView*)view->getEARenderView();
 
-    [eaglView doAnimationWhenAnotherEditBeClicked];
+    [eaView doAnimationWhenAnotherEditBeClicked];
 }
 
 #pragma mark - UITextView delegate methods
@@ -375,10 +375,10 @@
     _editState     = YES;
     _returnPressed = NO;
 
-    auto view            = ax::Director::getInstance()->getGLView();
-    EAGLView* eaglView = (EAGLView*)view->getEAGLView();
+    auto view            = ax::Director::getInstance()->getRenderView();
+    RenderHostView* eaView = (__bridge RenderHostView*)view->getEARenderView();
 
-    if ([eaglView isKeyboardShown])
+    if ([eaView isKeyboardShown])
     {
         [self performSelector:@selector(animationSelector) withObject:nil afterDelay:0.0f];
     }
@@ -468,10 +468,10 @@
     _editState     = YES;
     _returnPressed = NO;
 
-    auto view            = ax::Director::getInstance()->getGLView();
-    EAGLView* eaglView = (EAGLView*)view->getEAGLView();
+    auto view            = ax::Director::getInstance()->getRenderView();
+    RenderHostView* eaView = (__bridge RenderHostView*)view->getEARenderView();
 
-    if ([eaglView isKeyboardShown])
+    if ([eaView isKeyboardShown])
     {
         [self performSelector:@selector(animationSelector) withObject:nil afterDelay:0.0f];
     }

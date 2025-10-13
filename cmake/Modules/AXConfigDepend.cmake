@@ -5,10 +5,12 @@ macro(ax_depend)
   message(STATUS "AX_USE_ALSOFT=${AX_USE_ALSOFT}")
 
   if(WINDOWS)
-    list(APPEND PLATFORM_SPECIFIC_LIBS ws2_32 userenv psapi winmm Version Iphlpapi opengl32)
+    list(APPEND PLATFORM_SPECIFIC_LIBS ws2_32 userenv psapi winmm Version Iphlpapi)
 
     if(WINRT)
       list(APPEND PLATFORM_SPECIFIC_LIBS windowscodecs Advapi32 runtimeobject Dwrite)
+    elseif(NOT AX_USE_COMPAT_GL) # ONLY Win32 Apps support DesktopGL if not use ANGLE
+      list(APPEND PLATFORM_SPECIFIC_LIBS opengl32)
     endif()
   elseif(LINUX)
     # need review those libs: X11 Xi Xrandr Xxf86vm Xinerama Xcursor rt m

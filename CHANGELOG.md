@@ -1,3 +1,188 @@
+# axmol-2.9.0 Oct.5 2025
+
+## Significant changes relative to 2.8.x:
+
+### 3D Audio & Basic Effects
+
+- Add support for audio panning by @rh101 in [#2719](https://github.com/axmolengine/axmol/pull/2719)
+- Add support for playing audio at any position in 3D space by @rh101 in [#2740](https://github.com/axmolengine/axmol/pull/2740)
+- Initial implementation adding support for audio effects and filters using OpenAL by @rh101 in [#2772](https://github.com/axmolengine/axmol/pull/2772)
+- Fix reverb properties values by @rh101 in [#2779](https://github.com/axmolengine/axmol/pull/2779)
+
+### Other Changes
+
+- Add screen orientation control for mobile devices by @halx99 in [#2784](https://github.com/axmolengine/axmol/pull/2784)
+- Add new API `EventKeyboard::isRepeat` by @halx99 in [#2735](https://github.com/axmolengine/axmol/pull/2735)
+- Add new API `ZipFile::createWithData` and mark `ZipFile::createWithBuffer` as deprecated by @halx99
+- Enhance Base64 decoder to skip whitespace/newlines and prevent premature termination by @halx99
+- Add Device::resolveOrientation and compact resolution logic by @halx99 in [#2792](https://github.com/axmolengine/axmol/pull/2792)
+
+## Bug fixes
+
+- Fix `ui::MediaPlayer` may crash on Apple platforms by @halx99 in [#2704](https://github.com/axmolengine/axmol/pull/2704)
+- Fix occasional missing Android assets in AAB build by @paulocoutinhox in [#2713](https://github.com/axmolengine/axmol/pull/2713)
+- Fix format specifiers in logging calls by @rh101 in [#2749](https://github.com/axmolengine/axmol/pull/2749)
+- Fix for crash when director is reset during scene transition by @halx99 [#2802](https://github.com/axmolengine/axmol/pull/2802)
+
+
+## Improvements
+
+- Add Http setDataCallback for streaming data support by @halx99 in [#2805](https://github.com/axmolengine/axmol/pull/2805)
+- Improve ios EditBox orientation handling with keyboard by @halx99 in [#2791](https://github.com/axmolengine/axmol/pull/2791) and [#2795](https://github.com/axmolengine/axmol/pull/2795)
+- Add support for extracting the previous scene from the scene stack by @rh101 in [#2793](https://github.com/axmolengine/axmol/pull/2793)
+- Destroy `ScriptEngine` instance before `_scheduler` to respect dependency by @halx99
+- Fix SpineTest aim y-axis by @halx99
+- Replace deprecated calls with new API in engine by @halx99
+- Update `controller.cpp`: rename "Audio - NewAudioEngine" to "AudioEngine" by @aismann in [#2731](https://github.com/axmolengine/axmol/pull/2731)
+- Fix addressed several non-critical issues for lua-tests by @halx99
+- Remove non-existent yaml-cpp from template cmake modules by @halx99
+- Remove CI pull-request trigger event: `ready_for_review` by @halx99
+- Update kcp to resolve cmake error by @halx99
+- Dispatch applicationScreenSizeChanged when layoutSubviews on ios by @halx99
+- Rename internal ios class: EARenderView => RenderHostView by @halx99
+- Make Director::getRunningScene() return the expected result for any type of scene switch when called from Node::onEnter() by @rh101 in [#2799](https://github.com/axmolengine/axmol/pull/2799)
+
+## SDK & Tools updates
+
+- webview2: 1.0.3405.78 => 1.0.3485.44
+
+## 3rdparty updates
+
+- curl: 8.15.0 => 8.16.0
+- freetype: 2.13.3 => 2.14.1
+- jpeg-turbo: 3.1.1 => 3.1.2
+- luajit: 2.1-f9140a6 => 2.1-871db2c
+
+## Notes
+
+### Add new API: `ZipFile::createWithData`
+
+**Rationale**  
+The existing API `ZipFile::createWithBuffer` has a design flaw. It accepts a `const char*` buffer without clarifying ownership, which makes the API dependent on the external buffer’s lifetime. This can lead to undefined behavior and hard-to-trace bugs.
+
+**Improvement**  
+The new API `ZipFile::createWithData` takes a `Data` object as its parameter. Since `Data` supports move semantics, ownership and lifetime are explicit. This ensures safer usage, reduces the risk of misuse, and provides more predictable behavior for developers.
+
+---
+
+### Add screen orientation control for mobile devices
+
+**Rationale**  
+Previously, screen orientation could only be configured statically through platform settings  
+(e.g., `info.plist` on iOS or `AndroidManifest.xml` on Android). This limited flexibility,  
+as the rendering orientation could not be changed at runtime once the app was launched.
+
+**Improvement**  
+A new core API `Device::setPreferredOrientation` has been introduced.  
+- When orientation support is already declared in `info.plist` (iOS) or `AndroidManifest.xml` (Android),  
+  this API allows dynamic modification of the rendering orientation at runtime.  
+- Developers can now switch between portrait and landscape modes programmatically,  
+  adapting to gameplay, UI flow, or user preferences.
+
+**Benefit**  
+- Consistent cross-platform orientation handling.  
+- Eliminates the need for platform-specific code to adjust orientation dynamically.  
+- Improves user experience by adapting rendering orientation seamlessly during runtime.
+
+**Developer Note**  
+The engine only performs **basic adaptation** internally.  
+It is still recommended that developers handle their own resolution and layout adjustment strategies  
+inside `AppDelegate::applicationScreenSizeChanged` to ensure proper scaling and UI behavior  
+across different devices and orientations.
+
+# axmol-2.8.1 Sep.5 2025
+
+## Bug fixes
+
+- **Fix a regression introduced by 2.8.0 that improper Content-Length setting in HTTP requests, see [#2686](https://github.com/axmolengine/axmol/issues/2686)** by @halx99
+- Fix compile error when using AX_CORE_PROFILE option by @martinking71 in [#2677](https://github.com/axmolengine/axmol/pull/2677)
+- Fix lua-tests PhysicsTest not work by @halx99
+- Fix missing processor endif in platform/mac/GL-mac.h by @halx99
+- Fix package name for lua-tests, live2d-tests by @halx99
+- Fix AccelerometerTest of lua-tests not work by @halx99
+- Fix wasm downloader by @AlexandreK38 in [#2676](https://github.com/axmolengine/axmol/pull/2676)
+
+## Deprecated
+
+- Mark Director::setGLDefaultValues as deprecated; use setRenderDefaults instead by @halx99
+- Mark messageBox as deprecated; use showAlert instead by @halx99
+
+## Improvements
+
+- **Revert DrawNode color param to Color4F to fix Lua test issues** by @halx99
+- Add API ax::showAlert by @halx99
+- Add API HttpResponse::getStatusText by @halx99
+- Remove entries for non-existent Lua test cases by @halx99
+- Fix incorrect fmt::format format string by @halx99
+- Remove "CC" from the menu entries (cpp-/lua-tests) by @aismann in [#2688](https://github.com/axmolengine/axmol/pull/2688)
+- Remove unnecessary Lua files: LayerEx.lua, DrawPrimitives.lua by @halx99
+- Use lua length operator `#` instead `table.getn` in CocoStudio.lua by @halx99
+- Update url of CurlTeset by @halx99
+- Ensure lua-tests RenderTextureTest case work as expected by @halx99
+- Add API PointArray::clear() by @aismann in [#2692](https://github.com/axmolengine/axmol/pull/2692)
+
+## Notes
+
+- **Revert DrawNode color parameter type**
+
+  **Reason**:  
+  In axmol-2.2.0, the `DrawNode` color parameter was changed from `Color4F` to `Color4B`. This change prevented certain Lua binding test cases from detecting color updates correctly.
+
+  **Impact**:  
+  As a result, some Lua tests failed to produce the expected rendering behavior, leading to inconsistent test outcomes.
+
+  **Solution**:  
+  The color parameter has been reverted to `Color4F`. Since `DrawNode` internally already uses `Color4F` to pass color data to the GPU, this change restores expected Lua test behavior without any noticeable performance loss.
+
+
+# axmol-2.8.0 Sep.1 2025
+
+## Bug fixes
+
+- Fix #2669: Windows UWP not running on Windows 11 due to DriverGL initialization failure by @halx99
+- Fix #2655: Multi-touch not work on android scene contains imgui layer by @halx99
+- Fix #2674: OpenSSL not linkage for final app on Linux by @halx99 in https://github.com/axmolengine/axmol/pull/2675
+- Fix incorrect FontAtlas when switching label rendering mode from normal to SDF by @halx99 in https://github.com/axmolengine/axmol/pull/2629
+- Fix wasm Device::getTextureDataForText will report exception when process whitespace text by @halx99
+- Fix linux label color incorrect when LabelType is STRING_TEXTURE by @halx99
+- Fix incorrect fmt::format_to use case by @halx99 in https://github.com/axmolengine/axmol/pull/2612
+- Fix llvm ver trim in genbindings.ps1 by @halx99
+- Fix Label SDF rendering issues with font resizing and other bugs by @halx99 in https://github.com/axmolengine/axmol/pull/2625
+- Fix compile error when project contains swift code by @halx99 in https://github.com/axmolengine/axmol/pull/2632
+- Fix wasm Downloader open file with wrong permision (#2666) by @AlexandreK38 in https://github.com/axmolengine/axmol/pull/2666
+- Fix failure in CMake 4.1 when targeting Windows: assembler not found by @halx99
+
+## Improvements
+
+- Improve apple ios platform render view creation by @halx99 in https://github.com/axmolengine/axmol/pull/2600
+- Rename GLView to RenderView by @halx99 in https://github.com/axmolengine/axmol/pull/2602
+- Mention emsdk downgrading notice in version 2.6.0 release notes by @halx99
+- Improve wasm dev setup notice by @halx99
+- Rename `GLContextAttrs` to `GfxContextAttrs` by @halx99
+- Update pull_request_template.md by @aismann in https://github.com/axmolengine/axmol/pull/2609
+- Improve utf8 chars counting, remove strlen call by @halx99 in https://github.com/axmolengine/axmol/pull/2614
+- Improve utf8 text processing by @halx99
+- Remove sprintf/snprintf stubs by @halx99 in https://github.com/axmolengine/axmol/pull/2615
+- Improve android sdk setup, axmol spec android sdk dir priority:  `android project local properties` > `ANDROID_HOME` > `ANDROID_SDK_ROOT` > `axmol/tools/external/adt/sdk` by @halx99
+- Use pragma once for more header files by @halx99 in https://github.com/axmolengine/axmol/pull/2616
+- Add support set window size limits by @NgVThangBz in https://github.com/axmolengine/axmol/pull/2618
+- Renamed cpp-tests "Node: Label - New API" to "Node: Label" by @aismann in https://github.com/axmolengine/axmol/pull/2627
+- Update ImGui mult-viewports hint message by @halx99
+- Improve tests (Naming of menu entries on cpp-/lua- tests) by @aismann in https://github.com/axmolengine/axmol/pull/2640
+- Move SIMD availability detection into its own CMake file by @j-jorge in https://github.com/axmolengine/axmol/pull/2642
+- Setting CMAKE_MSVC_DEBUG_INFORMATION_FORMAT to Embedded to resolve pdb too large problem by @halx99
+- Improve NuGet package management by @halx99 in https://github.com/axmolengine/axmol/pull/2671
+
+## SDK & Tools updates
+
+- agp: 8.11.0 => 8.11.1
+- gradle: 8.14.3 => 9.0.0
+- cmake: 4.0.3 => 4.1.1
+
+## 3rdparty updates
+
+- curl: 8.13.0 => 8.15.0
+
 # axmol-2.7.1 Jul.15 2025
 
 ## Bug fixes
@@ -122,6 +307,7 @@
 
 - Update android devenv to support android 16 by @halx99 in https://github.com/axmolengine/axmol/pull/2546
 - Update Android Studio minimum required version to `2024.3.2`
+- **Downgrade emsdk from `4.0.6` to `3.1.73` to ensure that the developer can debug axmol wasm apps properly on all platforms. If you're using windows, you won't be able to debug the app properly with emsdk version 4.0.0 or higher. If you use linux or macos, you can configure and use emsdk version 4.0.0 or higher in your `.axproj` file without any debugging issues, for example `emsdk=4.0.11`.**
 
 ## Bug fixes
 
@@ -170,6 +356,7 @@
 - AGP: 8.7.3 => 8.10.0
 - android target sdk: 35 => 36
 - android sdk build tools: 34.0.0 => 35.0.0
+- emsdk: 4.0.6 => 3.1.73
 
 ## 3rdparty updates
 

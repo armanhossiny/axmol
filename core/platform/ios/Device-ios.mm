@@ -762,4 +762,206 @@ void Device::selectionChanged()
 #endif
 }
 
+static Device::Orientation _preferredOrientation = Device::Orientation::Sensor;
+
+void Device::setPreferredOrientation(Device::Orientation orientation)
+{
+#if !defined(AX_TARGET_OS_TVOS)
+    _preferredOrientation = orientation;
+
+    auto renderView = Director::getInstance()->getRenderView();
+    if (!renderView)
+        return; // will take affect when creating renderView
+
+    // Always perform UI work on main thread and obtain window/VC there.
+    dispatch_async(dispatch_get_main_queue(), ^{
+        auto mainWindow = (__bridge UIWindow*) renderView->getEAWindow();
+        UIViewController* vc = mainWindow.rootViewController;
+
+        if (@available(iOS 16.0, *)) {
+            // Modern API: mark for update then attempt rotation
+            [vc setNeedsUpdateOfSupportedInterfaceOrientations];
+        }
+        else {
+            // Fallback: present/dismiss minimal full-screen controller to force re-evaluation.
+            // Present from the top-most VC to avoid container interception.
+            UIViewController *dummy = [[UIViewController alloc] init];
+            dummy.view.backgroundColor = [UIColor clearColor];
+            dummy.modalPresentationStyle = UIModalPresentationFullScreen;
+
+            [vc presentViewController:dummy animated:NO completion:^{
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    [dummy dismissViewControllerAnimated:NO completion:^{
+                        [UIViewController attemptRotationToDeviceOrientation];
+                    }];
+                });
+            }];
+        }
+    });
+#endif
+}
+
+
+Device::Orientation Device::getPreferredOrientation()
+{
+    return _preferredOrientation;
+}
+
+Device::OrientationMask Device::getSupportedOrientations()
+{
+    NSArray *plistOrientations = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"UISupportedInterfaceOrientations"];
+    OrientationMask mask = static_cast<OrientationMask>(0);
+    for (NSString *entry in plistOrientations) {
+        if ([entry isEqualToString:@"UIInterfaceOrientationPortrait"]) {
+            mask = static_cast<OrientationMask>(mask | OrientationMask::Portrait);
+        } else if ([entry isEqualToString:@"UIInterfaceOrientationPortraitUpsideDown"]) {
+            mask = static_cast<OrientationMask>(mask | OrientationMask::ReversePortrait);
+        } else if ([entry isEqualToString:@"UIInterfaceOrientationLandscapeLeft"]) {
+            mask = static_cast<OrientationMask>(mask | OrientationMask::Landscape);
+        } else if ([entry isEqualToString:@"UIInterfaceOrientationLandscapeRight"]) {
+            mask = static_cast<OrientationMask>(mask | OrientationMask::ReverseLandscape);
+        }
+    }
+
+    return mask;
+}
+
+Device::Orientation Device::getCurrentOrientation()
+{
+#if !defined(AX_TARGET_OS_TVOS)
+    auto renderView = Director::getInstance()->getRenderView();
+    if (!renderView)
+        return Orientation::Unknown;
+    auto window = (__bridge UIWindow*) renderView->getEAWindow();
+    UIInterfaceOrientation uiOrientation;
+    if (@available(iOS 13.0, *)) {
+        uiOrientation = window.windowScene.interfaceOrientation;
+    } else {
+        // Fallback on earlier versions
+        uiOrientation = UIApplication.sharedApplication.statusBarOrientation;
+    }
+    switch(uiOrientation)
+    {
+        case UIInterfaceOrientationPortrait:
+            return Orientation::Portrait;
+        case UIInterfaceOrientationLandscapeLeft:
+            return Orientation::Landscape;
+        case UIInterfaceOrientationLandscapeRight:
+            return Orientation::ReverseLandscape;
+        case UIInterfaceOrientationPortraitUpsideDown:
+            return Orientation::ReversePortrait;
+        default:
+            break;
+    }
+#endif
+    
+    return Orientation::Unknown;
+}
+
+Device::Orientation Device::getPhysicalOrientation()
+{
+#if !defined(AX_TARGET_OS_TVOS)
+    UIDeviceOrientation deviceOrientation = [[UIDevice currentDevice] orientation];
+
+    switch (deviceOrientation) {
+        case UIDeviceOrientationPortrait: return Orientation::Portrait;
+        case UIDeviceOrientationPortraitUpsideDown: return Orientation::ReversePortrait;
+        case UIDeviceOrientationLandscapeLeft: return Orientation::Landscape;
+        case UIDeviceOrientationLandscapeRight: return Orientation::ReverseLandscape;
+        default:
+            break;
+    }
+#endif
+    
+    return Orientation::Unknown;
+}
+
+// Convert Orientation to OrientationMask
+static Device::OrientationMask toMask(Device::Orientation o)
+{
+    switch (o)
+    {
+    case Device::Orientation::Portrait:         return Device::OrientationMask::Portrait;
+    case Device::Orientation::ReversePortrait:  return Device::OrientationMask::ReversePortrait;
+    case Device::Orientation::Landscape:        return Device::OrientationMask::Landscape;
+    case Device::Orientation::ReverseLandscape: return Device::OrientationMask::ReverseLandscape;
+    default:                            return Device::OrientationMask::All;
+    }
+}
+
+// Pick the first supported orientation from OrientationMask
+static Device::Orientation pickFirstSupported(Device::OrientationMask mask)
+{
+    if ((mask & Device::OrientationMask::Portrait) == Device::OrientationMask::Portrait)
+        return Device::Orientation::Portrait;
+    if ((mask & Device::OrientationMask::Landscape) == Device::OrientationMask::Landscape)
+        return Device::Orientation::Landscape;
+    if ((mask & Device::OrientationMask::ReverseLandscape) == Device::OrientationMask::ReverseLandscape)
+        return Device::Orientation::ReverseLandscape;
+    if ((mask & Device::OrientationMask::ReversePortrait) == Device::OrientationMask::ReversePortrait)
+        return Device::Orientation::ReversePortrait;
+
+    return Device::Orientation::Portrait; // fallback
+}
+
+Device::Orientation Device::resolveOrientation()
+{
+    auto supported = getSupportedOrientations();
+    auto preferred = getPreferredOrientation();
+    auto physical  = getPhysicalOrientation();
+
+    auto tryUse = [&](Orientation o) -> Orientation {
+        return ((supported & toMask(o)) == toMask(o)) ? o : Orientation::Unknown;
+    };
+
+    Orientation resolvedOrientation = Orientation::Unknown;
+
+    switch (preferred)
+    {
+    // Case 1: Preferred is a concrete orientation
+    case Orientation::Portrait:
+    case Orientation::ReversePortrait:
+    case Orientation::Landscape:
+    case Orientation::ReverseLandscape:
+        resolvedOrientation = tryUse(preferred);
+        break;
+
+    // Case 2: SensorPortrait
+    case Orientation::SensorPortrait:
+        resolvedOrientation = tryUse(physical);
+        if (resolvedOrientation == Orientation::Unknown)
+            resolvedOrientation = bool(supported & OrientationMask::Portrait)
+                                    ? Orientation::Portrait
+                                    : Orientation::ReversePortrait;
+        break;
+
+    // Case 3: SensorLandscape
+    case Orientation::SensorLandscape:
+        resolvedOrientation = tryUse(physical);
+        if (resolvedOrientation == Orientation::Unknown)
+            resolvedOrientation = bool(supported & OrientationMask::Landscape)
+                                    ? Orientation::Landscape
+                                    : Orientation::ReverseLandscape;
+        break;
+
+    // Case 4: Sensor / FullSensor
+    case Orientation::Sensor:
+    case Orientation::FullSensor:
+        resolvedOrientation = tryUse(physical);
+        if (resolvedOrientation == Orientation::Unknown)
+            resolvedOrientation = pickFirstSupported(supported);
+        break;
+
+    // Default / Unknown
+    default:
+        break;
+    }
+
+    // Final fallback
+    if (resolvedOrientation == Orientation::Unknown)
+        resolvedOrientation = pickFirstSupported(supported);
+
+    return resolvedOrientation;
+}
+
 }

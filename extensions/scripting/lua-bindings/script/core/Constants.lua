@@ -205,7 +205,12 @@ ax.PLATFORM_WASM      = 8
 -- platform alias
 ax.PLATFORM_WINDOWS    = ax.PLATFORM_WIN32
 ax.PLATFORM_MACOS      = ax.PLATFORM_OSX
+ax.PLATFORM_MAC        = ax.PLATFORM_OSX
 ax.PLATFORM_EMSCRIPTEN = ax.PLATFORM_WASM
+ax.PLATFORM_IPHONE     = ax.PLATFORM_IOS
+ax.PLATFORM_IPAD       = ax.PLATFORM_IOS
+ax.PLATFORM_UWP        = ax.PLATFORM_WINUWP
+ax.PLATFORM_WINRT      = ax.PLATFORM_WINUWP
 
 ax.LANGUAGE_ENGLISH    = 0
 ax.LANGUAGE_CHINESE    = 1
@@ -241,7 +246,7 @@ ax.Handler.CALLFUNC        = 2
 ax.Handler.SCHEDULE        = 3
 ax.Handler.TOUCHES         = 4
 ax.Handler.KEYPAD          = 5
-ax.Handler.AaxELEROMETER   = 6
+ax.Handler.ACCELEROMETER   = 6
 ax.Handler.CONTROL_TOUCH_DOWN = 7
 ax.Handler.CONTROL_TOUCH_DRAG_INSIDE = 8
 ax.Handler.CONTROL_TOUCH_DRAG_OUTSIDE = 9
@@ -267,11 +272,11 @@ ax.Handler.TABLECELL_AT_INDEX       = 28
 ax.Handler.TABLEVIEW_NUMS_OF_CELLS  = 29
 ax.Handler.HTTPREQUEST_STATE_CHANGE = 30
 ax.Handler.ASSETSMANAGER_PROGRESS = 31
-ax.Handler.ASSETSMANAGER_SUaxESS  = 32
+ax.Handler.ASSETSMANAGER_SUCCESS  = 32
 ax.Handler.ASSETSMANAGER_ERROR    = 33
 ax.Handler.STUDIO_EVENT_LISTENER  = 34
 ax.Handler.ARMATURE_EVENT         = 35
-ax.Handler.EVENT_Aax              = 36
+ax.Handler.EVENT_ACC              = 36
 ax.Handler.EVENT_CUSTIOM          = 37
 ax.Handler.EVENT_KEYBOARD_PRESSED = 38
 ax.Handler.EVENT_KEYBOARD_RELEASED = 39
@@ -310,7 +315,7 @@ ax.EVENT_TOUCH_ONE_BY_ONE      = 1
 ax.EVENT_TOUCH_ALL_AT_ONCE     = 2
 ax.EVENT_KEYBOARD              = 3
 ax.EVENT_MOUSE                 = 4
-ax.EVENT_AaxELERATION          = 5
+ax.EVENT_ACCELERATION          = 5
 ax.EVENT_CUSTOM                = 6
 
 ax.PHYSICSSHAPE_MATERIAL_DEFAULT = {density = 0.0, restitution = 0.5, friction = 0.5}
@@ -531,7 +536,7 @@ ax.KeyCode.KEY_LEFT_ALT   = ax.KeyCode.KEY_ALT
 
 ax.EventAssetsManagerEx =
 {
-    EventCode = 
+    EventCode =
     {
         ERROR_NO_LOCAL_MANIFEST = 0,
         ERROR_DOWNLOAD_MANIFEST = 1,
@@ -586,7 +591,7 @@ ax.CameraFlag =
     USER8 = 256,
 }
 
-ax.CameraBackgroundBrush.BrushType = 
+ax.CameraBackgroundBrush.BrushType =
 {
     NONE = 0,
     DEPTH = 1,
@@ -627,7 +632,7 @@ ax.MATRIX_STACK_TYPE =
     TEXTURE = 2,
 }
 
-ax.LightType = 
+ax.LightType =
 {
     DIRECTIONAL = 0,
     POINT = 1,
@@ -635,7 +640,7 @@ ax.LightType =
     AMBIENT = 3,
 }
 
-ax.LightFlag = 
+ax.LightFlag =
 {
     LIGHT0  = math.pow(2,0),
     LIGHT1  = math.pow(2,1),

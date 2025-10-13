@@ -31,6 +31,10 @@
 #include "audio/AudioDecoder.h"
 #include "audio/AudioDecoderManager.h"
 
+#if AX_USE_ALSOFT
+#    include "audio/AudioEffectsExtension.h"
+#endif
+
 #include "yasio/thread_name.hpp"
 
 namespace ax
@@ -138,6 +142,8 @@ void AudioPlayer::destroy()
             }
         }
     } while (false);
+
+    clearEffects();
 
     AXLOGV("{}", "Before alSourceStop");
     alSourceStop(_alSource);
@@ -271,6 +277,151 @@ bool AudioPlayer::play2d()
     }
 
     return ret;
+}
+
+bool AudioPlayer::play3d()
+{
+    std::unique_lock<std::mutex> lck(_play2dMutex);
+    AXLOGV("AudioPlayer::play2d, _alSource: {}, player id={}", _alSource, _id);
+
+    if (_isDestroyed)
+        return false;
+
+    /*********************************************************************/
+    /*       Note that it may be in sub thread or in main thread.       **/
+    /*********************************************************************/
+    bool ret = false;
+    do
+    {
+        if (_audioCache->_state != AudioCache::State::READY)
+        {
+            AXLOGE("{}", "alBuffer isn't ready for play!");
+            break;
+        }
+
+        alSourcei(_alSource, AL_BUFFER, 0);
+        CHECK_AL_ERROR_DEBUG();
+        alSourcef(_alSource, AL_PITCH, 1.0f);
+        CHECK_AL_ERROR_DEBUG();
+        alSourcef(_alSource, AL_GAIN, _volume);
+        CHECK_AL_ERROR_DEBUG();
+        alSourcei(_alSource, AL_LOOPING, AL_FALSE);
+        CHECK_AL_ERROR_DEBUG();
+        alSource3f(_alSource, AL_POSITION, _sourcePosition.x, _sourcePosition.y, _sourcePosition.z);
+        CHECK_AL_ERROR_DEBUG();
+        alSource3f(_alSource, AL_VELOCITY, 0, 0, 0);
+        CHECK_AL_ERROR_DEBUG();
+        alSourcef(_alSource, AL_REFERENCE_DISTANCE, _distanceScale);
+        CHECK_AL_ERROR_DEBUG();
+
+        if (_audioCache->_queBufferFrames == 0)
+        {
+            if (_loop)
+            {
+                alSourcei(_alSource, AL_LOOPING, AL_TRUE);
+                CHECK_AL_ERROR_DEBUG();
+            }
+        }
+        else
+        {
+            alGenBuffers(QUEUEBUFFER_NUM, _bufferIds);
+
+            auto alError = alGetError();
+            if (alError == AL_NO_ERROR)
+            {
+                for (int index = 0; index < QUEUEBUFFER_NUM; ++index)
+                {
+                    alBufferData(_bufferIds[index], _audioCache->_format, _audioCache->_queBuffers[index],
+                                 _audioCache->_queBufferSize[index], _audioCache->_sampleRate);
+                }
+                CHECK_AL_ERROR_DEBUG();
+            }
+            else
+            {
+                AXLOGE("{}:alGenBuffers error code: {:#x}", __FUNCTION__, alError);
+                break;
+            }
+            _streamingSource = true;
+        }
+
+        {
+            std::unique_lock<std::mutex> lk(_sleepMutex);
+            if (_isDestroyed)
+                break;
+
+            if (_streamingSource)
+            {
+                // To continuously stream audio from a source without interruption, buffer queuing is required.
+                alSourceQueueBuffers(_alSource, QUEUEBUFFER_NUM, _bufferIds);
+                CHECK_AL_ERROR_DEBUG();
+                _rotateBufferThread = new std::thread(&AudioPlayer::rotateBufferThread, this,
+                                                      _audioCache->_queBufferFrames * QUEUEBUFFER_NUM + 1);
+            }
+            else
+            {
+                alSourcei(_alSource, AL_BUFFER, _audioCache->_alBufferId);
+                CHECK_AL_ERROR_DEBUG();
+            }
+
+            alSourcePlay(_alSource);
+        }
+
+        auto alError = alGetError();
+        if (alError != AL_NO_ERROR)
+        {
+            AXLOGE("{}:alSourcePlay error code:{:#x}", __FUNCTION__, (int)alError);
+            break;
+        }
+
+        ALint state;
+        alGetSourcei(_alSource, AL_SOURCE_STATE, &state);
+        if (state != AL_PLAYING)
+            AXLOGE("state isn't playing, {}, {}, cache id={}, player id={}", state, _audioCache->_fileFullPath,
+                   _audioCache->_id, _id);
+
+        // OpenAL framework: sometime when switch audio too fast, the result state will error, but there is no any
+        // alError, so just skip for workaround.
+        assert(state == AL_PLAYING);
+
+        if (!_streamingSource && _currTime >= 0.0f)
+        {
+            alSourcef(_alSource, AL_SEC_OFFSET, _currTime);
+            CHECK_AL_ERROR_DEBUG();
+        }
+
+        _ready = true;
+        ret    = true;
+    } while (false);
+
+    if (!ret)
+    {
+        _removeByAudioEngine = true;
+    }
+
+    return ret;
+}
+
+void AudioPlayer::clearEffects()
+{
+#if AX_USE_ALSOFT
+    if (_reverbEffect == 0)
+        return;
+
+    auto&& efx = AudioEffectsExtension::getInstance();
+
+    if (!efx->isAvailable())
+        return;
+
+    efx->bindSourceToAuxiliarySlot(_alSource, 0, 0, 0);
+    alSourcei(_alSource, AL_DIRECT_FILTER, 0);  // unset filter
+    CHECK_AL_ERROR_DEBUG();
+
+    efx->deleteAuxiliaryEffectSlot(_reverbSlot);
+    _reverbSlot = 0;
+
+    efx->deleteEffect(_reverbEffect);
+    _reverbEffect = 0;
+#endif
 }
 
 // rotateBufferThread is used to rotate alBufferData for _alSource when playing big audio file
@@ -432,6 +583,102 @@ bool AudioPlayer::isFinished() const
         alGetSourcei(_alSource, AL_SOURCE_STATE, &sourceState);
         return sourceState == AL_STOPPED;
     }
+}
+
+void AudioPlayer::setReverbProperties(const ReverbProperties* reverbProperties)
+{
+#if AX_USE_ALSOFT
+    auto&& efx = AudioEffectsExtension::getInstance();
+
+    if (!efx->isAvailable())
+        return;
+
+    if (reverbProperties)
+    {
+        _reverbProperties = *reverbProperties;
+
+        /* Clear error state. */
+        alGetError();
+
+        if (_reverbSlot == 0)
+        {
+            efx->genAuxiliaryEffectSlots(1, _reverbSlot);
+        }
+
+        if (_reverbEffect == 0)
+        {
+            efx->genEffect(_reverbEffect);
+        }
+
+        efx->setEffectParamInt(_reverbEffect, AL_EFFECT_TYPE, AL_EFFECT_EAXREVERB);
+        auto err = alGetError();
+        if (AL_NO_ERROR == err)
+        {
+            // EAX Reverb
+            efx->setEffectParamFloat(_reverbEffect, AL_EAXREVERB_DENSITY, _reverbProperties.flDensity);
+            efx->setEffectParamFloat(_reverbEffect, AL_EAXREVERB_DIFFUSION, _reverbProperties.flDiffusion);
+            efx->setEffectParamFloat(_reverbEffect, AL_EAXREVERB_GAIN, _reverbProperties.flGain);
+            efx->setEffectParamFloat(_reverbEffect, AL_EAXREVERB_GAINHF, _reverbProperties.flGainHF);
+            efx->setEffectParamFloat(_reverbEffect, AL_EAXREVERB_GAINLF, _reverbProperties.flGainLF);
+            efx->setEffectParamFloat(_reverbEffect, AL_EAXREVERB_DECAY_TIME, _reverbProperties.flDecayTime);
+            efx->setEffectParamFloat(_reverbEffect, AL_EAXREVERB_DECAY_HFRATIO, _reverbProperties.flDecayHFRatio);
+            efx->setEffectParamFloat(_reverbEffect, AL_EAXREVERB_DECAY_LFRATIO, _reverbProperties.flDecayLFRatio);
+            efx->setEffectParamFloat(_reverbEffect, AL_EAXREVERB_REFLECTIONS_GAIN, _reverbProperties.flReflectionsGain);
+            efx->setEffectParamFloat(_reverbEffect, AL_EAXREVERB_REFLECTIONS_DELAY,
+                                     _reverbProperties.flReflectionsDelay);
+            efx->setEffectParamFloatArray(_reverbEffect, AL_EAXREVERB_REFLECTIONS_PAN,
+                                          _reverbProperties.flReflectionsPan);
+            efx->setEffectParamFloat(_reverbEffect, AL_EAXREVERB_LATE_REVERB_GAIN, _reverbProperties.flLateReverbGain);
+            efx->setEffectParamFloat(_reverbEffect, AL_EAXREVERB_LATE_REVERB_DELAY,
+                                     _reverbProperties.flLateReverbDelay);
+            efx->setEffectParamFloatArray(_reverbEffect, AL_EAXREVERB_LATE_REVERB_PAN,
+                                          _reverbProperties.flLateReverbPan);
+            efx->setEffectParamFloat(_reverbEffect, AL_EAXREVERB_ECHO_TIME, _reverbProperties.flEchoTime);
+            efx->setEffectParamFloat(_reverbEffect, AL_EAXREVERB_ECHO_DEPTH, _reverbProperties.flEchoDepth);
+            efx->setEffectParamFloat(_reverbEffect, AL_EAXREVERB_MODULATION_TIME,
+                                     _reverbProperties.flModulationTime);
+            efx->setEffectParamFloat(_reverbEffect, AL_EAXREVERB_MODULATION_DEPTH,
+                                     _reverbProperties.flModulationDepth);
+            efx->setEffectParamFloat(_reverbEffect, AL_EAXREVERB_AIR_ABSORPTION_GAINHF,
+                                     _reverbProperties.flAirAbsorptionGainHF);
+            efx->setEffectParamFloat(_reverbEffect, AL_EAXREVERB_LFREFERENCE, _reverbProperties.flLFReference);
+            efx->setEffectParamFloat(_reverbEffect, AL_EAXREVERB_HFREFERENCE, _reverbProperties.flHFReference);
+            efx->setEffectParamFloat(_reverbEffect, AL_EAXREVERB_ROOM_ROLLOFF_FACTOR,
+                               _reverbProperties.flRoomRolloffFactor);
+            efx->setEffectParamInt(_reverbEffect, AL_EAXREVERB_DECAY_HFLIMIT, _reverbProperties.iDecayHFLimit);
+        }
+        else
+        {
+            // Standad Reverb
+            efx->setEffectParamInt(_reverbEffect, AL_EFFECT_TYPE, AL_EFFECT_REVERB);
+
+            efx->setEffectParamFloat(_reverbEffect, AL_REVERB_DENSITY, _reverbProperties.flDensity);
+            efx->setEffectParamFloat(_reverbEffect, AL_REVERB_DIFFUSION, _reverbProperties.flDiffusion);
+            efx->setEffectParamFloat(_reverbEffect, AL_REVERB_GAIN, _reverbProperties.flGain);
+            efx->setEffectParamFloat(_reverbEffect, AL_REVERB_GAINHF, _reverbProperties.flGainHF);
+            efx->setEffectParamFloat(_reverbEffect, AL_REVERB_DECAY_TIME, _reverbProperties.flDecayTime);
+            efx->setEffectParamFloat(_reverbEffect, AL_REVERB_DECAY_HFRATIO, _reverbProperties.flDecayHFRatio);
+            efx->setEffectParamFloat(_reverbEffect, AL_REVERB_REFLECTIONS_GAIN, _reverbProperties.flReflectionsGain);
+            efx->setEffectParamFloat(_reverbEffect, AL_REVERB_REFLECTIONS_DELAY, _reverbProperties.flReflectionsDelay);
+            efx->setEffectParamFloat(_reverbEffect, AL_REVERB_LATE_REVERB_GAIN, _reverbProperties.flLateReverbGain);
+            efx->setEffectParamFloat(_reverbEffect, AL_REVERB_LATE_REVERB_DELAY, _reverbProperties.flLateReverbDelay);
+            efx->setEffectParamFloat(_reverbEffect, AL_REVERB_AIR_ABSORPTION_GAINHF,
+                                     _reverbProperties.flAirAbsorptionGainHF);
+            efx->setEffectParamFloat(_reverbEffect, AL_REVERB_ROOM_ROLLOFF_FACTOR,
+                                     _reverbProperties.flRoomRolloffFactor);
+            efx->setEffectParamInt(_reverbEffect, AL_REVERB_DECAY_HFLIMIT, _reverbProperties.iDecayHFLimit);
+        }
+        efx->auxiliaryEffectSlot(_reverbSlot, AL_EFFECTSLOT_GAIN, /* _reverbSettings.EffectSlotGain*/ 1.0f);
+
+        efx->bindEffectToAuxiliarySlot(_reverbSlot, _reverbEffect);
+        efx->bindSourceToAuxiliarySlot(_alSource, _reverbSlot, 0, 0);
+    }
+    else
+    {
+        _reverbProperties = {};
+        clearEffects();
+    }
+#endif
 }
 
 bool AudioPlayer::setLoop(bool loop)

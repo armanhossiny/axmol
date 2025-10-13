@@ -189,7 +189,7 @@ public abstract class AxmolActivity extends AppCompatActivity implements AxmolEn
         this.setVolumeControlStream(AudioManager.STREAM_MUSIC);
     }
 
-    //native method,call GLViewImpl::getGLContextAttrs() to get the OpenGL ES context attributions
+    //native method,call RenderViewImpl::getGLContextAttrs() to get the OpenGL ES context attributions
     private static native int[] getGLContextAttrs();
 
     // ===========================================================

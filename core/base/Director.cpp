@@ -177,6 +177,11 @@ Director::~Director()
     _rendererRecreatedListener = nullptr;
 #endif
 
+#if AX_ENABLE_SCRIPT_BINDING
+    // !!!ScriptEngine instance depends on _scheduler, so must dtor before _scheduler
+    ScriptEngineManager::destroyInstance();
+#endif
+
     AX_SAFE_RELEASE(_scheduler);
     AX_SAFE_RELEASE(_actionManager);
 
@@ -197,10 +202,6 @@ Director::~Director()
     Configuration::destroyInstance();
     ObjectFactory::destroyInstance();
     QuadCommand::destroyIsolatedIndices();
-
-#if AX_ENABLE_SCRIPT_BINDING
-    ScriptEngineManager::destroyInstance();
-#endif
 
     /** clean auto release pool. */
     PoolManager::destroyInstance();
@@ -261,10 +262,10 @@ void Director::setDefaultValues()
     Image::setCompressedImagesHavePMA(Image::CompressedImagePMAFlag::ETC2, etc2_alpha_premultiplied);
 }
 
-void Director::setGLDefaultValues()
+void Director::setRenderDefaults()
 {
-    // This method SHOULD be called only after glView_ was initialized
-    AXASSERT(_glView, "opengl view should not be null");
+    // This method SHOULD be called only after _renderView was initialized
+    AXASSERT(_renderView, "render view should not be null");
 
     _renderer->setDepthTest(false);
     _renderer->setDepthCompareFunction(backend::CompareFunction::LESS_EQUAL);
@@ -279,9 +280,9 @@ void Director::drawScene()
     // calculate "global" dt
     calculateDeltaTime();
 
-    if (_glView)
+    if (_renderView)
     {
-        _glView->pollEvents();
+        _renderView->pollEvents();
     }
 
     // tick before glClear: issue #533
@@ -316,8 +317,8 @@ void Director::drawScene()
         _renderer->clearDrawStats();
 
         // render the scene
-        if (_glView)
-            _glView->renderScene(_runningScene, _renderer);
+        if (_renderView)
+            _renderView->renderScene(_runningScene, _renderer);
 
         _eventDispatcher->dispatchEvent(_eventAfterVisit);
     }
@@ -346,9 +347,9 @@ void Director::drawScene()
     _totalFrames++;
 
     // swap buffers
-    if (_glView)
+    if (_renderView)
     {
-        _glView->swapBuffers();
+        _renderView->swapBuffers();
     }
 
     _renderer->endFrame();
@@ -395,32 +396,32 @@ float Director::getDeltaTime() const
 {
     return _deltaTime;
 }
-void Director::setGLView(GLView* glView)
+void Director::setRenderView(RenderView* renderView)
 {
-    AXASSERT(glView, "opengl view should not be null");
+    AXASSERT(renderView, "opengl view should not be null");
 
-    if (_glView != glView)
+    if (_renderView != renderView)
     {
         // Configuration. Gather GPU info
         Configuration* conf = Configuration::getInstance();
         conf->gatherGPUInfo();
         AXLOGI("{}\n", conf->getInfo());
 
-        if (_glView)
-            _glView->release();
-        _glView = glView;
-        _glView->retain();
+        if (_renderView)
+            _renderView->release();
+        _renderView = renderView;
+        _renderView->retain();
 
         // set size
-        _winSizeInPoints = _glView->getDesignResolutionSize();
+        _winSizeInPoints = _renderView->getDesignResolutionSize();
 
         _isStatusLabelUpdated = true;
 
         _renderer->init();
 
-        if (_glView)
+        if (_renderView)
         {
-            setGLDefaultValues();
+            setRenderDefaults();
         }
 
         if (_eventDispatcher)
@@ -451,9 +452,9 @@ void Director::destroyTextureCache()
 
 void Director::setViewport()
 {
-    if (_glView)
+    if (_renderView)
     {
-        _glView->setViewPortInPoints(0, 0, _winSizeInPoints.width, _winSizeInPoints.height);
+        _renderView->setViewPortInPoints(0, 0, _winSizeInPoints.width, _winSizeInPoints.height);
     }
 }
 
@@ -676,7 +677,7 @@ void Director::purgeCachedData()
     FontFNT::purgeCachedData();
     FontAtlasCache::purgeCachedData();
 
-    if (s_SharedDirector->getGLView())
+    if (s_SharedDirector->getRenderView())
     {
         SpriteFrameCache::getInstance()->removeUnusedSpriteFrames();
         _textureCache->removeUnusedTextures();
@@ -721,7 +722,7 @@ Vec2 Director::convertToGL(const Vec2& uiPoint)
     // Calculate z=0 using -> transform*[0, 0, 0, 1]/w
     float zClip = transform.m[14] / transform.m[15];
 
-    Vec2 glSize = _glView->getDesignResolutionSize();
+    Vec2 glSize = _renderView->getDesignResolutionSize();
     Vec4 clipCoord(2.0f * uiPoint.x / glSize.width - 1.0f, 1.0f - 2.0f * uiPoint.y / glSize.height, zClip, 1);
 
     Vec4 glCoord;
@@ -753,7 +754,7 @@ Vec2 Director::convertToUI(const Vec2& glPoint)
     clipCoord.y = clipCoord.y / clipCoord.w;
     clipCoord.z = clipCoord.z / clipCoord.w;
 
-    Vec2 glSize  = _glView->getDesignResolutionSize();
+    Vec2 glSize  = _renderView->getDesignResolutionSize();
     float factor = 1.0f / glCoord.w;
     return Vec2(glSize.width * (clipCoord.x * 0.5f + 0.5f) * factor,
                 glSize.height * (-clipCoord.y * 0.5f + 0.5f) * factor);
@@ -771,9 +772,9 @@ Vec2 Director::getWinSizeInPixels() const
 
 Vec2 Director::getVisibleSize() const
 {
-    if (_glView)
+    if (_renderView)
     {
-        return _glView->getVisibleSize();
+        return _renderView->getVisibleSize();
     }
     else
     {
@@ -783,9 +784,9 @@ Vec2 Director::getVisibleSize() const
 
 Vec2 Director::getVisibleOrigin() const
 {
-    if (_glView)
+    if (_renderView)
     {
-        return _glView->getVisibleOrigin();
+        return _renderView->getVisibleOrigin();
     }
     else
     {
@@ -795,9 +796,9 @@ Vec2 Director::getVisibleOrigin() const
 
 Rect Director::getSafeAreaRect() const
 {
-    if (_glView)
+    if (_renderView)
     {
-        return _glView->getSafeAreaRect();
+        return _renderView->getSafeAreaRect();
     }
     else
     {
@@ -965,6 +966,39 @@ void Director::popToSceneStackLevel(int level)
     _sendCleanupToScene = true;
 }
 
+Scene* Director::popPreviousSceneOut()
+{
+    if (_nextScene)
+    {
+        return nullptr;
+    }
+
+    const auto numScenes = _scenesStack.size();
+
+    if (numScenes < 2)
+    {
+        return nullptr;
+    }
+
+    const auto previousSceneIndex = numScenes - 2;
+
+    auto previousScene = _scenesStack.at(previousSceneIndex);
+    previousScene->retain();
+    previousScene->autorelease();
+
+#if AX_ENABLE_GC_FOR_NATIVE_OBJECTS
+    auto sEngine = ScriptEngineManager::getInstance()->getScriptEngine();
+    if (sEngine)
+    {
+        sEngine->releaseScriptObject(this, previousScene);
+    }
+#endif  // AX_ENABLE_GC_FOR_NATIVE_OBJECTS
+
+    _scenesStack.erase(previousSceneIndex);
+
+    return previousScene;
+}
+
 void Director::end()
 {
     _cleanupDirectorInNextLoop = true;
@@ -990,6 +1024,13 @@ void Director::reset()
         }
 #endif  // AX_ENABLE_GC_FOR_NATIVE_OBJECTS
         _runningScene->onExit();
+
+        // Ensure incoming scene is correctly deactivated if the
+        // director is reset during a scene transition
+        auto transition = dynamic_cast<TransitionScene*>(_runningScene);
+        if (transition)
+            transition->getInScene()->onExit();
+
         _runningScene->cleanup();
         _runningScene->release();
     }
@@ -1082,10 +1123,10 @@ void Director::cleanupDirector()
     backend::DriverBase::destroyInstance();
 
     // OpenGL view
-    if (_glView)
+    if (_renderView)
     {
-        _glView->end();
-        _glView = nullptr;
+        _renderView->end();
+        _renderView = nullptr;
     }
 
 #if AX_TARGET_PLATFORM == AX_PLATFORM_IOS || AX_TARGET_PLATFORM == AX_PLATFORM_ANDROID
@@ -1115,7 +1156,7 @@ void Director::restartDirector()
     ScriptEngineManager::sendEventToLua(scriptEvent);
 #endif
 
-    setGLDefaultValues();
+    setRenderDefaults();
 
 #if AX_ENABLE_CACHE_TEXTURE_DATA
     // listen the event that renderer was recreated on Android/WP8
@@ -1131,41 +1172,42 @@ void Director::setNextScene()
 {
     _eventDispatcher->dispatchEvent(_beforeSetNextScene);
 
-    bool runningIsTransition = dynamic_cast<TransitionScene*>(_runningScene) != nullptr;
-    bool newIsTransition     = dynamic_cast<TransitionScene*>(_nextScene) != nullptr;
+    auto outgoingScene = _runningScene;
+    _runningScene      = _nextScene;
+    _nextScene         = nullptr;
 
-    // If it is not a transition, call onExit/cleanup
-    if (!newIsTransition)
+    bool outgoingSceneIsTransition = dynamic_cast<TransitionScene*>(outgoingScene) != nullptr;
+
+    if (outgoingScene)
     {
-        if (_runningScene)
+        bool incomingSceneIsTransition = dynamic_cast<TransitionScene*>(_runningScene) != nullptr;
+
+        // If it is not a transition, call onExit/cleanup
+        if (!incomingSceneIsTransition)
         {
-            _runningScene->onExitTransitionDidStart();
-            _runningScene->onExit();
+            outgoingScene->onExitTransitionDidStart();
+            outgoingScene->onExit();
+
+            // issue #709. the root node (scene) should receive the cleanup message too
+            // otherwise it might be leaked.
+            if (_sendCleanupToScene)
+            {
+                outgoingScene->cleanup();
+            }
         }
 
-        // issue #709. the root node (scene) should receive the cleanup message too
-        // otherwise it might be leaked.
-        if (_sendCleanupToScene && _runningScene)
-        {
-            _runningScene->cleanup();
-        }
+        outgoingScene->release();
     }
 
     if (_runningScene)
     {
-        _runningScene->release();
-    }
-    _runningScene = _nextScene;
-    if (_nextScene)
-    {
-        _nextScene->retain();
-    }
-    _nextScene = nullptr;
+        _runningScene->retain();
 
-    if ((!runningIsTransition) && _runningScene)
-    {
-        _runningScene->onEnter();
-        _runningScene->onEnterTransitionDidFinish();
+        if (!outgoingSceneIsTransition)
+        {
+            _runningScene->onEnter();
+            _runningScene->onEnterTransitionDidFinish();
+        }
     }
 
     _eventDispatcher->dispatchEvent(_afterSetNextScene);
@@ -1237,15 +1279,15 @@ void Director::showStats()
 
     if (_statsDisplay && _FPSLabel && _drawnBatchesLabel && _drawnVerticesLabel)
     {
-        char buffer[30] = {0};
+        char buffer[30];
 
         // Probably we don't need this anymore since
         // the framerate is using a low-pass filter
         // to make the FPS stable
         if (_accumDt > AX_DIRECTOR_STATS_INTERVAL)
         {
-            snprintf(buffer, sizeof(buffer), "%.1f / %.3f", _frames / _accumDt, _secondsPerFrame);
-            _FPSLabel->setString(buffer);
+            auto msg = fmt::format_to_z(buffer, "{:.1f} / {:.3f}", _frames / _accumDt, _secondsPerFrame);
+            _FPSLabel->setString(msg);
             _accumDt = 0;
             _frames  = 0;
         }
@@ -1254,15 +1296,15 @@ void Director::showStats()
         auto currentVerts = (uint32_t)_renderer->getDrawnVertices();
         if (currentCalls != prevCalls)
         {
-            snprintf(buffer, sizeof(buffer), "GL calls:%6u", currentCalls);
-            _drawnBatchesLabel->setString(buffer);
+            auto msg = fmt::format_to_z(buffer, "GL calls:{:6d}", currentCalls);
+            _drawnBatchesLabel->setString(msg);
             prevCalls = currentCalls;
         }
 
         if (currentVerts != prevVerts)
         {
-            snprintf(buffer, sizeof(buffer), "GL verts:%6u", currentVerts);
-            _drawnVerticesLabel->setString(buffer);
+            auto msg = fmt::format_to_z(buffer, "GL verts:{:6d}", currentVerts);
+            _drawnVerticesLabel->setString(msg);
             prevVerts = currentVerts;
         }
 
@@ -1522,7 +1564,7 @@ void Director::queueOperation(AsyncOperation op, void* param)
 #if defined(AX_PLATFORM_PC)
     _operations.enqueue([=]() { op(param); });
 #else
-    _glView->queueOperation(op, param);
+    _renderView->queueOperation(op, param);
 #endif
 }
 

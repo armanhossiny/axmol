@@ -2,6 +2,7 @@
 Copyright (c) 2011-2012 cocos2d-x.org
 Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
+Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
 https://axmol.dev/
 
@@ -23,8 +24,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ****************************************************************************/
-#ifndef __AX_LUA_LOADER_H__
-#define __AX_LUA_LOADER_H__
+#pragma once
 
 extern "C" {
 #include "lua.h"
@@ -34,4 +34,3 @@ extern "C" {
 extern int axlua_loader(lua_State* L);
 }
 
-#endif  // __COCOS2DX_LUA_LOADER_H__

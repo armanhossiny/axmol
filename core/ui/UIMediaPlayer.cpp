@@ -220,7 +220,7 @@ void createMediaControlTexture()
 
     auto DrawStop = [&](const Vec2& middle) -> void {
         auto s = Vec2(middle.x - iconW / 2.f, middle.y + iconH / 2.f);
-        drawNode->drawSolidRect(s, s + Vec2(iconW, -iconH), Color4B::WHITE);
+        drawNode->drawSolidRect(s, s + Vec2(iconW, -iconH), Color4F::WHITE);
     };
 
     auto DrawPlay = [&](const Vec2& middle) -> void {
@@ -228,15 +228,15 @@ void createMediaControlTexture()
         auto p2 = Vec2(middle.x + iconW / 2.f, middle.y);
         auto p3 = Vec2(middle.x - iconW / 2.f, middle.y - iconH / 2.f);
 
-        drawNode->drawTriangle(p1, p2, p3, Color4B::WHITE);
+        drawNode->drawTriangle(p1, p2, p3, Color4F::WHITE);
     };
 
     auto DrawPause = [&](const Vec2& middle) -> void {
         auto start = Vec2(middle.x - 3, middle.y + iconH / 2.f);
-        drawNode->drawSolidRect(start, start + Vec2(-6, -iconH), Color4B::WHITE);
+        drawNode->drawSolidRect(start, start + Vec2(-6, -iconH), Color4F::WHITE);
 
         start = Vec2(middle.x + 3, middle.y + iconH / 2.f);
-        drawNode->drawSolidRect(start, start + Vec2(6, -iconH), Color4B::WHITE);
+        drawNode->drawSolidRect(start, start + Vec2(6, -iconH), Color4F::WHITE);
     };
 
     auto DrawEnterFullscreen = [&](const Vec2& middle) -> void {
@@ -246,20 +246,20 @@ void createMediaControlTexture()
         auto bottomRight = Vec2(middle.x + panelW / 2.f - 6, middle.y - panelH / 2.f + 6);
 
         // Top left
-        drawNode->drawSolidRect(topLeft, topLeft + Vec2(20, -6), Color4B::WHITE);
-        drawNode->drawSolidRect(topLeft, topLeft + Vec2(6, -20), Color4B::WHITE);
+        drawNode->drawSolidRect(topLeft, topLeft + Vec2(20, -6), Color4F::WHITE);
+        drawNode->drawSolidRect(topLeft, topLeft + Vec2(6, -20), Color4F::WHITE);
 
         // Top right
-        drawNode->drawSolidRect(topRight, topRight + Vec2(-20, -6), Color4B::WHITE);
-        drawNode->drawSolidRect(topRight, topRight + Vec2(-6, -20), Color4B::WHITE);
+        drawNode->drawSolidRect(topRight, topRight + Vec2(-20, -6), Color4F::WHITE);
+        drawNode->drawSolidRect(topRight, topRight + Vec2(-6, -20), Color4F::WHITE);
 
         // Bottom left
-        drawNode->drawSolidRect(bottomLeft, bottomLeft + Vec2(20, 6), Color4B::WHITE);
-        drawNode->drawSolidRect(bottomLeft, bottomLeft + Vec2(6, 20), Color4B::WHITE);
+        drawNode->drawSolidRect(bottomLeft, bottomLeft + Vec2(20, 6), Color4F::WHITE);
+        drawNode->drawSolidRect(bottomLeft, bottomLeft + Vec2(6, 20), Color4F::WHITE);
 
         // Bottom right
-        drawNode->drawSolidRect(bottomRight, bottomRight + Vec2(-20, 6), Color4B::WHITE);
-        drawNode->drawSolidRect(bottomRight, bottomRight + Vec2(-6, 20), Color4B::WHITE);
+        drawNode->drawSolidRect(bottomRight, bottomRight + Vec2(-20, 6), Color4F::WHITE);
+        drawNode->drawSolidRect(bottomRight, bottomRight + Vec2(-6, 20), Color4F::WHITE);
     };
 
     auto DrawExitFullScreen = [&](const Vec2& middle) -> void {
@@ -269,24 +269,24 @@ void createMediaControlTexture()
         auto bottomRight = Vec2(middle.x + 4, middle.y - 4);
 
         // Top left
-        drawNode->drawSolidRect(topLeft, topLeft + Vec2(-20, 6), Color4B::WHITE);
-        drawNode->drawSolidRect(topLeft, topLeft + Vec2(-6, 20), Color4B::WHITE);
+        drawNode->drawSolidRect(topLeft, topLeft + Vec2(-20, 6), Color4F::WHITE);
+        drawNode->drawSolidRect(topLeft, topLeft + Vec2(-6, 20), Color4F::WHITE);
 
         // Top right
-        drawNode->drawSolidRect(topRight, topRight + Vec2(20, 6), Color4B::WHITE);
-        drawNode->drawSolidRect(topRight, topRight + Vec2(6, 20), Color4B::WHITE);
+        drawNode->drawSolidRect(topRight, topRight + Vec2(20, 6), Color4F::WHITE);
+        drawNode->drawSolidRect(topRight, topRight + Vec2(6, 20), Color4F::WHITE);
 
         // Bottom left
-        drawNode->drawSolidRect(bottomLeft, bottomLeft + Vec2(-20, -6), Color4B::WHITE);
-        drawNode->drawSolidRect(bottomLeft, bottomLeft + Vec2(-6, -20), Color4B::WHITE);
+        drawNode->drawSolidRect(bottomLeft, bottomLeft + Vec2(-20, -6), Color4F::WHITE);
+        drawNode->drawSolidRect(bottomLeft, bottomLeft + Vec2(-6, -20), Color4F::WHITE);
 
         // Bottom right
-        drawNode->drawSolidRect(bottomRight, bottomRight + Vec2(20, -6), Color4B::WHITE);
-        drawNode->drawSolidRect(bottomRight, bottomRight + Vec2(6, -20), Color4B::WHITE);
+        drawNode->drawSolidRect(bottomRight, bottomRight + Vec2(20, -6), Color4F::WHITE);
+        drawNode->drawSolidRect(bottomRight, bottomRight + Vec2(6, -20), Color4F::WHITE);
     };
 
     auto DrawSliderControlButton = [&](const Vec2& middle) -> void {
-        drawNode->drawSolidCircle(middle, panelW / 2, 0, 180, Color4B::WHITE);
+        drawNode->drawSolidCircle(middle, panelW / 2, 0, 180, Color4F::WHITE);
     };
 
     std::map<MediaControlButtonId, std::function<void(const Vec2&)>> items = {
@@ -650,7 +650,7 @@ void BasicMediaController::createControls()
     }
 
     const auto& contentSize = getContentSize();
-    auto scale              = Director::getInstance()->getGLView()->getScaleY();
+    auto scale              = Director::getInstance()->getRenderView()->getScaleY();
 
     _mediaOverlay = Layout::create();
     _mediaOverlay->setBackGroundColor(Color3B::BLACK);
@@ -854,7 +854,7 @@ void BasicMediaController::updateControlsForContentSize(const Vec2& contentSize)
     _mediaOverlay->setContentSize(contentSize);
     _controlPanel->setContentSize(contentSize);
 
-    auto scale = Director::getInstance()->getGLView()->getScaleY();
+    auto scale = Director::getInstance()->getRenderView()->getScaleY();
     _primaryButtonPanel->setScale(1 / scale);
     _timelineTotal->setContentSize(Size(contentSize.width - 40, _timelineBarHeight / scale));
     _timelineSelector->setContentSize(Size(_timelineBarHeight, _timelineBarHeight) * 1.5f / scale);
@@ -1042,9 +1042,10 @@ MediaPlayer::~MediaPlayer()
 
     AX_SAFE_RELEASE_NULL(_mediaController);
 
-    if (pvd->_engine)
+    if (pvd->_engine) {
+        pvd->closePlayer();
         _meFactory->destroyMediaEngine(pvd->_engine);
-
+    }
     AX_SAFE_RELEASE(pvd->_vrender);
     AX_SAFE_RELEASE(pvd->_vtexture);
     AX_SAFE_RELEASE(pvd->_vchromaTexture);
@@ -1148,7 +1149,7 @@ void MediaPlayer::draw(Renderer* renderer, const Mat4& transform, uint32_t flags
     _debugDrawNode->clear();
     auto size         = getContentSize();
     Point vertices[4] = {Point::ZERO, Point(size.width, 0), Point(size.width, size.height), Point(0, size.height)};
-    _debugDrawNode->drawPoly(vertices, 4, true, Color4B::WHITE);
+    _debugDrawNode->drawPoly(vertices, 4, true, Color4F::WHITE);
 #    endif
 }
 
@@ -1216,7 +1217,7 @@ void MediaPlayer::setFullScreenEnabled(bool enabled)
         _fullScreenEnabled = enabled;
 
         auto pvd               = reinterpret_cast<PrivateVideoDescriptor*>(_videoContext);
-        const auto contentSize = enabled ? _director->getGLView()->getDesignResolutionSize() : pvd->_originalViewSize;
+        const auto contentSize = enabled ? _director->getRenderView()->getDesignResolutionSize() : pvd->_originalViewSize;
         Widget::setContentSize(contentSize);
 
         sendEvent((int)EventType::FULLSCREEN_SWITCH);

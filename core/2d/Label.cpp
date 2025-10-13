@@ -778,7 +778,7 @@ void Label::updateUniformLocations()
     _effectTypeLocation  = _programState->getUniformLocation(backend::Uniform::EFFECT_TYPE);
 }
 
-void Label::setFontAtlas(FontAtlas* atlas, bool distanceFieldEnabled /* = false */, bool useA8Shader /* = false */)
+bool Label::setFontAtlas(FontAtlas* atlas, bool distanceFieldEnabled /* = false */, bool useA8Shader /* = false */)
 {
     if (atlas)
     {
@@ -786,7 +786,7 @@ void Label::setFontAtlas(FontAtlas* atlas, bool distanceFieldEnabled /* = false 
     }
 
     if (atlas == _fontAtlas)
-        return;
+        return false;
 
     AX_SAFE_RETAIN(atlas);
     if (_fontAtlas)
@@ -818,6 +818,8 @@ void Label::setFontAtlas(FontAtlas* atlas, bool distanceFieldEnabled /* = false 
         _currLabelEffect = LabelEffect::NORMAL;
         updateShaderProgram();
     }
+
+    return true;
 }
 
 bool Label::setTTFConfig(const TTFConfig& ttfConfig)
@@ -1280,11 +1282,14 @@ bool Label::updateQuads()
 
 bool Label::setTTFConfigInternal(const TTFConfig& ttfConfig)
 {
+    unsigned int mods = 0;
+    mods |= (ttfConfig.fontSize != _fontConfig.fontSize);
+    mods |= (ttfConfig.outlineSize != _fontConfig.outlineSize);
     _fontConfig = ttfConfig;
-    return updateTTFConfigInternal();
+    return updateTTFConfigInternal(mods);
 }
 
-bool Label::updateTTFConfigInternal()
+bool Label::updateTTFConfigInternal(unsigned int mods)
 {
     FontAtlas* newAtlas = FontAtlasCache::getFontAtlasTTF(&_fontConfig);
 
@@ -1295,7 +1300,15 @@ bool Label::updateTTFConfigInternal()
     }
 
     _currentLabelType = LabelType::TTF;
-    setFontAtlas(newAtlas, _fontConfig.distanceFieldEnabled, true);
+    bool atlasUpdated = setFontAtlas(newAtlas, _fontConfig.distanceFieldEnabled, true);
+
+    /*
+     * In distance field text rendering, different font sizes share the same `fontAtlas`, so we need to additionally
+     * check if `fontSize` has changed in order to set `contentDirty`. The same applies to `outlineSize`. See
+     * `FontAtlasCache` for details.
+     */
+    if (!atlasUpdated && mods && _fontConfig.distanceFieldEnabled)
+        _contentDirty = true;
 
     if (_fontConfig.outlineSize > 0)
     {
@@ -1305,10 +1318,13 @@ bool Label::updateTTFConfigInternal()
     }
     else
     {
-        _currLabelEffect = LabelEffect::NORMAL;
-        updateShaderProgram();
+        if (_currLabelEffect != LabelEffect::GLOW)
+        {
+            _currLabelEffect = LabelEffect::NORMAL;
+            updateShaderProgram();
+        }
     }
-
+    
     if (_fontConfig.italics)
         this->enableItalics();
     if (_fontConfig.bold)
@@ -1370,13 +1386,24 @@ void Label::enableGlow(const Color4B& glowColor)
 {
     if (_currentLabelType == LabelType::TTF)
     {
-        if (_fontConfig.distanceFieldEnabled == false)
+        auto config                 = _fontConfig;
+        int mods                    = 0;
+        if (config.outlineSize > 0)
         {
-            auto config                 = _fontConfig;
-            config.outlineSize          = 0;
+            config.outlineSize = 0;
+            ++mods;
+        }
+        // Note: axmol only support Glow effect in SDF rendering mode
+        if (!_fontConfig.distanceFieldEnabled)
+        {
             config.distanceFieldEnabled = true;
+            ++mods;
+        }
+        if (mods)
+        {
             setTTFConfig(config);
             _contentDirty = true;
+            updateShaderProgram();
         }
         _currLabelEffect = LabelEffect::GLOW;
         _effectColorF.r  = glowColor.r / 255.0f;
@@ -1401,18 +1428,15 @@ void Label::enableOutline(const Color4B& outlineColor, int outlineSize /* = -1 *
             _effectColorF.b = outlineColor.b / 255.0f;
             _effectColorF.a = outlineColor.a / 255.0f;
 
-            if (!_useDistanceField)
-            {  // not SDF, request font atlas from feetype
-                if (outlineSize > 0 && _fontConfig.outlineSize != outlineSize)
-                {
-                    _fontConfig.outlineSize = outlineSize;
-                    setTTFConfig(_fontConfig);
-                }
-            }
-            else
+            if (outlineSize > 0 && _fontConfig.outlineSize != outlineSize)
             {
-                if (outlineSize > 0)
-                    _currLabelEffect = LabelEffect::OUTLINE;
+                
+                _fontConfig.outlineSize = outlineSize;
+                setTTFConfig(_fontConfig);
+            }
+            if (_useDistanceField && outlineSize > 0)
+            {
+                _currLabelEffect = LabelEffect::OUTLINE;
                 updateShaderProgram();
             }
         }
@@ -1578,7 +1602,7 @@ void Label::disableEffect(LabelEffect effect)
         if (_boldEnabled)
         {
             _boldEnabled = false;
-            _additionalKerning -= 1;
+            setAdditionalKerning(_additionalKerning - 1);
             disableEffect(LabelEffect::SHADOW);
         }
         break;
@@ -2540,9 +2564,7 @@ void Label::updateColor()
 
 std::string Label::getDescription() const
 {
-    char tmp[50];
-    snprintf(tmp, sizeof(tmp), "<Label | Tag = %d, Label = >", _tag);
-    std::string ret = tmp;
+    std::string ret = fmt::format("<Label | Tag = {}, Label = >", _tag);
     ret += _utf8Text;
 
     return ret;

@@ -2,6 +2,9 @@ name: publish
 
 on:
   push:
+    branches:
+      - dev
+      - release/*
     paths:
       - CHANGELOG.md
   workflow_dispatch:
@@ -14,18 +17,16 @@ on:
          default: 'auto'
          # Input has to be provided for the workflow to run
          required: false
-      commitish: 
-        description: 'Please input commitis value that determines where the Git tag is created from. Can be any branch or commit SHA. Defaults to repository default branch.'
-        default: 'dev'
+      commitish:
+        description: 'Please input commitis value that determines where the Git tag is created from. Can be any branch or commit SHA. Defaults to workflow branch.'
+        default: ''
         required: false
 jobs:
   publish:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v4
-      with:
-        submodules: 'recursive'
+    - uses: actions/checkout@v5
 
     - name: Check release ver from input
       if: ${{ github.event.inputs.version != '' }}
@@ -66,7 +67,10 @@ jobs:
         ./setup.ps1
         ./1k/fetch.ps1 -uri 'oboe' -prefix $(Join-Path $AX_ROOT 'cache') -manifest $(Join-Path $AX_ROOT 'manifest.json')
         axmol -xc '-DAX_WITH_LZ4=ON,-DAX_WITH_CARES=ON,-DAX_WITH_YAML_CPP=ON,-DAX_WITH_KCP=ON' -c
-        ./tools/ci/publish.ps1 -version "${{ steps.forward_ver.outputs.release_ver }}" -commitish "${{ github.event.inputs.commitish }}"
+        $input_commitish = "${{ github.event.inputs.commitish }}"
+        if (!$input_commitish) { $input_commitish = $(git -C $AX_ROOT branch --show-current) }
+        ./tools/ci/publish.ps1 -version "${{ steps.forward_ver.outputs.release_ver }}" -commitish $input_commitish
+        echo "commitish=$input_commitish" >> ${env:GITHUB_OUTPUT}
 
     - name: Publish to github release page
       if: ${{ steps.make_pkg.outputs.release_tag != '' }}
@@ -79,6 +83,6 @@ jobs:
           ${{ steps.make_pkg.outputs.bs_release_pkg }}
         body_path: ${{ steps.make_pkg.outputs.release_note }}
         prerelease: ${{ steps.make_pkg.outputs.prerelease }}
-        target_commitish: ${{ github.event.inputs.commitish }}
+        target_commitish: ${{ steps.make_pkg.outputs.commitish }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

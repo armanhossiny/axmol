@@ -30,6 +30,8 @@
 #include "stdlib.h"
 #include "curl/curl.h"
 
+#include "base/format.h"
+
 using namespace ax;
 
 CurlTests::CurlTests()
@@ -97,24 +99,29 @@ void CurlTest::onTouchesEnded(const std::vector<Touch*>& touches, Event* event)
     curl = curl_easy_init();
     if (curl)
     {
-        curl_easy_setopt(curl, CURLOPT_URL, "http://webtest.cocos2d-x.org/curltest");
+        curl_easy_setopt(curl, CURLOPT_URL, "https://axmol.dev/");
         // code from http://curl.haxx.se/libcurl/c/getinmemory.html
         /* we pass our 'chunk' struct to the callback function */
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*)&chunk);
         // If we don't provide a write function for curl, it will receive error code 23 on windows.
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
 
+        // simple test, we just ignore ca cert
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+
         res = curl_easy_perform(curl);
         /* always cleanup */
         curl_easy_cleanup(curl);
         if (res == 0)
         {
-            _label->setString(fmt::format("Connect successfully!\n{}", chunk.memory));
+            _label->setString(fmt::format("Connect successfully\nplease see console!"));
+            AXLOGI("reply data:{}", chunk.memory);
         }
         else
         {
-            fmt::format_to(buffer, "code: {}", (int)res);
-            _label->setString(buffer);
+            auto codeText = fmt::format_to_z(buffer, "code: {}", (int)res);
+            _label->setString(codeText);
         }
     }
     else

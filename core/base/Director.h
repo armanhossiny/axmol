@@ -37,7 +37,7 @@ THE SOFTWARE.
 #include "base/Vector.h"
 #include "2d/Scene.h"
 #include "math/Math.h"
-#include "platform/GLView.h"
+#include "platform/RenderView.h"
 #if defined(AX_PLATFORM_PC)
 #    include "concurrentqueue/concurrentqueue.h"
 #endif
@@ -57,7 +57,7 @@ namespace ax
 
 /* Forward declarations. */
 class LabelAtlas;
-// class GLView;
+// class RenderView;
 class DirectorDelegate;
 class Node;
 class Scheduler;
@@ -165,15 +165,20 @@ public:
     /** Sets the FPS value. */
 
     /**
-     * Get the GLView.
+     * Get the RenderView.
      * @lua NA
      */
-    GLView* getGLView() { return _glView; }
+    RenderView* getRenderView() { return _renderView; }
     /**
-     * Sets the GLView.
+     * Sets the RenderView.
      * @lua NA
      */
-    void setGLView(GLView* glView);
+    void setRenderView(RenderView* renderView);
+
+#ifndef AX_CORE_PROFILE
+    AX_DEPRECATED(2.8) RenderView* getGLView() { return getRenderView(); }
+    AX_DEPRECATED(2.8) void setGLView(RenderView* renderView) { setRenderView(renderView); }
+#endif
 
     /*
      * Gets singleton of TextureCache.
@@ -235,7 +240,7 @@ public:
 
     /**
      * Returns visible size of the OpenGL view in points.
-     * The value is equal to `Director::getWinSize()` if don't invoke `GLView::setDesignResolutionSize()`.
+     * The value is equal to `Director::getWinSize()` if don't invoke `RenderView::setDesignResolutionSize()`.
      */
     Vec2 getVisibleSize() const;
 
@@ -311,6 +316,15 @@ public:
      */
     void replaceScene(Scene* scene);
 
+    /** Removes the previous scene from the stack if it exists, and returns it
+     * If there are less than 2 scenes in the stack, or if there is a 
+     * scene switch about to occur, then this call would be invalid, and a nullptr
+     * will be returned.
+     *
+     * Returns previous scene or nullptr if invalid
+     */
+    Scene* popPreviousSceneOut();
+
     /** Ends the execution, releases the running scene.
      * @lua endToLua
      */
@@ -360,12 +374,15 @@ public:
     /** Sets the default values based on the Configuration info. */
     void setDefaultValues();
 
-    // OpenGL Helper
+    // Render Helper
 
-    /** Sets the OpenGL default values.
+    /** Sets the Render default values.
      * It will enable alpha blending, disable depth test.
      */
-    void setGLDefaultValues();
+    void setRenderDefaults();
+#ifndef AX_CORE_PROFILE
+    AX_DEPRECATED(2.9) void setGLDefaultValues() { setRenderDefaults(); }
+#endif
 
     /** Sets clear values for the color buffers,
      * value range of each element is [0.0, 1.0].
@@ -580,9 +597,9 @@ protected:
     float _deltaTime              = 0.0f;
     bool _deltaTimePassedByCaller = false;
 
-    /* The _glView, where everything is rendered, GLView is a abstract class,cocos2d-x provide GLViewImpl
+    /* The _renderView, where everything is rendered, RenderView is a abstract class,cocos2d-x provide RenderViewImpl
      which inherit from it as default renderer context,you can have your own by inherit from it*/
-    GLView* _glView = nullptr;
+    RenderView* _renderView = nullptr;
 
     JobSystem* _jobSystem = nullptr;
 
@@ -666,8 +683,8 @@ protected:
     EventListenerCustom* _rendererRecreatedListener = nullptr;
 #endif
 
-    // GLView will recreate stats labels to fit visible rect
-    friend class GLView;
+    // RenderView will recreate stats labels to fit visible rect
+    friend class RenderView;
 };
 
 // end of base group

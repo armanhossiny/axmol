@@ -9,10 +9,15 @@ if ($commitish) {
     git -C $AX_ROOT checkout $commitish
 }
 
+$axver_file = Join-Path $AX_ROOT 'axmol/axmolver.h.in'
+$is_v3 = (Test-Path $axver_file -PathType Leaf)
+if(!$is_v3) {
+    $axver_file = (Resolve-Path $AX_ROOT/core/axmolver.h.in).Path
+}
+
 $prerelease = 'false'
 if (!$version -or ($version -eq 'auto')) {
     $prerelease = 'true'
-    $axver_file = (Resolve-Path $AX_ROOT/core/axmolver.h.in).Path
     $axver_content = $(Get-Content -Path $axver_file)
     function parse_axver($part) {
         return ($axver_content | Select-String "#define AX_VERSION_$part").Line.Split(' ')[2]
@@ -23,7 +28,7 @@ if (!$version -or ($version -eq 'auto')) {
         $git_prog = (Get-Command 'git' -ErrorAction SilentlyContinue).Source
         if ($git_prog) {
             $branchName = $(git -C $AX_ROOT branch --show-current)
-            if ($branchName -eq 'dev') {
+            if ($branchName.StartsWith('dev/')) {
                 $commitHash = $(git -C $AX_ROOT rev-parse --short=7 HEAD)
                 $axver += ".$(Get-Date -Format "yyyyMMdd")"
                 $axver += "-$commitHash"
@@ -36,7 +41,7 @@ if (!$version -or ($version -eq 'auto')) {
         return $axver
     }
     $version = get_full_version
-} 
+}
 elseif($version -match '.*-(beta.*|rc.*)')
 {
     $prerelease = 'true'
@@ -51,8 +56,6 @@ $excludes = @(
     '.vscode'
     'build_*'
     'build'
-    'core/axmolver.h'
-    'core/renderer/RenderConsts.h'
     '.github'
     'tmp'
     'temp'
@@ -62,6 +65,13 @@ $excludes = @(
     'out'
     '*/_x/*'
 )
+
+if($is_v3) {
+    $excludes += 'axmol/axmolver.h','axmol/renderer/RenderConsts.h'
+}
+else {
+    $excludes += 'core/axmolver.h','core/renderer/RenderConsts.h'
+}
 
 $pkg_file_name = "axmol-$version.zip"
 $pkg_file_path = $(Join-Path $AX_ROOT $pkg_file_name)
@@ -228,7 +238,7 @@ public class UnixFileStream : FileStream
         $archive = [System.IO.Compression.ZipFile]::Open($DestinationPath, [System.IO.Compression.ZipArchiveMode]::Create)
     }
     $compressionLevelValue = @{
-        'Optimal'       = [System.IO.Compression.CompressionLevel]::Optimal 
+        'Optimal'       = [System.IO.Compression.CompressionLevel]::Optimal
         'Fastest'       = [System.IO.Compression.CompressionLevel]::Fastest
         'NoCompression' = [System.IO.Compression.CompressionLevel]::NoCompression
         'SmallestSize'  = [System.IO.Compression.CompressionLevel]::SmallestSize
@@ -263,7 +273,7 @@ public class UnixFileStream : FileStream
                     $uxmode = $null
                     if ($path.UnixStat) {
                         $uxmode = $path.UnixStat.Mode
-                    } 
+                    }
                     else {
                         $fileext = Split-Path $rname -Extension
                         if (!$fileext -or $rname.EndsWith('.sh')) {
@@ -277,9 +287,9 @@ public class UnixFileStream : FileStream
                         # default unix file permissions
                         $uxmode = [Convert]::ToInt32('100644', 8)
                     }
-		    
-                    if ($prefix) { 
-                        $rname = Join-Path $prefix $rname 
+
+                    if ($prefix) {
+                        $rname = Join-Path $prefix $rname
                     }
                     $zentry = $archive.CreateEntry($rname)
                     $zentry.ExternalAttributes = (($Script:S_IFREG -bor $uxmode) -shl 16)
@@ -287,7 +297,7 @@ public class UnixFileStream : FileStream
                     $zentryWriter.Write([System.IO.File]::ReadAllBytes($path))
                     $zentryWriter.Flush()
                     $zentryWriter.Close()
-                    
+
                     ++$Script:total
                 }
                 else {

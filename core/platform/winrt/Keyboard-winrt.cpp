@@ -29,7 +29,7 @@ THE SOFTWARE.
 
 #include "platform/winrt/Keyboard-winrt.h"
 #include "base/EventKeyboard.h"
-#include "platform/winrt/GLViewImpl-winrt.h"
+#include "platform/winrt/RenderViewImpl-winrt.h"
 #include "base/IMEDispatcher.h"
 #include "base/Director.h"
 #include "base/EventDispatcher.h"
@@ -220,8 +220,8 @@ KeyBoardWinRT::~KeyBoardWinRT()
 
 void KeyBoardWinRT::ShowKeyboard(winrt::hstring const& text)
 {
-    auto panel = ax::GLViewImpl::sharedGLView()->getPanel();
-    auto dispatcher = ax::GLViewImpl::sharedGLView()->getDispatcher();
+    auto panel = ax::RenderViewImpl::sharedRenderView()->getPanel();
+    auto dispatcher = ax::RenderViewImpl::sharedRenderView()->getDispatcher();
 
     if (dispatcher && panel)
     {
@@ -252,8 +252,8 @@ void KeyBoardWinRT::ShowKeyboard(winrt::hstring const& text)
 
 void KeyBoardWinRT::HideKeyboard(winrt::hstring const& text)
 {
-    auto panel = ax::GLViewImpl::sharedGLView()->getPanel();
-    auto dispatcher = ax::GLViewImpl::sharedGLView()->getDispatcher();
+    auto panel = ax::RenderViewImpl::sharedRenderView()->getPanel();
+    auto dispatcher = ax::RenderViewImpl::sharedRenderView()->getDispatcher();
 
     if (dispatcher && panel)
     {
@@ -276,30 +276,24 @@ void KeyBoardWinRT::HideKeyboard(winrt::hstring const& text)
 
 void KeyBoardWinRT::OnWinRTKeyboardEvent(WinRTKeyboardEventType type, KeyEventArgs const& args)
 {
-    bool pressed = (type == WinRTKeyboardEventType::KeyPressed);
-
-    // Is key repeats
-    bool repeat = pressed && args.KeyStatus().WasKeyDown;
+    const auto isKeyDown = type == WinRTKeyboardEventType::Down;
+    const auto isRepeat = (isKeyDown && args.KeyStatus().WasKeyDown);
 
     int key = static_cast<int>(args.VirtualKey());
     auto it = g_keyCodeMap.find(key);
     if (it != g_keyCodeMap.end())
     {
-
         EventKeyboard::KeyCode keyCode = it->second;
 
-        EventKeyboard event(keyCode, pressed);
-        if (!repeat)
+        EventKeyboard event(keyCode, isKeyDown, isRepeat);
+        auto dispatcher = Director::getInstance()->getEventDispatcher();
+        dispatcher->dispatchEvent(&event);
+        if (keyCode == EventKeyboard::KeyCode::KEY_ENTER)
         {
-            auto dispatcher = Director::getInstance()->getEventDispatcher();
-            dispatcher->dispatchEvent(&event);
-            if (keyCode == EventKeyboard::KeyCode::KEY_ENTER)
-            {
-                IMEDispatcher::sharedDispatcher()->dispatchInsertText("\n", 1);
-            }
+            IMEDispatcher::sharedDispatcher()->dispatchInsertText("\n", 1);
         }
 
-        if (pressed && !event.isStopped())
+        if (isKeyDown && !event.isStopped())
         {
             switch (keyCode)
             {
@@ -323,7 +317,7 @@ void KeyBoardWinRT::OnWinRTKeyboardEvent(WinRTKeyboardEventType type, KeyEventAr
     }
     else
     {
-        AXLOGW("GLViewImpl::OnWinRTKeyboardEvent Virtual Key Code {} not supported", key);
+        AXLOGW("RenderViewImpl::OnWinRTKeyboardEvent Virtual Key Code {} not supported", key);
     }
 }
 
@@ -336,7 +330,7 @@ void KeyBoardWinRT::OnTextChanged(const Windows::Foundation::IInspectable& sende
     if (!text.empty())
     {
         std::shared_ptr<ax::InputEvent> e(new ax::KeyboardEvent(AxmolKeyEvent::Text, text));
-        ax::GLViewImpl::sharedGLView()->QueueEvent(e);
+        ax::RenderViewImpl::sharedRenderView()->QueueEvent(e);
         m_textBox.Text(L"");
     }
 }
@@ -354,7 +348,7 @@ void KeyBoardWinRT::OnTextCompositionEnded(Windows::UI::Xaml::Controls::TextBox,
 	if (!text.empty())
 	{
 		std::shared_ptr<ax::InputEvent> e(new ax::KeyboardEvent(AxmolKeyEvent::Text, text));
-		ax::GLViewImpl::sharedGLView()->QueueEvent(e);
+		ax::RenderViewImpl::sharedRenderView()->QueueEvent(e);
 		m_textBox.Text(L"");
 	}
 }

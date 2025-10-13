@@ -202,7 +202,7 @@ temp/
 **/SharedLoader.java
 
 # ignore downloaded tools
-tools/external/
+tools/external
 
 # ignore lua-tests res folder which is copy from cpp-tests
 tests/lua-tests/res/

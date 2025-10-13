@@ -15,9 +15,4 @@ if(NOT _AX_USE_PREBUILT)
   target_link_libraries(${APP_NAME} ${_AX_CORE_LIB})
 endif()
 
-# The optional thirdparties(not dependent by engine)
-if(AX_WITH_YAML_CPP)
-  list(APPEND GAME_INC_DIRS "${_AX_ROOT}/3rdparty/yaml-cpp/include")
-endif()
-
 target_include_directories(${APP_NAME} PRIVATE ${GAME_INC_DIRS})

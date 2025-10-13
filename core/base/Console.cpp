@@ -1065,25 +1065,24 @@ void Console::commandHelp(socket_native_type fd, std::string_view /*args*/)
 void Console::commandProjection(socket_native_type fd, std::string_view /*args*/)
 {
     auto director = Director::getInstance();
-    char buf[20];
     auto proj = director->getProjection();
+    const char* name;
     switch (proj)
     {
     case ax::Director::Projection::_2D:
-        snprintf(buf, sizeof(buf), "2d");
+        name = "2d";
         break;
     case ax::Director::Projection::_3D:
-        snprintf(buf, sizeof(buf), "3d");
+        name = "3d";
         break;
     case ax::Director::Projection::CUSTOM:
-        snprintf(buf, sizeof(buf), "custom");
+        name = "custom";
         break;
-
     default:
-        snprintf(buf, sizeof(buf), "unknown");
+        name = "unknown";
         break;
     }
-    Console::Utility::mydprintf(fd, "Current projection: %s\n", buf);
+    Console::Utility::mydprintf(fd, "Current projection: %s\n", name);
 }
 
 void Console::commandProjectionSubCommand2d(socket_native_type /*fd*/, std::string_view /*args*/)
@@ -1110,7 +1109,7 @@ void Console::commandResolution(socket_native_type /*fd*/, std::string_view args
 
     Scheduler* sched = Director::getInstance()->getScheduler();
     sched->runOnAxmolThread([=]() {
-        Director::getInstance()->getGLView()->setDesignResolutionSize(width, height,
+        Director::getInstance()->getRenderView()->setDesignResolutionSize(width, height,
                                                                       static_cast<ResolutionPolicy>(policy));
     });
 }
@@ -1120,10 +1119,10 @@ void Console::commandResolutionSubCommandEmpty(socket_native_type fd, std::strin
     auto director        = Director::getInstance();
     Vec2 points          = director->getWinSize();
     Vec2 pixels          = director->getWinSizeInPixels();
-    auto glView          = director->getGLView();
-    Vec2 design          = glView->getDesignResolutionSize();
-    ResolutionPolicy res = glView->getResolutionPolicy();
-    Rect visibleRect     = glView->getVisibleRect();
+    auto renderView          = director->getRenderView();
+    Vec2 design          = renderView->getDesignResolutionSize();
+    ResolutionPolicy res = renderView->getResolutionPolicy();
+    Rect visibleRect     = renderView->getVisibleRect();
 
     Console::Utility::mydprintf(fd,
                                 "Window size:\n"
@@ -1175,8 +1174,8 @@ void Console::commandTouchSubCommandTap(socket_native_type fd, std::string_view 
         _touchId         = rand();
         Scheduler* sched = Director::getInstance()->getScheduler();
         sched->runOnAxmolThread([&]() {
-            Director::getInstance()->getGLView()->handleTouchesBegin(1, &_touchId, &x, &y);
-            Director::getInstance()->getGLView()->handleTouchesEnd(1, &_touchId, &x, &y);
+            Director::getInstance()->getRenderView()->handleTouchesBegin(1, &_touchId, &x, &y);
+            Director::getInstance()->getRenderView()->handleTouchesEnd(1, &_touchId, &x, &y);
         });
     }
     else
@@ -1205,7 +1204,7 @@ void Console::commandTouchSubCommandSwipe(socket_native_type fd, std::string_vie
         Scheduler* sched = Director::getInstance()->getScheduler();
         sched->runOnAxmolThread([x1, y1, this]() {
             float tempx = x1, tempy = y1;
-            Director::getInstance()->getGLView()->handleTouchesBegin(1, &_touchId, &tempx, &tempy);
+            Director::getInstance()->getRenderView()->handleTouchesBegin(1, &_touchId, &tempx, &tempy);
         });
 
         float dx  = std::abs(x1 - x2);
@@ -1234,7 +1233,7 @@ void Console::commandTouchSubCommandSwipe(socket_native_type fd, std::string_vie
                 }
                 sched->runOnAxmolThread([_x_, _y_, this]() {
                     float tempx = _x_, tempy = _y_;
-                    Director::getInstance()->getGLView()->handleTouchesMove(1, &_touchId, &tempx, &tempy);
+                    Director::getInstance()->getRenderView()->handleTouchesMove(1, &_touchId, &tempx, &tempy);
                 });
                 dx -= 1;
             }
@@ -1261,7 +1260,7 @@ void Console::commandTouchSubCommandSwipe(socket_native_type fd, std::string_vie
                 }
                 sched->runOnAxmolThread([_x_, _y_, this]() {
                     float tempx = _x_, tempy = _y_;
-                    Director::getInstance()->getGLView()->handleTouchesMove(1, &_touchId, &tempx, &tempy);
+                    Director::getInstance()->getRenderView()->handleTouchesMove(1, &_touchId, &tempx, &tempy);
                 });
                 dy -= 1;
             }
@@ -1269,7 +1268,7 @@ void Console::commandTouchSubCommandSwipe(socket_native_type fd, std::string_vie
 
         sched->runOnAxmolThread([x2, y2, this]() {
             float tempx = x2, tempy = y2;
-            Director::getInstance()->getGLView()->handleTouchesEnd(1, &_touchId, &tempx, &tempy);
+            Director::getInstance()->getRenderView()->handleTouchesEnd(1, &_touchId, &tempx, &tempy);
         });
     }
     else

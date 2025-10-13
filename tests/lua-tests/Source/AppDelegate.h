@@ -25,7 +25,7 @@
 #ifndef __APP_DELEGATE_H__
 #define __APP_DELEGATE_H__
 
-#include "cocos2d.h"
+#include "axmol.h"
 
 /**
 @brief    The cocos2d Application.
@@ -38,7 +38,7 @@ public:
     AppDelegate();
     virtual ~AppDelegate();
 
-    void initGLContextAttrs();
+    void initGfxContextAttrs();
     /**
     @brief    Implement Director and Scene init code here.
     @return true    Initialize success, app continue.

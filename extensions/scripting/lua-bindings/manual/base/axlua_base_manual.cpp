@@ -61,7 +61,7 @@
 #include "platform/Application.h"
 #include "platform/Device.h"
 #include "platform/FileUtils.h"
-#include "platform/GLView.h"
+#include "platform/RenderView.h"
 #include "renderer/TextureCache.h"
 #include "renderer/Shaders.h"
 
@@ -717,858 +717,6 @@ static int tolua_cocos2d_MenuItem_unregisterScriptTapHandler(lua_State* tolua_S)
 #if _AX_DEBUG >= 1
 tolua_lerror:
     tolua_error(tolua_S, "#ferror in function 'tolua_cocos2d_MenuItem_unregisterScriptTapHandler'.", &tolua_err);
-    return 0;
-#endif
-}
-
-static int executeScriptTouchHandler(Layer* layer, EventTouch::EventCode eventType, Touch* touch, Event* event)
-{
-    TouchScriptData data(eventType, layer, touch, event);
-    ScriptEvent scriptEvent(kTouchEvent, &data);
-    return ScriptEngineManager::sendEventToLua(scriptEvent);
-}
-
-static int executeScriptTouchesHandler(Layer* layer,
-                                       EventTouch::EventCode eventType,
-                                       const std::vector<Touch*>& touches,
-                                       Event* event)
-{
-    TouchesScriptData data(eventType, layer, touches, event);
-    ScriptEvent scriptEvent(kTouchesEvent, &data);
-    return ScriptEngineManager::sendEventToLua(scriptEvent);
-}
-
-static void setTouchEnabledForLayer(Layer* layer, bool enabled)
-{
-    if (nullptr == layer)
-        return;
-
-    // TODO:
-}
-
-// Only for v2.x lua compatibility
-static int axlua_Layer_setTouchPriority(lua_State* L)
-{
-    return 0;
-}
-
-static int axlua_Layer_setTouchEnabled(lua_State* L)
-{
-    if (nullptr == L)
-        return 0;
-
-    int argc    = 0;
-    Layer* self = nullptr;
-
-#if _AX_DEBUG >= 1
-    tolua_Error tolua_err;
-    if (!tolua_isusertype(L, 1, "ax.Layer", 0, &tolua_err))
-        goto tolua_lerror;
-#endif
-
-    self = static_cast<ax::Layer*>(tolua_tousertype(L, 1, 0));
-
-#if _AX_DEBUG >= 1
-    if (nullptr == self)
-    {
-        tolua_error(L, "invalid 'self' in function 'axlua_Layer_setTouchEnabled'\n", NULL);
-        return 0;
-    }
-#endif
-
-    argc = lua_gettop(L) - 1;
-
-    if (1 == argc)
-    {
-#if _AX_DEBUG >= 1
-        if (!tolua_isboolean(L, 2, 0, &tolua_err))
-        {
-            goto tolua_lerror;
-        }
-#endif
-        bool enabled = tolua_toboolean(L, 2, 0);
-        setTouchEnabledForLayer(self, enabled);
-        return 0;
-    }
-
-    luaL_error(L, "%s has wrong number of arguments: %d, was expecting %d\n", "ax.Layer:setTouchEnabled", argc, 1);
-    return 0;
-#if _AX_DEBUG >= 1
-tolua_lerror:
-    tolua_error(L, "#ferror in function 'axlua_Layer_setTouchEnabled'.", &tolua_err);
-    return 0;
-#endif
-}
-
-static int axlua_Layer_isTouchEnabled(lua_State* L)
-{
-    if (nullptr == L)
-        return 0;
-
-    int argc    = 0;
-    Layer* self = nullptr;
-
-#if _AX_DEBUG >= 1
-    tolua_Error tolua_err;
-    if (!tolua_isusertype(L, 1, "ax.Layer", 0, &tolua_err))
-        goto tolua_lerror;
-#endif
-
-    self = static_cast<ax::Layer*>(tolua_tousertype(L, 1, 0));
-
-#if _AX_DEBUG >= 1
-    if (nullptr == self)
-    {
-        tolua_error(L, "invalid 'self' in function 'axlua_Layer_isTouchEnabled'\n", NULL);
-        return 0;
-    }
-#endif
-
-    argc = lua_gettop(L) - 1;
-    if (0 == argc)
-    {
-        // TODO:
-        tolua_pushboolean(L, 0);
-        return 0;
-    }
-
-    luaL_error(L, "%s has wrong number of arguments: %d, was expecting %d\n", "ax.Layer:isTouchEnabled", argc, 0);
-    return 0;
-#if _AX_DEBUG >= 1
-tolua_lerror:
-    tolua_error(L, "#ferror in function 'axlua_Layer_isTouchEnabled'.", &tolua_err);
-    return 0;
-#endif
-}
-
-static int axlua_Layer_setTouchMode(lua_State* L)
-{
-    if (nullptr == L)
-        return 0;
-
-    int argc    = 0;
-    Layer* self = nullptr;
-
-#if _AX_DEBUG >= 1
-    tolua_Error tolua_err;
-    if (!tolua_isusertype(L, 1, "ax.Layer", 0, &tolua_err))
-        goto tolua_lerror;
-#endif
-
-    self = static_cast<ax::Layer*>(tolua_tousertype(L, 1, 0));
-
-#if _AX_DEBUG >= 1
-    if (nullptr == self)
-    {
-        tolua_error(L, "invalid 'self' in function 'axlua_Layer_setTouchMode'\n", NULL);
-        return 0;
-    }
-#endif
-
-    argc = lua_gettop(L) - 1;
-
-    if (1 == argc)
-    {
-#if _AX_DEBUG >= 1
-        if (!tolua_isnumber(L, 2, 0, &tolua_err))
-        {
-            goto tolua_lerror;
-        }
-#endif
-        int32_t mode = (int32_t)tolua_tonumber(L, 2, 0);
-        // TODO:
-        return 0;
-    }
-
-    luaL_error(L, "%s has wrong number of arguments: %d, was expecting %d\n", "ax.Layer:setTouchMode", argc, 1);
-    return 0;
-
-#if _AX_DEBUG >= 1
-tolua_lerror:
-    tolua_error(L, "#ferror in function 'axlua_Layer_setTouchMode'.", &tolua_err);
-    return 0;
-#endif
-}
-
-static int axlua_Layer_getTouchMode(lua_State* L)
-{
-    if (nullptr == L)
-        return 0;
-
-    int argc    = 0;
-    Layer* self = nullptr;
-
-#if _AX_DEBUG >= 1
-    tolua_Error tolua_err;
-    if (!tolua_isusertype(L, 1, "ax.Layer", 0, &tolua_err))
-        goto tolua_lerror;
-#endif
-
-    self = static_cast<ax::Layer*>(tolua_tousertype(L, 1, 0));
-
-#if _AX_DEBUG >= 1
-    if (nullptr == self)
-    {
-        tolua_error(L, "invalid 'self' in function 'axlua_Layer_getTouchMode'\n", NULL);
-        return 0;
-    }
-#endif
-
-    argc = lua_gettop(L) - 1;
-    if (0 == argc)
-    {
-        int32_t ret = 0;
-        tolua_pushnumber(L, (lua_Number)ret);  // TODO:
-
-        return 0;
-    }
-
-    luaL_error(L, "%s has wrong number of arguments: %d, was expecting %d\n", "ax.Layer:getTouchMode", argc, 0);
-    return 0;
-
-#if _AX_DEBUG >= 1
-tolua_lerror:
-    tolua_error(L, "#ferror in function 'axlua_Layer_getTouchMode'.", &tolua_err);
-    return 0;
-#endif
-}
-
-static int axlua_Layer_setSwallowsTouches(lua_State* L)
-{
-    if (nullptr == L)
-        return 0;
-
-    int argc    = 0;
-    Layer* self = nullptr;
-
-#if _AX_DEBUG >= 1
-    tolua_Error tolua_err;
-    if (!tolua_isusertype(L, 1, "ax.Layer", 0, &tolua_err))
-        goto tolua_lerror;
-#endif
-
-    self = static_cast<ax::Layer*>(tolua_tousertype(L, 1, 0));
-
-#if _AX_DEBUG >= 1
-    if (nullptr == self)
-    {
-        tolua_error(L, "invalid 'self' in function 'axlua_Layer_setSwallowsTouches'\n", NULL);
-        return 0;
-    }
-#endif
-
-    argc = lua_gettop(L) - 1;
-    if (1 == argc)
-    {
-#if _AX_DEBUG >= 1
-        if (!tolua_isboolean(L, 2, 0, &tolua_err))
-            goto tolua_lerror;
-#endif
-
-        bool swallowsTouches = tolua_toboolean(L, 2, 0);
-        // TODO:
-
-        return 0;
-    }
-
-    luaL_error(L, "%s has wrong number of arguments: %d, was expecting %d\n", "ax.Layer:setSwallowsTouches", argc, 1);
-    return 0;
-
-#if _AX_DEBUG >= 1
-tolua_lerror:
-    tolua_error(L, "#ferror in function 'axlua_Layer_setSwallowsTouches'.", &tolua_err);
-    return 0;
-#endif
-}
-
-static int axlua_Layer_isSwallowsTouches(lua_State* L)
-{
-    if (nullptr == L)
-        return 0;
-
-    int argc    = 0;
-    Layer* self = nullptr;
-
-#if _AX_DEBUG >= 1
-    tolua_Error tolua_err;
-    if (!tolua_isusertype(L, 1, "ax.Layer", 0, &tolua_err))
-        goto tolua_lerror;
-#endif
-
-    self = static_cast<ax::Layer*>(tolua_tousertype(L, 1, 0));
-
-#if _AX_DEBUG >= 1
-    if (nullptr == self)
-    {
-        tolua_error(L, "invalid 'self' in function 'axlua_Layer_isSwallowsTouches'\n", NULL);
-        return 0;
-    }
-#endif
-
-    argc = lua_gettop(L) - 1;
-    if (0 == argc)
-    {
-        lua_pushboolean(L, 0);  // TODO:
-        return 0;
-    }
-
-    luaL_error(L, "%s has wrong number of arguments: %d, was expecting %d\n", "ax.Layer:isSwallowsTouches", argc, 0);
-    return 0;
-
-#if _AX_DEBUG >= 1
-tolua_lerror:
-    tolua_error(L, "#ferror in function 'axlua_Layer_isSwallowsTouches'.", &tolua_err);
-    return 0;
-#endif
-}
-
-static int axlua_Layer_setKeyboardEnabled(lua_State* L)
-{
-    if (nullptr == L)
-        return 0;
-
-    int argc    = 0;
-    Layer* self = nullptr;
-
-#if _AX_DEBUG >= 1
-    tolua_Error tolua_err;
-    if (!tolua_isusertype(L, 1, "ax.Layer", 0, &tolua_err))
-        goto tolua_lerror;
-#endif
-
-    self = static_cast<ax::Layer*>(tolua_tousertype(L, 1, 0));
-
-#if _AX_DEBUG >= 1
-    if (nullptr == self)
-    {
-        tolua_error(L, "invalid 'self' in function 'axlua_Layer_setKeyboardEnabled'\n", NULL);
-        return 0;
-    }
-#endif
-
-    argc = lua_gettop(L) - 1;
-    if (1 == argc)
-    {
-#if _AX_DEBUG >= 1
-        if (!tolua_isboolean(L, 2, 0, &tolua_err))
-            goto tolua_lerror;
-#endif
-        bool enabled = tolua_toboolean(L, 2, 0);
-        // TODO:
-        return 0;
-    }
-
-    luaL_error(L, "%s has wrong number of arguments: %d, was expecting %d\n", "ax.Layer:setKeyboardEnabled", argc, 1);
-    return 0;
-
-#if _AX_DEBUG >= 1
-tolua_lerror:
-    tolua_error(L, "#ferror in function 'axlua_Layer_setKeyboardEnabled'.", &tolua_err);
-    return 0;
-#endif
-}
-
-static int axlua_Layer_isKeyboardEnabled(lua_State* L)
-{
-    if (nullptr == L)
-        return 0;
-
-    int argc    = 0;
-    Layer* self = nullptr;
-
-#if _AX_DEBUG >= 1
-    tolua_Error tolua_err;
-    if (!tolua_isusertype(L, 1, "ax.Layer", 0, &tolua_err))
-        goto tolua_lerror;
-#endif
-
-    self = static_cast<ax::Layer*>(tolua_tousertype(L, 1, 0));
-
-#if _AX_DEBUG >= 1
-    if (nullptr == self)
-    {
-        tolua_error(L, "invalid 'self' in function 'axlua_Layer_isKeyboardEnabled'\n", NULL);
-        return 0;
-    }
-#endif
-
-    argc = lua_gettop(L) - 1;
-    if (0 == argc)
-    {
-        // TODO:
-        return 0;
-    }
-
-    luaL_error(L, "%s has wrong number of arguments: %d, was expecting %d\n", "ax.Layer:isKeyboardEnabled", argc, 0);
-    return 0;
-
-#if _AX_DEBUG >= 1
-tolua_lerror:
-    tolua_error(L, "#ferror in function 'axlua_Layer_isKeyboardEnabled'.", &tolua_err);
-    return 0;
-#endif
-}
-
-static int axlua_Layer_setAccelerometerEnabled(lua_State* L)
-{
-    if (nullptr == L)
-        return 0;
-
-    int argc    = 0;
-    Layer* self = nullptr;
-
-#if _AX_DEBUG >= 1
-    tolua_Error tolua_err;
-    if (!tolua_isusertype(L, 1, "ax.Layer", 0, &tolua_err))
-        goto tolua_lerror;
-#endif
-
-    self = static_cast<ax::Layer*>(tolua_tousertype(L, 1, 0));
-
-#if _AX_DEBUG >= 1
-    if (nullptr == self)
-    {
-        tolua_error(L, "invalid 'self' in function 'axlua_Layer_setAccelerometerEnabled'\n", NULL);
-        return 0;
-    }
-#endif
-
-    argc = lua_gettop(L) - 1;
-    if (1 == argc)
-    {
-#if _AX_DEBUG >= 1
-        if (!tolua_isboolean(L, 2, 0, &tolua_err))
-            goto tolua_lerror;
-#endif
-        bool enabled = tolua_toboolean(L, 2, 0);
-        // TODO:
-        return 0;
-    }
-
-    luaL_error(L, "%s has wrong number of arguments: %d, was expecting %d\n", "ax.Layer:setAccelerometerEnabled", argc,
-               1);
-    return 0;
-
-#if _AX_DEBUG >= 1
-tolua_lerror:
-    tolua_error(L, "#ferror in function 'axlua_Layer_setAccelerometerEnabled'.", &tolua_err);
-    return 0;
-#endif
-}
-
-static int axlua_Layer_isAccelerometerEnabled(lua_State* L)
-{
-    if (nullptr == L)
-        return 0;
-
-    int argc    = 0;
-    Layer* self = nullptr;
-
-#if _AX_DEBUG >= 1
-    tolua_Error tolua_err;
-    if (!tolua_isusertype(L, 1, "ax.Layer", 0, &tolua_err))
-        goto tolua_lerror;
-#endif
-
-    self = static_cast<ax::Layer*>(tolua_tousertype(L, 1, 0));
-
-#if _AX_DEBUG >= 1
-    if (nullptr == self)
-    {
-        tolua_error(L, "invalid 'self' in function 'axlua_Layer_isAccelerometerEnabled'\n", NULL);
-        return 0;
-    }
-#endif
-
-    argc = lua_gettop(L) - 1;
-    if (0 == argc)
-    {
-        // TODO:
-        return 0;
-    }
-
-    luaL_error(L, "%s has wrong number of arguments: %d, was expecting %d\n", "ax.Layer:isAccelerometerEnabled", argc,
-               0);
-    return 0;
-
-#if _AX_DEBUG >= 1
-tolua_lerror:
-    tolua_error(L, "#ferror in function 'axlua_Layer_isAccelerometerEnabled'.", &tolua_err);
-    return 0;
-#endif
-}
-
-static int axlua_Layer_setAccelerometerInterval(lua_State* L)
-{
-    if (nullptr == L)
-        return 0;
-
-    int argc    = 0;
-    Layer* self = nullptr;
-
-#if _AX_DEBUG >= 1
-    tolua_Error tolua_err;
-    if (!tolua_isusertype(L, 1, "ax.Layer", 0, &tolua_err))
-        goto tolua_lerror;
-#endif
-
-    self = static_cast<ax::Layer*>(tolua_tousertype(L, 1, 0));
-
-#if _AX_DEBUG >= 1
-    if (nullptr == self)
-    {
-        tolua_error(L, "invalid 'self' in function 'axlua_Layer_setAccelerometerInterval'\n", NULL);
-        return 0;
-    }
-#endif
-
-    argc = lua_gettop(L) - 1;
-    if (1 == argc)
-    {
-#if _AX_DEBUG >= 1
-        if (!tolua_isnumber(L, 2, 0, &tolua_err))
-            goto tolua_lerror;
-#endif
-        float interval = (float)tolua_tonumber(L, 2, 0);
-        Device::setAccelerometerInterval(interval);
-        return 0;
-    }
-
-    luaL_error(L, "%s has wrong number of arguments: %d, was expecting %d\n", "ax.Layer:setAccelerometerInterval", argc,
-               1);
-    return 0;
-
-#if _AX_DEBUG >= 1
-tolua_lerror:
-    tolua_error(L, "#ferror in function 'axlua_Layer_setAccelerometerInterval'.", &tolua_err);
-    return 0;
-#endif
-}
-
-static int tolua_cocos2d_Layer_registerScriptTouchHandler(lua_State* tolua_S)
-{
-    if (NULL == tolua_S)
-        return 0;
-
-    int argc    = 0;
-    Layer* self = nullptr;
-
-#if _AX_DEBUG >= 1
-    tolua_Error tolua_err;
-    if (!tolua_isusertype(tolua_S, 1, "ax.Layer", 0, &tolua_err))
-        goto tolua_lerror;
-#endif
-
-    self = static_cast<ax::Layer*>(tolua_tousertype(tolua_S, 1, 0));
-
-#if _AX_DEBUG >= 1
-    if (nullptr == self)
-    {
-        tolua_error(tolua_S, "invalid 'self' in function 'tolua_cocos2d_Layer_registerScriptTouchHandler'\n", NULL);
-        return 0;
-    }
-#endif
-
-    argc = lua_gettop(tolua_S) - 1;
-
-    if (argc >= 1 && argc <= 4)
-    {
-#if _AX_DEBUG >= 1
-        if (!toluafix_isfunction(tolua_S, 2, "LUA_FUNCTION", 0, &tolua_err))
-        {
-            goto tolua_lerror;
-        }
-#endif
-        LUA_FUNCTION handler = toluafix_ref_function(tolua_S, 2, 0);
-        bool isMultiTouches  = false;
-        int priority         = 0;
-        bool swallowTouches  = true;
-
-        if (argc >= 2)
-        {
-#if _AX_DEBUG >= 1
-            if (!tolua_isboolean(tolua_S, 3, 0, &tolua_err))
-            {
-                goto tolua_lerror;
-            }
-#endif
-            isMultiTouches = (bool)tolua_toboolean(tolua_S, 3, false);
-        }
-
-        if (argc >= 3)
-        {
-#if _AX_DEBUG >= 1
-            if (!tolua_isnumber(tolua_S, 4, 0, &tolua_err))
-            {
-                goto tolua_lerror;
-            }
-#endif
-            priority = (int)tolua_tonumber(tolua_S, 4, 0);
-        }
-
-        if (argc == 4)
-        {
-#if _AX_DEBUG >= 1
-            if (!tolua_isboolean(tolua_S, 5, 0, &tolua_err))
-            {
-                goto tolua_lerror;
-            }
-#endif
-            swallowTouches = (bool)tolua_toboolean(tolua_S, 5, true);
-        }
-
-        Touch::DispatchMode touchesMode = Touch::DispatchMode::ALL_AT_ONCE;
-        if (!isMultiTouches)
-            touchesMode = Touch::DispatchMode::ONE_BY_ONE;
-
-        // TODO:
-        // ScriptHandlerMgr::getInstance()->addObjectHandler((void*)self, handler,
-        // ScriptHandlerMgr::HandlerType::TOUCHES);
-        return 0;
-    }
-
-    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d\n",
-               "ax.Layer:registerScriptTouchHandler", argc, 1);
-    return 0;
-
-#if _AX_DEBUG >= 1
-tolua_lerror:
-    tolua_error(tolua_S, "#ferror in function 'tolua_cocos2d_Layer_registerScriptTouchHandler'.", &tolua_err);
-    return 0;
-#endif
-}
-
-static int tolua_cocos2d_Layer_unregisterScriptTouchHandler(lua_State* tolua_S)
-{
-    if (NULL == tolua_S)
-        return 0;
-
-    int argc    = 0;
-    Layer* self = nullptr;
-
-#if _AX_DEBUG >= 1
-    tolua_Error tolua_err;
-    if (!tolua_isusertype(tolua_S, 1, "ax.Layer", 0, &tolua_err))
-        goto tolua_lerror;
-#endif
-
-    self = static_cast<ax::Layer*>(tolua_tousertype(tolua_S, 1, 0));
-
-#if _AX_DEBUG >= 1
-    if (nullptr == self)
-    {
-        tolua_error(tolua_S, "invalid 'self' in function 'tolua_cocos2d_Layer_unregisterScriptTouchHandler'\n", NULL);
-        return 0;
-    }
-#endif
-
-    argc = lua_gettop(tolua_S) - 1;
-
-    if (0 == argc)
-    {
-        // TODO:
-        // ScriptHandlerMgr::getInstance()->removeObjectHandler((void*)self, ScriptHandlerMgr::HandlerType::TOUCHES);
-        return 0;
-    }
-
-    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d\n",
-               "ax.Layer:unregisterScriptTouchHandler", argc, 0);
-    return 0;
-
-#if _AX_DEBUG >= 1
-tolua_lerror:
-    tolua_error(tolua_S, "#ferror in function 'tolua_cocos2d_Layer_unregisterScriptTouchHandler'.", &tolua_err);
-    return 0;
-#endif
-}
-
-static int tolua_cocos2d_Layer_registerScriptKeypadHandler(lua_State* tolua_S)
-{
-    if (NULL == tolua_S)
-        return 0;
-
-    int argc    = 0;
-    Layer* self = nullptr;
-
-#if _AX_DEBUG >= 1
-    tolua_Error tolua_err;
-    if (!tolua_isusertype(tolua_S, 1, "ax.Layer", 0, &tolua_err))
-        goto tolua_lerror;
-#endif
-
-    self = static_cast<ax::Layer*>(tolua_tousertype(tolua_S, 1, 0));
-
-#if _AX_DEBUG >= 1
-    if (nullptr == self)
-    {
-        tolua_error(tolua_S, "invalid 'self' in function 'tolua_cocos2d_Layer_registerScriptKeypadHandler'\n", NULL);
-        return 0;
-    }
-#endif
-
-    argc = lua_gettop(tolua_S) - 1;
-
-    if (1 == argc)
-    {
-#if _AX_DEBUG >= 1
-        if (!toluafix_isfunction(tolua_S, 2, "LUA_FUNCTION", 0, &tolua_err))
-        {
-            goto tolua_lerror;
-        }
-#endif
-        LUA_FUNCTION handler = toluafix_ref_function(tolua_S, 2, 0);
-        ScriptHandlerMgr::getInstance()->addObjectHandler((void*)self, handler, ScriptHandlerMgr::HandlerType::KEYPAD);
-        return 0;
-    }
-
-    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d\n",
-               "ax.Layer:registerScriptKeypadHandler", argc, 1);
-    return 0;
-
-#if _AX_DEBUG >= 1
-tolua_lerror:
-    tolua_error(tolua_S, "#ferror in function 'tolua_cocos2d_Layer_registerScriptKeypadHandler'.", &tolua_err);
-    return 0;
-#endif
-}
-
-static int tolua_cocos2d_Layer_unregisterScriptKeypadHandler(lua_State* tolua_S)
-{
-    if (NULL == tolua_S)
-        return 0;
-
-    int argc    = 0;
-    Layer* self = nullptr;
-
-#if _AX_DEBUG >= 1
-    tolua_Error tolua_err;
-    if (!tolua_isusertype(tolua_S, 1, "ax.Layer", 0, &tolua_err))
-        goto tolua_lerror;
-#endif
-
-    self = static_cast<ax::Layer*>(tolua_tousertype(tolua_S, 1, 0));
-
-#if _AX_DEBUG >= 1
-    if (nullptr == self)
-    {
-        tolua_error(tolua_S, "invalid 'self' in function 'tolua_cocos2d_Layer_unregisterScriptKeypadHandler'\n", NULL);
-        return 0;
-    }
-#endif
-
-    argc = lua_gettop(tolua_S) - 1;
-
-    if (0 == argc)
-    {
-        // TODO:
-        // ScriptHandlerMgr::getInstance()->removeObjectHandler(self, ScriptHandlerMgr::HandlerType::KEYPAD);
-        return 0;
-    }
-
-    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d\n",
-               "ax.Layer:unregisterScriptKeypadHandler", argc, 0);
-    return 0;
-
-#if _AX_DEBUG >= 1
-tolua_lerror:
-    tolua_error(tolua_S, "#ferror in function 'tolua_cocos2d_Layer_unregisterScriptKeypadHandler'.", &tolua_err);
-    return 0;
-#endif
-}
-
-static int tolua_cocos2d_Layer_registerScriptAccelerateHandler(lua_State* tolua_S)
-{
-    if (NULL == tolua_S)
-        return 0;
-
-    int argc    = 0;
-    Layer* self = nullptr;
-
-#if _AX_DEBUG >= 1
-    tolua_Error tolua_err;
-    if (!tolua_isusertype(tolua_S, 1, "ax.Layer", 0, &tolua_err))
-        goto tolua_lerror;
-#endif
-
-    self = static_cast<ax::Layer*>(tolua_tousertype(tolua_S, 1, 0));
-
-#if _AX_DEBUG >= 1
-    if (nullptr == self)
-    {
-        tolua_error(tolua_S, "invalid 'self' in function 'tolua_cocos2d_Layer_registerScriptAccelerateHandler'\n",
-                    NULL);
-        return 0;
-    }
-#endif
-
-    argc = lua_gettop(tolua_S) - 1;
-
-    if (1 == argc)
-    {
-#if _AX_DEBUG >= 1
-        if (!toluafix_isfunction(tolua_S, 2, "LUA_FUNCTION", 0, &tolua_err))
-        {
-            goto tolua_lerror;
-        }
-#endif
-        LUA_FUNCTION handler = toluafix_ref_function(tolua_S, 2, 0);
-        ScriptHandlerMgr::getInstance()->addObjectHandler((void*)self, handler,
-                                                          ScriptHandlerMgr::HandlerType::ACCELEROMETER);
-        return 0;
-    }
-
-    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d\n",
-               "ax.Layer:registerScriptAccelerateHandler", argc, 1);
-    return 0;
-#if _AX_DEBUG >= 1
-tolua_lerror:
-    tolua_error(tolua_S, "#ferror in function 'tolua_cocos2d_Layer_registerScriptAccelerateHandler'.", &tolua_err);
-    return 0;
-#endif
-}
-
-static int tolua_cocos2d_Layer_unregisterScriptAccelerateHandler(lua_State* tolua_S)
-{
-    if (nullptr == tolua_S)
-        return 0;
-
-    int argc    = 0;
-    Layer* self = nullptr;
-
-#if _AX_DEBUG >= 1
-    tolua_Error tolua_err;
-    if (!tolua_isusertype(tolua_S, 1, "ax.Layer", 0, &tolua_err))
-        goto tolua_lerror;
-#endif
-
-    self = static_cast<ax::Layer*>(tolua_tousertype(tolua_S, 1, 0));
-
-#if _AX_DEBUG >= 1
-    if (nullptr == self)
-    {
-        tolua_error(tolua_S, "invalid 'self' in function 'tolua_cocos2d_Layer_unregisterScriptAccelerateHandler'\n",
-                    NULL);
-        return 0;
-    }
-#endif
-
-    argc = lua_gettop(tolua_S) - 1;
-
-    if (0 == argc)
-    {
-        // TODO:
-        // ScriptHandlerMgr::getInstance()->removeObjectHandler((void*)self,
-        // ScriptHandlerMgr::HandlerType::ACCELEROMETER);
-        return 0;
-    }
-
-    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d\n",
-               "ax.Layer:unregisterScriptAccelerateHandler", argc, 0);
-    return 0;
-
-#if _AX_DEBUG >= 1
-tolua_lerror:
-    tolua_error(tolua_S, "#ferror in function 'tolua_cocos2d_Layer_unregisterScriptAccelerateHandler'.", &tolua_err);
     return 0;
 #endif
 }
@@ -3041,8 +2189,8 @@ static int toaxlua_DrawNode_drawPolygon(lua_State* tolua_S)
                 lua_pop(tolua_S, 1);
             }
 
-            Color4B fillColor;
-            if (!luaval_to_color4b(tolua_S, 4, &fillColor, "ax.DrawNode:drawPolygon"))
+            Color4F fillColor;
+            if (!luaval_to_color4f(tolua_S, 4, &fillColor, "ax.DrawNode:drawPolygon"))
             {
                 AX_SAFE_DELETE_ARRAY(points);
                 return 0;
@@ -3050,8 +2198,8 @@ static int toaxlua_DrawNode_drawPolygon(lua_State* tolua_S)
 
             float borderWidth = (float)tolua_tonumber(tolua_S, 5, 0);
 
-            Color4B borderColor;
-            if (!luaval_to_color4b(tolua_S, 6, &borderColor, "ax.DrawNode:drawPolygon"))
+            Color4F borderColor;
+            if (!luaval_to_color4f(tolua_S, 6, &borderColor, "ax.DrawNode:drawPolygon"))
             {
                 AX_SAFE_DELETE_ARRAY(points);
                 return 0;
@@ -3125,9 +2273,9 @@ int toaxlua_DrawNode_drawSolidPoly(lua_State* tolua_S)
                 lua_pop(tolua_S, 1);
             }
 
-            ax::Color4B arg2;
+            ax::Color4F arg2;
 
-            ok &= luaval_to_color4b(tolua_S, 4, &arg2, "ax.DrawNode:drawSolidPoly");
+            ok &= luaval_to_color4f(tolua_S, 4, &arg2, "ax.DrawNode:drawSolidPoly");
             if (!ok)
                 return 0;
             self->drawSolidPoly(points, size, arg2);
@@ -3204,11 +2352,11 @@ int toaxlua_DrawNode_drawPoly(lua_State* tolua_S)
             }
 
             bool arg2;
-            ax::Color4B arg3;
+            ax::Color4F arg3;
 
             ok &= luaval_to_boolean(tolua_S, 4, &arg2, "ax.DrawNode:drawPoly");
 
-            ok &= luaval_to_color4b(tolua_S, 5, &arg3, "ax.DrawNode:drawPoly");
+            ok &= luaval_to_color4f(tolua_S, 5, &arg3, "ax.DrawNode:drawPoly");
             if (!ok)
                 return 0;
 
@@ -3273,13 +2421,13 @@ int toaxlua_DrawNode_drawCardinalSpline(lua_State* tolua_S)
 
         double arg1;
         unsigned int arg2;
-        ax::Color4B arg3;
+        ax::Color4F arg3;
 
         ok &= luaval_to_number(tolua_S, 3, &arg1, "ax.DrawNode:drawCardinalSpline");
 
         ok &= luaval_to_uint32(tolua_S, 4, &arg2, "ax.DrawNode:drawCardinalSpline");
 
-        ok &= luaval_to_color4b(tolua_S, 5, &arg3, "ax.DrawNode:drawCardinalSpline");
+        ok &= luaval_to_color4f(tolua_S, 5, &arg3, "ax.DrawNode:drawCardinalSpline");
         if (!ok)
             return 0;
         self->drawCardinalSpline(config, (float)arg1, arg2, arg3);
@@ -3340,11 +2488,11 @@ int toaxlua_DrawNode_drawCatmullRom(lua_State* tolua_S)
         AX_SAFE_DELETE_ARRAY(arr);
 
         unsigned int arg1;
-        ax::Color4B arg2;
+        ax::Color4F arg2;
 
         ok &= luaval_to_uint32(tolua_S, 3, &arg1, "ax.DrawNode:drawCatmullRom");
 
-        ok &= luaval_to_color4b(tolua_S, 4, &arg2, "ax.DrawNode:drawCatmullRom");
+        ok &= luaval_to_color4f(tolua_S, 4, &arg2, "ax.DrawNode:drawCatmullRom");
         if (!ok)
             return 0;
         self->drawCatmullRom(config, arg1, arg2);
@@ -3415,9 +2563,9 @@ int toaxlua_DrawNode_drawPoints(lua_State* tolua_S)
                 lua_pop(tolua_S, 1);
             }
 
-            ax::Color4B arg2;
+            ax::Color4F arg2;
 
-            ok &= luaval_to_color4b(tolua_S, 4, &arg2, "ax.DrawNode:drawPoints");
+            ok &= luaval_to_color4f(tolua_S, 4, &arg2, "ax.DrawNode:drawPoints");
             if (!ok)
                 return 0;
             self->drawPoints(points, size, arg2);
@@ -3453,8 +2601,8 @@ int toaxlua_DrawNode_drawPoints(lua_State* tolua_S)
             }
 
             float pointSize = (float)tolua_tonumber(tolua_S, 4, 0);
-            ax::Color4B color;
-            ok &= luaval_to_color4b(tolua_S, 5, &color, "ax.DrawNode:drawPoints");
+            ax::Color4F color;
+            ok &= luaval_to_color4f(tolua_S, 5, &color, "ax.DrawNode:drawPoints");
             if (!ok)
                 return 0;
             self->drawPoints(points, size, pointSize, color);
@@ -3787,6 +2935,57 @@ tolua_lerror:
     return 0;
 }
 
+#if defined(AX_ENABLE_PHYSICS)
+int axlua_Scene_getPhysicsWorld(lua_State* tolua_S)
+{
+    int argc        = 0;
+    ax::Scene* cobj = nullptr;
+    bool ok         = true;
+
+#if _AX_DEBUG >= 1
+    tolua_Error tolua_err;
+#endif
+
+#if _AX_DEBUG >= 1
+    if (!tolua_isusertype(tolua_S, 1, "ax.Scene", 0, &tolua_err))
+        goto tolua_lerror;
+#endif
+
+    cobj = (ax::Scene*)tolua_tousertype(tolua_S, 1, 0);
+
+#if _AX_DEBUG >= 1
+    if (!cobj)
+    {
+        tolua_error(tolua_S, "invalid 'cobj' in function 'axlua_Scene_getPhysicsWorld'", nullptr);
+        return 0;
+    }
+#endif
+
+    argc = lua_gettop(tolua_S) - 1;
+    if (argc == 0)
+    {
+        if (!ok)
+        {
+            tolua_error(tolua_S, "invalid arguments in function 'axlua_Scene_getPhysicsWorld'", nullptr);
+            return 0;
+        }
+        ax::PhysicsWorld* ret = cobj->getPhysicsWorld();
+        object_to_luaval<ax::PhysicsWorld>(tolua_S, "ax.PhysicsWorld", (ax::PhysicsWorld*)ret);
+        return 1;
+    }
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "ax.Scene:getPhysicsWorld", argc,
+               0);
+    return 0;
+
+#if _AX_DEBUG >= 1
+tolua_lerror:
+    tolua_error(tolua_S, "#ferror in function 'axlua_Scene_getPhysicsWorld'.", &tolua_err);
+#endif
+
+    return 0;
+}
+#endif
+
 #if defined(AX_ENABLE_3D_PHYSICS)
 #    include "physics3d/Physics3DWorld.h"
 int axlua_Scene_getPhysics3DWorld(lua_State* tolua_S)
@@ -3896,6 +3095,9 @@ static void extendScene(lua_State* tolua_S)
     lua_rawget(tolua_S, LUA_REGISTRYINDEX);
     if (lua_istable(tolua_S, -1))
     {
+#if defined(AX_ENABLE_PHYSICS)
+        tolua_function(tolua_S, "getPhysicsWorld", axlua_Scene_getPhysicsWorld);
+#endif
 #if defined(AX_ENABLE_3D_PHYSICS)
         tolua_function(tolua_S, "getPhysics3DWorld", axlua_Scene_getPhysics3DWorld);
         tolua_function(tolua_S, "setPhysics3DDebugCamera", axlua_Scene_setPhysics3DDebugCamera);
@@ -4059,46 +3261,6 @@ static void extendNode(lua_State* tolua_S)
         lua_pushstring(tolua_S, "setRotationQuat");
         lua_pushcfunction(tolua_S, axlua_Node_setRotationQuat);
         lua_rawset(tolua_S, -3);
-    }
-    lua_pop(tolua_S, 1);
-}
-
-static void extendLayer(lua_State* tolua_S)
-{
-    lua_pushstring(tolua_S, "ax.Layer");
-    lua_rawget(tolua_S, LUA_REGISTRYINDEX);
-    if (lua_istable(tolua_S, -1))
-    {
-        lua_pushstring(tolua_S, "registerScriptTouchHandler");
-        lua_pushcfunction(tolua_S, tolua_cocos2d_Layer_registerScriptTouchHandler);
-        lua_rawset(tolua_S, -3);
-        lua_pushstring(tolua_S, "unregisterScriptTouchHandler");
-        lua_pushcfunction(tolua_S, tolua_cocos2d_Layer_unregisterScriptTouchHandler);
-        lua_rawset(tolua_S, -3);
-        lua_pushstring(tolua_S, "registerScriptKeypadHandler");
-        lua_pushcfunction(tolua_S, tolua_cocos2d_Layer_registerScriptKeypadHandler);
-        lua_rawset(tolua_S, -3);
-        lua_pushstring(tolua_S, "unregisterScriptKeypadHandler");
-        lua_pushcfunction(tolua_S, tolua_cocos2d_Layer_unregisterScriptKeypadHandler);
-        lua_rawset(tolua_S, -3);
-        lua_pushstring(tolua_S, "registerScriptAccelerateHandler");
-        lua_pushcfunction(tolua_S, tolua_cocos2d_Layer_registerScriptAccelerateHandler);
-        lua_rawset(tolua_S, -3);
-        lua_pushstring(tolua_S, "unregisterScriptAccelerateHandler");
-        lua_pushcfunction(tolua_S, tolua_cocos2d_Layer_unregisterScriptAccelerateHandler);
-        lua_rawset(tolua_S, -3);
-
-        tolua_function(tolua_S, "setTouchEnabled", axlua_Layer_setTouchEnabled);
-        tolua_function(tolua_S, "isTouchEnabled", axlua_Layer_isTouchEnabled);
-        tolua_function(tolua_S, "setTouchMode", axlua_Layer_setTouchMode);
-        tolua_function(tolua_S, "getTouchMode", axlua_Layer_getTouchMode);
-        tolua_function(tolua_S, "setSwallowsTouches", axlua_Layer_setSwallowsTouches);
-        tolua_function(tolua_S, "isSwallowsTouches", axlua_Layer_isSwallowsTouches);
-        tolua_function(tolua_S, "setKeyboardEnabled", axlua_Layer_setKeyboardEnabled);
-        tolua_function(tolua_S, "isKeyboardEnabled", axlua_Layer_isKeyboardEnabled);
-        tolua_function(tolua_S, "setAccelerometerEnabled", axlua_Layer_setAccelerometerEnabled);
-        tolua_function(tolua_S, "isAccelerometerEnabled", axlua_Layer_isAccelerometerEnabled);
-        tolua_function(tolua_S, "setAccelerometerInterval", axlua_Layer_setAccelerometerInterval);
     }
     lua_pop(tolua_S, 1);
 }
@@ -6457,10 +5619,10 @@ static void extendTextureCache(lua_State* tolua_S)
     lua_pop(tolua_S, 1);
 }
 
-int axlua_GLView_getAllTouches(lua_State* tolua_S)
+int axlua_RenderView_getAllTouches(lua_State* tolua_S)
 {
     int argc              = 0;
-    ax::GLView* cobj = nullptr;
+    ax::RenderView* cobj = nullptr;
     bool ok               = true;
 
 #if _AX_DEBUG >= 1
@@ -6468,16 +5630,16 @@ int axlua_GLView_getAllTouches(lua_State* tolua_S)
 #endif
 
 #if _AX_DEBUG >= 1
-    if (!tolua_isusertype(tolua_S, 1, "ax.GLView", 0, &tolua_err))
+    if (!tolua_isusertype(tolua_S, 1, "ax.RenderView", 0, &tolua_err))
         goto tolua_lerror;
 #endif
 
-    cobj = (ax::GLView*)tolua_tousertype(tolua_S, 1, 0);
+    cobj = (ax::RenderView*)tolua_tousertype(tolua_S, 1, 0);
 
 #if _AX_DEBUG >= 1
     if (!cobj)
     {
-        tolua_error(tolua_S, "invalid 'cobj' in function 'axlua_GLView_getAllTouches'", nullptr);
+        tolua_error(tolua_S, "invalid 'cobj' in function 'axlua_RenderView_getAllTouches'", nullptr);
         return 0;
     }
 #endif
@@ -6509,25 +5671,25 @@ int axlua_GLView_getAllTouches(lua_State* tolua_S)
 
         return 1;
     }
-    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "ax.GLView:getAllTouches", argc,
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "ax.RenderView:getAllTouches", argc,
                0);
     return 0;
 
 #if _AX_DEBUG >= 1
 tolua_lerror:
-    tolua_error(tolua_S, "#ferror in function 'axlua_GLView_getAllTouches'.", &tolua_err);
+    tolua_error(tolua_S, "#ferror in function 'axlua_RenderView_getAllTouches'.", &tolua_err);
 #endif
 
     return 0;
 }
 
-static void extendGLView(lua_State* tolua_S)
+static void extendRenderView(lua_State* tolua_S)
 {
-    lua_pushstring(tolua_S, "ax.GLView");
+    lua_pushstring(tolua_S, "ax.RenderView");
     lua_rawget(tolua_S, LUA_REGISTRYINDEX);
     if (lua_istable(tolua_S, -1))
     {
-        tolua_function(tolua_S, "getAllTouches", axlua_GLView_getAllTouches);
+        tolua_function(tolua_S, "getAllTouches", axlua_RenderView_getAllTouches);
     }
     lua_pop(tolua_S, 1);
 }
@@ -7218,7 +6380,6 @@ int register_all_ax_manual(lua_State* tolua_S)
 
     extendNode(tolua_S);
     extendScene(tolua_S);
-    extendLayer(tolua_S);
     extendMenuItem(tolua_S);
     extendMenuItemImage(tolua_S);
     extendMenuItemLabel(tolua_S);
@@ -7260,7 +6421,7 @@ int register_all_ax_manual(lua_State* tolua_S)
     extendFastTMXLayer(tolua_S);
     extendApplication(tolua_S);
     extendTextureCache(tolua_S);
-    extendGLView(tolua_S);
+    extendRenderView(tolua_S);
     extendCamera(tolua_S);
     extendProperties(tolua_S);
     extendAutoPolygon(tolua_S);

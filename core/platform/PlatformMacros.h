@@ -25,8 +25,7 @@ Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
  THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef __AX_PLATFORM_MACROS_H__
-#define __AX_PLATFORM_MACROS_H__
+#pragma once
 
 /**
  * Define some platform specific macros.
@@ -421,12 +420,6 @@ public:                                                 \
 #    define AX_FORMAT_PRINTF(formatPos, argPos)
 #endif
 
-#if defined(_MSC_VER)
-#    define AX_FORMAT_PRINTF_SIZE_T "%08lX"
-#else
-#    define AX_FORMAT_PRINTF_SIZE_T "%08zX"
-#endif
-
 #ifdef __GNUC__
 #    define AX_UNUSED __attribute__((unused))
 #else
@@ -480,4 +473,3 @@ public:                                                 \
 #    define AX_NOUNROLL _Pragma("nounroll")
 #endif
 
-#endif  // __AX_PLATFORM_MACROS_H__

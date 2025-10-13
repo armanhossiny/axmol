@@ -34,13 +34,14 @@
 #include <thread>
 #include <atomic>
 
+#include "AudioEffects.h"
 #include "audio/AudioMacros.h"
 #include "platform/PlatformMacros.h"
-#include "audio/alconfig.h"
+#include "audio/oal_port.h"
+#include "math/Vec3.h"
 
 namespace ax
 {
-
 class AudioCache;
 class AudioEngineImpl;
 
@@ -56,30 +57,42 @@ public:
 
     // queue buffer related stuff
     bool setTime(float time);
-    float getTime() { return _currTime; }
+    float getTime() const { return _currTime; }
     bool setLoop(bool loop);
 
     bool isFinished() const;
+
+    void setReverbProperties(const ReverbProperties* reverbProperties);
 
 protected:
     void setCache(AudioCache* cache);
     void rotateBufferThread(int offsetFrame);
     bool play2d();
+    bool play3d();
 #if defined(__APPLE__)
     void wakeupRotateThread();
 #endif
+    void clearEffects();
 
     AudioCache* _audioCache;
 
     float _volume;
     float _pitch;
     bool _loop;
+    float _pan{};
+    float _distanceScale;
+    Vec3 _sourcePosition;
+
     std::function<void(AUDIO_ID, std::string_view)> _finishCallbak;
 
     bool _isDestroyed;
     bool _removeByAudioEngine;
     bool _ready;
     ALuint _alSource;
+
+#if AX_USE_ALSOFT
+    ReverbProperties _reverbProperties;
+#endif
 
     // play by circular buffer
     float _currTime;
@@ -97,6 +110,9 @@ protected:
     std::mutex _play2dMutex;
 
     unsigned int _id;
+    uint32_t _reverbSlot{};
+    uint32_t _reverbEffect{};
+
     friend class AudioEngineImpl;
 };
 

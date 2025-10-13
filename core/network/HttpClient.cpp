@@ -259,7 +259,13 @@ void HttpClient::handleNetworkEvent(yasio::io_event* event)
         if (!responseFinished)
         {
             auto&& pkt = event->packet_view();
-            response->handleInput(pkt.data(), pkt.size());
+            auto err = response->input(pkt.data(), pkt.size());
+            if (err != HPE_OK)
+            {
+                response->updateInternalCode(err);
+                _service->close(event->cindex());
+                break;
+            }
         }
         if (response->isFinished())
         {
@@ -358,12 +364,12 @@ void HttpClient::handleNetworkEvent(yasio::io_event* event)
                 if (!(headerFlags & HeaderFlag::CONTENT_TYPE))
                     obs.write_bytes("Content-Type: application/x-www-form-urlencoded;charset=UTF-8\r\n");
 
-                char strContentLength[128] = {0};
                 auto requestData           = request->getRequestData();
                 auto requestDataSize       = request->getRequestDataSize();
-                snprintf(strContentLength, sizeof(strContentLength), "Content-Length: %d\r\n\r\n",
+                char buf[128];
+                auto strConentLen = fmt::format_to_z(buf, "Content-Length: {}\r\n\r\n",
                          static_cast<int>(requestDataSize));
-                obs.write_bytes(strContentLength);
+                obs.write_bytes(strConentLen);
 
                 if (requestData && requestDataSize > 0)
                     obs.write_bytes(cxx17::string_view{requestData, static_cast<size_t>(requestDataSize)});
@@ -390,6 +396,7 @@ void HttpClient::handleNetworkEvent(yasio::io_event* event)
         }
         break;
     case YEK_ON_CLOSE:
+        response->handleConnectionClose();
         handleNetworkEOF(response, channel, event->status());
         break;
     }
@@ -461,8 +468,8 @@ void HttpClient::finishResponse(HttpResponse* response)
 
 void HttpClient::invokeResposneCallbackAndRelease(HttpResponse* response)
 {
-    HttpRequest* request                  = response->getHttpRequest();
-    const ccHttpRequestCallback& callback = request->getCallback();
+    auto request   = response->getHttpRequest();
+    auto& callback = request->getCompleteCallback();
 
     if (callback != nullptr)
         callback(this, response);

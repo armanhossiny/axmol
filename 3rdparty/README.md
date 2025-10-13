@@ -42,12 +42,12 @@
 
 ## ConvertUTF
 - Upstream: https://github.com/llvm/llvm-project
-- Version: git 2946cd7 without LLVM-specific wrappers of the functions
+- Version: git 20451cb (until Aug.13 2022) without LLVM-specific wrappers of the functions
 - License: Apache-2.0 WITH LLVM-exception
 
 ## curl
 - [![Upstream](https://img.shields.io/github/v/release/curl/curl?label=Upstream)](https://github.com/curl/curl)
-- Version: 8.13.0
+- Version: 8.16.0
 - License: Curl (MIT/X)
 
 ## doctest
@@ -73,7 +73,7 @@
 
 ## FreeType
 - [![Upstream](https://img.shields.io/gitlab/v/tag/freetype/freetype?label=Upstream)](https://gitlab.freedesktop.org/freetype/freetype)
-- Version: 2.13.3
+- Version: 2.14.1
 - License: BSD-style (The FreeType Project)
 
 ## Glad
@@ -98,7 +98,7 @@
 
 ## jpeg-turbo
 - [![Upstream](https://img.shields.io/github/v/release/libjpeg-turbo/libjpeg-turbo?label=Upstream)](https://github.com/libjpeg-turbo/libjpeg-turbo)
-- Version: 3.1.1
+- Version: 3.1.2
 - License: BSD-style (IJG,BSD-3-Clause,zlib)
 
 ## kcp
@@ -124,7 +124,7 @@
 
 - luajit
   - Upstream: https://github.com/LuaJIT/LuaJIT
-  - Version: 2.1-f9140a6
+  - Version: 2.1-871db2c
   - License: MIT
 
 - tolua

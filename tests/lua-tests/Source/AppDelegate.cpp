@@ -23,7 +23,7 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-#include "cocos2d.h"
+#include "axmol.h"
 #include "AppDelegate.h"
 #include "lua-bindings/manual/LuaEngine.h"
 #include "lua_assetsmanager_test_sample.h"
@@ -36,11 +36,11 @@ AppDelegate::AppDelegate() {}
 
 AppDelegate::~AppDelegate() {}
 
-void AppDelegate::initGLContextAttrs()
+void AppDelegate::initGfxContextAttrs()
 {
-    GLContextAttrs glContextAttrs = {8, 8, 8, 8, 24, 8, 0};
+    GfxContextAttrs gfxContextAttrs = {8, 8, 8, 8, 24, 8, 0};
 
-    GLView::setGLContextAttrs(glContextAttrs);
+    RenderView::setGfxContextAttrs(gfxContextAttrs);
 }
 
 bool AppDelegate::applicationDidFinishLaunching()

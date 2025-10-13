@@ -25,8 +25,7 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef _AX_LABEL_H_
-#define _AX_LABEL_H_
+#pragma once
 
 #include "2d/Node.h"
 #include "renderer/CustomCommand.h"
@@ -56,7 +55,7 @@ typedef struct _ttfConfig
 
     GlyphCollection glyphs;
     float fontSize; // The desired render font size
-    int faceSize; // The original face size of font
+    int faceSize; // The original face size of font, used when distanceFieldEnabled == true
     int outlineSize;
 
     bool distanceFieldEnabled;
@@ -766,7 +765,7 @@ protected:
 
     void clearTextures();
 
-    virtual void setFontAtlas(FontAtlas* atlas, bool distanceFieldEnabled = false, bool useA8Shader = false);
+    virtual bool setFontAtlas(FontAtlas* atlas, bool distanceFieldEnabled = false, bool useA8Shader = false);
     bool getFontLetterDef(char32_t character, FontLetterDefinition& letterDef) const;
 
     void computeStringNumLines();
@@ -806,7 +805,7 @@ protected:
 #endif
     void scaleFontSize(float fontSize);
     bool setTTFConfigInternal(const TTFConfig& ttfConfig);
-    bool updateTTFConfigInternal();
+    bool updateTTFConfigInternal(unsigned int mods = 0);
     void setBMFontSizeInternal(float fontSize);
     bool isLetterHorizontallyClamped(float letterPositionX, float letterWidth, int lineIndex, float offsetX);
     void restoreFontSize();
@@ -954,5 +953,3 @@ private:
 /// @}
 
 }
-
-#endif /*_AX_LABEL_H */

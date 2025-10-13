@@ -22,8 +22,8 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef COCOS2DX_TEST_LUA_TESTS_PROJECT_CLASSES_LUA_TEST_BINDINGS_H
-#define COCOS2DX_TEST_LUA_TESTS_PROJECT_CLASSES_LUA_TEST_BINDINGS_H
+#ifndef AX_TEST_LUA_TESTS_PROJECT_CLASSES_LUA_TEST_BINDINGS_H
+#define AX_TEST_LUA_TESTS_PROJECT_CLASSES_LUA_TEST_BINDINGS_H
 
 #ifdef __cplusplus
 extern "C" {

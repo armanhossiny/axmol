@@ -1,6 +1,7 @@
 /****************************************************************************
  Copyright (c) 2013-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
+ Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
  https://axmol.dev/
 
@@ -24,8 +25,7 @@
 
  ****************************************************************************/
 
-#ifndef _AX_KEYBOARDEVENT_H_
-#define _AX_KEYBOARDEVENT_H_
+#pragma once
 
 #include "base/Event.h"
 
@@ -223,20 +223,22 @@ public:
     /** Constructor.
      *
      * @param keyCode A given keycode.
-     * @param isPressed True if the key is pressed.
+     * @param isKeyDown whether is key down event
+     * @param isRepeat whether key down repeat
      */
-    EventKeyboard(KeyCode keyCode, bool isPressed);
+    EventKeyboard(KeyCode keyCode, bool isKeyDown, bool isRepeat = false);
+
+    bool isRepeat() const { return _isRepeat; }
 
 private:
     KeyCode _keyCode;
-    bool _isPressed;
+    bool _isKeyDown;
+    bool _isRepeat;
 
     friend class EventListenerKeyboard;
 };
 
-}
+}  // namespace ax
 
 // end of base group
 /// @}
-
-#endif /* defined(_AX_KEYBOARDEVENT_H_) */

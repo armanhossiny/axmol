@@ -26,7 +26,7 @@
 
 #include "lua-bindings/manual/tolua_fix.h"
 
-#include "cocos2d.h"
+#include "axmol.h"
 #include "extensions/axmol-ext.h"
 
 #if !defined(_WIN32)
@@ -37,7 +37,7 @@
 using namespace ax;
 USING_NS_AX_EXT;
 
-static int lua_cocos2dx_createDownloadDir(lua_State* L)
+static int lua_ax_createDownloadDir(lua_State* L)
 {
     if (nullptr == L)
         return 0;
@@ -71,7 +71,7 @@ static int lua_cocos2dx_createDownloadDir(lua_State* L)
     return 0;
 }
 
-static int lua_cocos2dx_deleteDownloadDir(lua_State* L)
+static int lua_ax_deleteDownloadDir(lua_State* L)
 {
     if (nullptr == L)
         return 0;
@@ -92,7 +92,7 @@ static int lua_cocos2dx_deleteDownloadDir(lua_State* L)
 
 #if AX_TARGET_OS_TVOS
         // Not implemented. "system" is not present on tvOS
-        AXLOGD("'lua_axmol_deleteDownloadDir' not implemented on tvOS");
+        AXLOGD("'lua_ax_deleteDownloadDir' not implemented on tvOS");
         return 0;
 #endif
 
@@ -110,7 +110,7 @@ tolua_lerror:
 #endif
 }
 
-static int lua_cocos2dx_addSearchPath(lua_State* L)
+static int lua_ax_addSearchPath(lua_State* L)
 {
     if (nullptr == L)
         return 0;
@@ -147,9 +147,9 @@ int register_assetsmanager_test_sample(lua_State* L)
     tolua_open(L);
     tolua_module(L, NULL, 0);
     tolua_beginmodule(L, NULL);
-    tolua_function(L, "createDownloadDir", lua_cocos2dx_createDownloadDir);
-    tolua_function(L, "deleteDownloadDir", lua_cocos2dx_deleteDownloadDir);
-    tolua_function(L, "addSearchPath", lua_cocos2dx_addSearchPath);
+    tolua_function(L, "createDownloadDir", lua_ax_createDownloadDir);
+    tolua_function(L, "deleteDownloadDir", lua_ax_deleteDownloadDir);
+    tolua_function(L, "addSearchPath", lua_ax_addSearchPath);
     tolua_endmodule(L);
     return 0;
 }

@@ -24,8 +24,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ****************************************************************************/
 
-#ifndef __AX_TEXT_FIELD_H__
-#define __AX_TEXT_FIELD_H__
+#pragma once
 
 #include "2d/Label.h"
 #include "base/IMEDelegate.h"
@@ -42,6 +41,11 @@ class TextFieldTTF;
 /**
  * A input protocol for TextField.
  * !!!DEPRECATED since axmol-2.1.3
+ * Why DPRECATED?
+ * 1. lack of cursor support, cursor will overlap with text due to cursor share display text with input text.
+ * 2. many memory allocations when insert,delete text
+ * 3. ui::TextField depends on this class, it's not a good design, future we should implement a new ui::TextField which is don't depend on this class
+ * 4. The ui::TextFieldEx maybe a good start point to solve these problems.
  */
 class AX_DLL TextFieldDelegate
 {
@@ -290,4 +294,3 @@ private:
 // end of ui group
 /// @}
 
-#endif  // __AX_TEXT_FIELD_H__

@@ -37,41 +37,6 @@
 
 using namespace ax;
 
-static int SendBinaryMessageToLua(int nHandler,const unsigned char* pTable,int nLength)
-{
-    if (NULL == pTable || nHandler <= 0) {
-        return 0;
-    }
-    
-    if (NULL == ScriptEngineManager::getInstance()->getScriptEngine()) {
-        return 0;
-    }
-    
-    LuaStack *pStack = LuaEngine::getInstance()->getLuaStack();
-    if (NULL == pStack) {
-        return 0;
-    }
-
-    lua_State *tolua_s = pStack->getLuaState();
-    if (NULL == tolua_s) {
-        return 0;
-    }
-    
-    int nRet = 0;
-    LuaValueArray array;
-    for (int i = 0 ; i < nLength; i++) {
-        LuaValue value = LuaValue::intValue(pTable[i]);
-        array.push_back(value);
-    }
-    
-    pStack->pushLuaValueArray(array);
-    nRet = pStack->executeFunctionByHandler(nHandler, 1);
-    pStack->clean();
-    return nRet;
-}
-
-
-
 LuaWebSocket::~LuaWebSocket()
 {
     ScriptHandlerMgr::getInstance()->removeObjectAllHandlers((void*)this);
@@ -80,7 +45,7 @@ LuaWebSocket::~LuaWebSocket()
 void LuaWebSocket::onOpen(WebSocket* ws)
 {
     LuaWebSocket* luaWs = dynamic_cast<LuaWebSocket*>(ws);
-    if (NULL != luaWs) {
+    if (luaWs) {
         int nHandler = ScriptHandlerMgr::getInstance()->getObjectHandler((void*)this,ScriptHandlerMgr::HandlerType::WEBSOCKET_OPEN);
         if (0 != nHandler) {
             CommonScriptData data(nHandler,"");
@@ -93,24 +58,18 @@ void LuaWebSocket::onOpen(WebSocket* ws)
 void LuaWebSocket::onMessage(WebSocket* ws, const WebSocket::Data& data)
 {
     LuaWebSocket* luaWs = dynamic_cast<LuaWebSocket*>(ws);
-    if (NULL != luaWs) {
-        if (data.isBinary) {
-            int handler = ScriptHandlerMgr::getInstance()->getObjectHandler((void*)this,ScriptHandlerMgr::HandlerType::WEBSOCKET_MESSAGE);
-            if (0 != handler) {
-                SendBinaryMessageToLua(handler, (const unsigned char*)data.bytes, (int)data.len);
-            }
-        }
-        else{
-                
-            int handler = ScriptHandlerMgr::getInstance()->getObjectHandler((void*)this,ScriptHandlerMgr::HandlerType::WEBSOCKET_MESSAGE);
-            if (0 != handler)
+    if (luaWs)
+    {
+        int handler = ScriptHandlerMgr::getInstance()->getObjectHandler(
+            (void*)this, ScriptHandlerMgr::HandlerType::WEBSOCKET_MESSAGE);
+        if (0 != handler)
+        {
+            LuaStack* stack = LuaEngine::getInstance()->getLuaStack();
+            if (nullptr != stack)
             {
-                LuaStack* stack = LuaEngine::getInstance()->getLuaStack();
-                if (nullptr != stack)
-                {
-                    stack->pushString(data.bytes,(int)data.len);
-                    stack->executeFunctionByHandler(handler,  1);
-                }
+                stack->pushString(data.bytes, (int)data.len);
+                stack->pushBoolean(data.isBinary);
+                stack->executeFunctionByHandler(handler, 2);
             }
         }
     }
@@ -119,7 +78,7 @@ void LuaWebSocket::onMessage(WebSocket* ws, const WebSocket::Data& data)
 void LuaWebSocket::onClose(WebSocket* ws, uint16_t code, std::string_view reason)
 {
     LuaWebSocket* luaWs = dynamic_cast<LuaWebSocket*>(ws);
-    if (NULL != luaWs) {
+    if (luaWs) {
         int nHandler = ScriptHandlerMgr::getInstance()->getObjectHandler((void*)this,ScriptHandlerMgr::HandlerType::WEBSOCKET_CLOSE);
         if (0 != nHandler)
         {
@@ -133,7 +92,7 @@ void LuaWebSocket::onClose(WebSocket* ws, uint16_t code, std::string_view reason
 void LuaWebSocket::onError(WebSocket* ws, const WebSocket::ErrorCode& error)
 {
     LuaWebSocket* luaWs = dynamic_cast<LuaWebSocket*>(ws);
-    if (NULL != luaWs) {
+    if (luaWs) {
         int nHandler = ScriptHandlerMgr::getInstance()->getObjectHandler((void*)this,ScriptHandlerMgr::HandlerType::WEBSOCKET_ERROR);
         if (0 != nHandler)
         {
@@ -172,7 +131,7 @@ static int axlua_WebSocket_create00(lua_State* tolua_S)
     if (argumentCount >= 2)
     {
         std::string_view url;
-        const char* protocols{nullptr};
+        std::string_view protocols = ""sv;
         std::string_view caCertPath;
 
 #ifndef TOLUA_RELEASE
@@ -196,7 +155,7 @@ static int axlua_WebSocket_create00(lua_State* tolua_S)
         else if (argumentCount == 4)
         {
             luaval_to_std_string_view(tolua_S, 3, &caCertPath);
-            protocols = lua_tostring(tolua_S, 4);
+            protocols = axlua_tosv(tolua_S, 4);
         }
 
         luaval_to_std_string_view(tolua_S, 2, &url);
@@ -231,7 +190,7 @@ static int axlua_WebSocket_getReadyState00(lua_State* tolua_S)
     {
         LuaWebSocket *self = (LuaWebSocket*)tolua_tousertype(tolua_S,1,0);
         int tolua_ret = -1;
-        if (NULL != self) {
+        if (self) {
             tolua_ret = (int)self->getReadyState();
         }
         tolua_pushnumber(tolua_S,(lua_Number)tolua_ret);
@@ -261,7 +220,7 @@ static int axlua_WebSocket_close00(lua_State* tolua_S)
 #endif
     {
         LuaWebSocket* self    = (LuaWebSocket*)  tolua_tousertype(tolua_S,1,0);
-        if (NULL != self ) {
+        if (self) {
             self->closeAsync();
         }
     }
@@ -292,7 +251,7 @@ static int axlua_WebSocket_sendString00(lua_State* tolua_S)
         LuaWebSocket* self    = (LuaWebSocket*)  tolua_tousertype(tolua_S,1,0);
         size_t size = 0;
         const char* data = (const char*) lua_tolstring(tolua_S, 2, &size);
-        if ( NULL == data)
+        if (!data)
             return 0;
 
         if (strlen(data) != size)
@@ -361,7 +320,7 @@ TOLUA_API int tolua_web_socket_open(lua_State* tolua_S){
       #ifdef __cplusplus
       tolua_cclass(tolua_S,"WebSocket","ax.WebSocket","",tolua_collect_WebSocket);
       #else
-      tolua_cclass(tolua_S,"WebSocket","ax.WebSocket","",NULL);
+      tolua_cclass(tolua_S,"WebSocket","ax.WebSocket","", nullptr);
       #endif
       tolua_beginmodule(tolua_S,"WebSocket");
         tolua_function(tolua_S, "create", axlua_WebSocket_create00);
@@ -390,7 +349,7 @@ int axlua_WebSocket_registerScriptHandler00(lua_State* tolua_S)
 #endif
     {
         LuaWebSocket* self    = (LuaWebSocket*)  tolua_tousertype(tolua_S,1,0);
-        if (NULL != self ) {
+        if (self) {
             int handler = (  toluafix_ref_function(tolua_S,2,0));
             ScriptHandlerMgr::HandlerType handlerType = (ScriptHandlerMgr::HandlerType)((int)tolua_tonumber(tolua_S,3,0) + (int)ScriptHandlerMgr::HandlerType::WEBSOCKET_OPEN);
             ScriptHandlerMgr::getInstance()->addObjectHandler((void*)self, handler, handlerType);
@@ -418,7 +377,7 @@ int axlua_WebSocket_unregisterScriptHandler00(lua_State* tolua_S)
 #endif
     {
         LuaWebSocket* self    = (LuaWebSocket*)  tolua_tousertype(tolua_S,1,0);
-        if (NULL != self ) {
+        if (self) {
             ScriptHandlerMgr::HandlerType handlerType = (ScriptHandlerMgr::HandlerType)((int)tolua_tonumber(tolua_S,2,0) + (int)ScriptHandlerMgr::HandlerType::WEBSOCKET_OPEN);
             
             ScriptHandlerMgr::getInstance()->removeObjectHandler((void*)self, handlerType);

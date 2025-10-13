@@ -1,24 +1,24 @@
 name: genbindings
 
-on: 
+on:
   push:
-    branches: dev
+    branches:
+      - dev
+      - release/*
     paths-ignore:
       - '**.md'
       - '**/*.md.in'
       - 'docs/**'
       - '.github/workflows/publish.yml'
       - 'tools/ci/make-pkg.ps1'
-      
+
   workflow_dispatch:
 jobs:
   genbindings:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v4
-      with:
-        submodules: 'recursive'
+    - uses: actions/checkout@v5
 
     - name: Setup Python
       uses: actions/setup-python@v4
@@ -27,11 +27,11 @@ jobs:
 
     - name: Genbindings
       run: tools\ci\genbindings.ps1
-      
+
     - name: Create pull request
       if: ${{ env.BINDING_NO_CHANGES != 'true' }}
       id: cpr
-      uses: peter-evans/create-pull-request@v6
+      uses: peter-evans/create-pull-request@v7
       with:
         token: ${{ secrets.AX_BOT_TOKEN }}
         push-to-fork: axmol-bot/axmol

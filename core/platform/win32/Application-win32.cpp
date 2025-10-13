@@ -77,7 +77,7 @@ int Application::run()
 
     QueryPerformanceCounter(&nLast);
 
-    initGLContextAttrs();
+    initGfxContextAttrs();
 
     // Initialize instance and cocos2d.
     if (!applicationDidFinishLaunching())
@@ -86,10 +86,10 @@ int Application::run()
     }
 
     auto director = Director::getInstance();
-    auto glView   = director->getGLView();
+    auto renderView   = director->getRenderView();
 
-    // Retain glView to avoid glView being released in the while loop
-    glView->retain();
+    // Retain renderView to avoid renderView being released in the while loop
+    renderView->retain();
 
     LONGLONG interval = 0LL;
     LONG waitMS       = 0L;
@@ -97,7 +97,7 @@ int Application::run()
     LARGE_INTEGER freq;
     QueryPerformanceFrequency(&freq);
 
-    while (!glView->windowShouldClose())
+    while (!renderView->windowShouldClose())
     {
         QueryPerformanceCounter(&nNow);
         interval = nNow.QuadPart - nLast.QuadPart;
@@ -105,7 +105,7 @@ int Application::run()
         {
             nLast.QuadPart = nNow.QuadPart;
             director->mainLoop();
-            glView->pollEvents();
+            renderView->pollEvents();
         }
         else
         {
@@ -121,13 +121,13 @@ int Application::run()
     }
 
     // Director should still do a cleanup if the window was closed manually.
-    if (glView->isOpenGLReady())
+    if (renderView->isGfxContextReady())
     {
         director->end();
         director->mainLoop();
         director = nullptr;
     }
-    glView->release();
+    renderView->release();
 
 
     return 0;
@@ -253,7 +253,8 @@ Application::Platform Application::getTargetPlatform()
 
 std::string Application::getVersion()
 {
-    char verString[256] = {0};
+    std::string_view version = ""sv;
+    char buf[128];
     TCHAR szVersionFile[MAX_PATH];
     GetModuleFileName(NULL, szVersionFile, MAX_PATH);
     DWORD verHandle = NULL;
@@ -278,7 +279,7 @@ std::string Application::getVersion()
                         // Doesn't matter if you are on 32 bit or 64 bit,
                         // DWORD is always 32 bits, so first two revision numbers
                         // come from dwFileVersionMS, last two come from dwFileVersionLS
-                        sprintf(verString, "%d.%d.%d.%d", (verInfo->dwFileVersionMS >> 16) & 0xffff,
+                        version = fmt::format_to_z(buf, "{}.{}.{}.{}", (verInfo->dwFileVersionMS >> 16) & 0xffff,
                                 (verInfo->dwFileVersionMS >> 0) & 0xffff, (verInfo->dwFileVersionLS >> 16) & 0xffff,
                                 (verInfo->dwFileVersionLS >> 0) & 0xffff);
                     }
@@ -287,7 +288,7 @@ std::string Application::getVersion()
         }
         delete[] verData;
     }
-    return verString;
+    return std::string{version};
 }
 
 bool Application::openURL(std::string_view url)

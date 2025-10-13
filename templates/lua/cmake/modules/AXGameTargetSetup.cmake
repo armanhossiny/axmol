@@ -13,11 +13,6 @@ else()
   config_android_shared_libs("dev.axmol.lib" "${CMAKE_CURRENT_SOURCE_DIR}/proj.android/app/src")
 endif()
 
-# The optional thirdparties(not dependent by engine)
-if(AX_WITH_YAML_CPP)
-  list(APPEND GAME_INC_DIRS "${_AX_ROOT}/3rdparty/yaml-cpp/include")
-endif()
-
 target_include_directories(${APP_NAME} PRIVATE ${GAME_INC_DIRS})
 
 # mark app resources, resource will be copy auto after mark

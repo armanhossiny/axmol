@@ -24,8 +24,7 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef __UITABVIEW_H__
-#define __UITABVIEW_H__
+#pragma once
 
 #include "ui/UIAbstractCheckButton.h"
 #include "ui/UIWidget.h"
@@ -394,4 +393,3 @@ private:
 /// @}
 }  // namespace ax
 
-#endif  // __UITABVIEW_H__

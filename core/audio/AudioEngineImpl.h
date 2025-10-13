@@ -32,10 +32,12 @@
 #    include <unordered_map>
 #    include <queue>
 
+#    include "audio/AudioEffects.h"
 #    include "base/Object.h"
 #    include "audio/AudioMacros.h"
 #    include "audio/AudioCache.h"
 #    include "audio/AudioPlayer.h"
+#    include "math/Vec3.h"
 
 namespace ax
 {
@@ -50,6 +52,7 @@ public:
 
     bool init();
     AUDIO_ID play2d(std::string_view fileFullPath, bool loop, float volume, float time);
+    AUDIO_ID play3d(std::string_view fileFullPath, const Vec3& position, float distanceScale, bool loop, float volume, float time);
     void setVolume(AUDIO_ID audioID, float volume);
     void setPitch(AUDIO_ID audioID, float pitch);
     void setLoop(AUDIO_ID audioID, bool loop);
@@ -61,6 +64,13 @@ public:
     float getCurrentTime(AUDIO_ID audioID);
     bool setCurrentTime(AUDIO_ID audioID, float time);
     void setFinishCallback(AUDIO_ID audioID, const std::function<void(AUDIO_ID, std::string_view)>& callback);
+    void setPan(AUDIO_ID audioId, float value, float distance);
+    float getPan(AUDIO_ID audioId);
+    ax::Vec3 getSourcePosition(AUDIO_ID audioId);
+    void setSourcePosition(AUDIO_ID audioId, const ax::Vec3& position);
+    void setListenerPosition(const ax::Vec3& position);
+    ax::Vec3 getListenerPosition();
+    void setReverbProperties(AUDIO_ID audioId, const ReverbProperties* reverbProperties);
 
     void uncache(std::string_view filePath);
     void uncacheAll();
@@ -68,9 +78,13 @@ public:
     void update(float dt);
 
 private:
+    bool isExtensionPresent(const char* extensionId);
+    void checkExtensions();
+
     // query players state per frame and dispatch finish callback if possible
     void _updatePlayers(bool forStop);
     void _play2d(AudioCache* cache, AUDIO_ID audioID);
+    void _play3d(AudioCache* cache, AUDIO_ID audioID);
     void _unscheduleUpdate();
     ALuint findValidSource();
 #if defined(__APPLE__) && !AX_USE_ALSOFT
@@ -95,6 +109,8 @@ private:
 
     AUDIO_ID _currentAudioID;
     Scheduler* _scheduler;
+
+    bool _stereoExtension{};
 };
 
 }

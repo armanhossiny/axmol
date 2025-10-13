@@ -54,6 +54,7 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdL
 }
 #else
 int main(int, char**) {
+    ::SetConsoleOutputCP(CP_UTF8);
     return axmol_main();
 }
 #endif

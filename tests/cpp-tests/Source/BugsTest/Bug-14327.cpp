@@ -1,5 +1,6 @@
 /****************************************************************************
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
+ Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
  https://axmol.dev/
 
@@ -33,6 +34,8 @@
 
 #include "Bug-14327.h"
 
+#include "base/format.h"
+
 #if (AX_TARGET_PLATFORM == AX_PLATFORM_WIN32)
 
 using namespace ax;
@@ -41,9 +44,9 @@ bool Bug14327Layer::init()
 {
     if (BugsTestBase::init())
     {
-        auto glView        = Director::getInstance()->getGLView();
-        auto visibleOrigin = glView->getVisibleOrigin();
-        auto visibleSize   = glView->getVisibleSize();
+        auto renderView        = Director::getInstance()->getRenderView();
+        auto visibleOrigin = renderView->getVisibleOrigin();
+        auto visibleSize   = renderView->getVisibleSize();
 
         auto pBg = Sprite::create("Images/HelloWorld.png");
         pBg->setPosition(Vec2(visibleOrigin.x + visibleSize.width / 2, visibleOrigin.y + visibleSize.height / 2));
@@ -79,9 +82,9 @@ void Bug14327Layer::update(float dt)
     if (delta > 0)
     {
         ldiv_t ret = ldiv(delta, 60L);
-        char str[100];
-        snprintf(str, 100, "%s%.2ld:%.2ld", "Edit control will be removed after ", ret.quot, ret.rem);
-        _TTFShowTime->setString(str);
+        char buf[100];
+        auto infoStr = fmt::format_to_z(buf, "{}{:02d}:{:02d}", "Edit control will be removed after ", ret.quot, ret.rem);
+        _TTFShowTime->setString(infoStr);
     }
     else
     {

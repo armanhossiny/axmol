@@ -38,7 +38,7 @@ THE SOFTWARE.
 #    include "platform/FileUtils.h"
 #    include "platform/winrt/WinRTUtils.h"
 #    include "platform/StdC.h"
-#    include "platform/winrt/GLViewImpl-winrt.h"
+#    include "platform/winrt/RenderViewImpl-winrt.h"
 
 #    include <winrt/Windows.Devices.Sensors.h>
 
@@ -363,7 +363,7 @@ static TextRenderer& sharedTextRenderer()
 
 int Device::getDPI()
 {
-    return ax::GLViewImpl::sharedGLView()->GetDPI();
+    return ax::RenderViewImpl::sharedRenderView()->GetDPI();
 }
 
 float Device::getPixelRatio()
@@ -415,7 +415,7 @@ void Device::setAccelerometerEnabled(bool isEnabled)
             acc.z         = reading.AccelerationZ();
             acc.timestamp = 0;
 
-            auto orientation = GLViewImpl::sharedGLView()->getDeviceOrientation();
+            auto orientation = RenderViewImpl::sharedRenderView()->getDeviceOrientation();
 
             if (isWindowsPhone())
             {
@@ -480,7 +480,7 @@ void Device::setAccelerometerEnabled(bool isEnabled)
             }
 
             std::shared_ptr<ax::InputEvent> event(new AccelerometerEvent(acc));
-            ax::GLViewImpl::sharedGLView()->QueueEvent(event);
+            ax::RenderViewImpl::sharedRenderView()->QueueEvent(event);
             });
     }
 }
@@ -574,6 +574,28 @@ void Device::notificationOccurred(NotificationFeedbackType /*type*/) {}
 void Device::prepareSelectionFeedbackGenerator() {}
 
 void Device::selectionChanged() {}
+
+void Device::setPreferredOrientation(Device::Orientation /*orientation*/) {}
+
+Device::Orientation Device::getPreferredOrientation()
+{
+    return Orientation::Unknown;
+}
+
+Device::OrientationMask Device::getSupportedOrientations()
+{
+    return OrientationMask::All;
+}
+
+Device::Orientation Device::getPhysicalOrientation()
+{
+    return Orientation::Unknown;
+}
+
+Device::Orientation Device::resolveOrientation()
+{
+    return Orientation::Unknown;
+}
 
 }
 

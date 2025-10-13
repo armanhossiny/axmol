@@ -26,6 +26,7 @@
 
 #pragma once
 
+#include "math/Vec3.h"
 #include "platform/PlatformConfig.h"
 #include "platform/PlatformMacros.h"
 #include "audio/AudioMacros.h"
@@ -33,6 +34,8 @@
 #include <list>
 #include <string>
 #include <unordered_map>
+
+#include "AudioEffects.h"
 
 #ifdef ERROR
 #    undef ERROR
@@ -56,6 +59,8 @@ struct AX_DLL AudioPlayerSettings
     bool loop = false; // Whether audio instance loop or not.
     float volume = 1.0f; // Volume value (range from 0.0 to 1.0).
     float time = 0.0f; // The initial time offset when play audio
+    Vec3 position{}; // position of audio in 3d space relative to listener
+    static float distanceScale; // scale used for distance calculations. Must be greater than 0, and defaults to 1.0f.
 };
 
 /**
@@ -141,7 +146,7 @@ public:
                            float volume                = 1.0f,
                            const AudioProfile* profile = nullptr);
 
-     /**
+    /**
      * Play 2d sound.
      *
      * @param filePath The path of an audio file.
@@ -154,6 +159,39 @@ public:
     static AUDIO_ID play2d(std::string_view filePath,
                            const AudioPlayerSettings& settings,
                            const AudioProfile* profile = nullptr);
+
+    /**
+     * Play sound in 3d space.
+     *
+     * @param filePath The path of an audio file.
+     * @param position Position of audio source relative to listener
+     * @param loop Whether audio instance loop or not.
+     * @param volume Volume value (range from 0.0 to 1.0).
+     * @param profile A profile for audio instance. When profile is not specified, default profile will be used.
+     * @return An audio ID. It allows you to dynamically change the behavior of an audio instance on the fly.
+     *
+     * @see `AudioProfile`
+     */
+    static AUDIO_ID play3d(std::string_view filePath,
+                           const Vec3& position,
+                           bool loop                   = false,
+                           float volume                = 1.0f,
+                           const AudioProfile* profile = nullptr);
+
+    /**
+     * Play sound in 3d space.
+     *
+     * @param filePath The path of an audio file.
+     * @param settings The player settings for audio.
+     * @param profile A profile for audio instance. When profile is not specified, default profile will be used.
+     * @return An audio ID. It allows you to dynamically change the behavior of an audio instance on the fly.
+     *
+     * @see `AudioProfile`, `AudioPlayerSettings`
+     */
+    static AUDIO_ID play3d(std::string_view filePath,
+                           const AudioPlayerSettings& settings,
+                           const AudioProfile* profile = nullptr);
+
     /**
      * Sets whether an audio instance loop or not.
      *
@@ -345,6 +383,76 @@ public:
      * Check whether AudioEngine is enabled.
      */
     static bool isEnabled();
+
+    /**
+     * Sets the pan of an audio instance.
+     *
+     * @param audioId   An audioID returned by the play2d function.
+     * @param value     Panning value, from -1.f to +1.f, representing -60 degrees to +60 degrees
+     * @param distance  Distance from source, with -0.5f being the default
+     * @return
+     */
+    static void setPan(AUDIO_ID audioId, float value, float distance = -0.5f);
+
+    /**
+     * Gets the pan of an audio instance.
+     *
+     * @param audioId   An audioID returned by the play2d function.
+     * @return pan value as a float between -1.0f to +1.0f
+     */
+    static float getPan(AUDIO_ID audioId);
+
+    /**
+     * Gets the position of the audio source.
+     *
+     * @param audioId   An audioID returned by the play2d function.
+     * @return Vec3 position of source
+     */
+    static ax::Vec3 getSourcePosition(AUDIO_ID audioId);
+
+    /**
+     * Sets the position of the audio source.
+     *
+     * @param audioId   An audioID returned by the play2d function.
+     * @param position position of source
+     */
+    static void setSourcePosition(AUDIO_ID audioId, const ax::Vec3& position);
+
+    /**
+     * Sets the position of the listener.
+     *
+     * @param position position of listener
+     */
+    static void setListenerPosition(const ax::Vec3& position);
+
+    /**
+     * Gets the position of the listener.
+     *
+     * @return Vec3 position of listener
+     */
+    static ax::Vec3 getListenerPosition();
+
+    /**
+     * Sets the distance scale
+     *
+     * @param scale used for 3D audio source to listener calculations. Default is 1.0f, and must be greater than 0.f.
+     */
+    static void setDistanceScale(float scale);
+
+    /**
+     * Gets the distance scale
+     *
+     * @return float distance used for 3D audio source to listener calculations
+     */
+    static float getDistanceScale();
+
+    /**
+     * Sets and enables reverb for an audio track.
+     *
+     * @param audioId        An audioID returned by the play2d function.
+     * @param reverbProperties The pointer to reverb effect settings. If this is nullptr, then reverb effect will be disabled.
+     */
+    static void setReverbProperties(AUDIO_ID audioId, const ReverbProperties* reverbProperties);
 
 protected:
     static void addTask(const std::function<void()>& task);

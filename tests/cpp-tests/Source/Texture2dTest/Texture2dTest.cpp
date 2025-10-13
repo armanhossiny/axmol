@@ -29,6 +29,8 @@
 #include "Texture2dTest.h"
 #include "../testResource.h"
 
+#include "base/format.h"
+
 using namespace ax;
 
 enum
@@ -1751,13 +1753,14 @@ TextureAsync::~TextureAsync()
 void TextureAsync::loadImages(float dt)
 {
     auto textureCache = Director::getInstance()->getTextureCache();
+    char szSpriteName[100];
+
     for (int i = 0; i < 8; i++)
     {
         for (int j = 0; j < 8; j++)
         {
-            char szSpriteName[100] = {0};
-            fmt::format_to(szSpriteName, "Images/sprites_test/sprite-{}-{}.png", i, j);
-            textureCache->addImageAsync(szSpriteName, AX_CALLBACK_1(TextureAsync::imageLoaded, this));
+            auto spriteName = fmt::format_to_z(szSpriteName, "Images/sprites_test/sprite-{}-{}.png", i, j);
+            textureCache->addImageAsync(spriteName, AX_CALLBACK_1(TextureAsync::imageLoaded, this));
         }
     }
 
@@ -1972,7 +1975,7 @@ void TextureCache1::onEnter()
 
 std::string TextureCache1::title() const
 {
-    return "CCTextureCache: remove";
+    return "TextureCache: remove";
 }
 
 std::string TextureCache1::subtitle() const
@@ -2000,7 +2003,7 @@ TextureDrawAtPoint::~TextureDrawAtPoint()
 
 std::string TextureDrawAtPoint::title() const
 {
-    return "CCTexture2D: drawAtPoint";
+    return "Texture2D: drawAtPoint";
 }
 
 std::string TextureDrawAtPoint::subtitle() const
@@ -2075,7 +2078,7 @@ void TextureDrawInRect::onDraw(const Mat4& transform, uint32_t flags)
 
 std::string TextureDrawInRect::title() const
 {
-    return "CCTexture2D: drawInRect";
+    return "Texture2D: drawInRect";
 }
 
 std::string TextureDrawInRect::subtitle() const

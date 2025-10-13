@@ -2,7 +2,9 @@ name: build
 
 on:
   push:
-    branches: dev
+    branches:
+      - dev
+      - release/*
     paths-ignore:
       - '**.md'
       - '**/*.md.in'
@@ -10,7 +12,7 @@ on:
       - '.github/workflows/publish.yml'
       - 'tools/ci/make-pkg.ps1'
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+    types: [opened, synchronize, reopened]
     paths-ignore:
       - '**.md'
       - '**/*.md.in'
@@ -34,9 +36,8 @@ jobs:
   win32:
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v4
-      with:
-        submodules: 'recursive'
+    - uses: actions/checkout@v5
+
     - name: Build
       shell: pwsh
       run: |
@@ -56,9 +57,8 @@ jobs:
   win32-dll:
         runs-on: windows-latest
         steps:
-        - uses: actions/checkout@v4
-          with:
-            submodules: 'recursive'
+        - uses: actions/checkout@v5
+
         - name: Build
           shell: pwsh
           run: .\tools\cmdline\axmol -p win32 -a x64 -dll
@@ -66,9 +66,8 @@ jobs:
         # build uwp debug avoid github CI fail with memory issue
         runs-on: windows-latest
         steps:
-        - uses: actions/checkout@v4
-          with:
-            submodules: 'recursive'
+        - uses: actions/checkout@v5
+
         - name: Build
           shell: pwsh
           run: .\tools\cmdline\axmol -p winuwp -a x64 -O3
@@ -78,18 +77,15 @@ jobs:
           # Test winsdk < 10.0.22000.0 (missing C11 standard stdalign.h), axmol will auto fallback to C99 for resolving compiling issue.
           WINSDK_VER: '10.0.19041.0'
         steps:
-        - uses: actions/checkout@v4
-          with:
-            submodules: 'recursive'
+        - uses: actions/checkout@v5
+
         - name: Build
           shell: pwsh
           run: .\tools\cmdline\axmol -p win32 -a 'x64' -cc clang -sdk $env:WINSDK_VER -O3
   linux:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-      with:
-        submodules: 'recursive'
+    - uses: actions/checkout@v5
 
     - name: Install dependencies
       run: |
@@ -102,18 +98,16 @@ jobs:
   osx-arm64:
     runs-on: macos-latest
     steps:
-    - uses: actions/checkout@v4
-      with:
-        submodules: 'recursive'
+    - uses: actions/checkout@v5
+
     - name: Build
       shell: pwsh
       run: ./tools/cmdline/axmol -p osx && ./tools/cmdline/axmol run -p osx -t unit-tests
   osx-x64:
     runs-on: macos-13
     steps:
-    - uses: actions/checkout@v4
-      with:
-        submodules: 'recursive'
+    - uses: actions/checkout@v5
+
     - name: Build
       shell: pwsh
       run: ./tools/cmdline/axmol -p osx && ./tools/cmdline/axmol run -p osx -t unit-tests
@@ -129,9 +123,8 @@ jobs:
     env:
       BUILD_ARCH: ${{ matrix.arch }}
     steps:
-    - uses: actions/checkout@v4
-      with:
-        submodules: 'recursive'
+    - uses: actions/checkout@v5
+
     - name: Build
       shell: pwsh
       run: |
@@ -144,7 +137,7 @@ jobs:
           templates/**/*.apk
           tests/**/*.apk
   ios:
-    runs-on: macos-latest
+    runs-on: macos-14
     strategy:
       matrix:
         target_os:
@@ -153,18 +146,16 @@ jobs:
     env:
       TARGET_OS: ${{ matrix.target_os }}
     steps:
-    - uses: actions/checkout@v4
-      with:
-        submodules: 'recursive'
+    - uses: actions/checkout@v5
+
     - name: Build
       shell: pwsh
       run: ./tools/cmdline/axmol -p $env:TARGET_OS -a 'x64'
   wasm:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-      with:
-        submodules: 'recursive'
+    - uses: actions/checkout@v5
+
     - name: Build
       shell: pwsh
       run: ./tools/cmdline/axmol -p wasm -O3 -xc '-DAX_ENABLE_EXT_EFFEKSEER=ON,-DAX_WASM_THREADS=8' -j2 -t 'cpp-tests,fairygui-tests,lua-tests'

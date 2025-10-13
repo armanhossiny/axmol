@@ -13,7 +13,7 @@ function ccs.sendTriggerEvent(event)
         return
     end
 
-    for i = 1, table.getn(triggerObjArr) do
+    for i = 1, #triggerObjArr do
         local triObj = triggerObjArr[i]
         if nil ~= triObj and triObj:detect() then
             triObj:done()
@@ -107,13 +107,13 @@ function ccs.TriggerObj:init()
 end
 
 function ccs.TriggerObj:detect()
-    if (not self._enable) or (table.getn(self._cons) == 0) then
+    if (not self._enable) or (#self._cons == 0) then
         return true
     end
 
     local ret = true
     local obj = nil
-    for i = 1 , table.getn(self._cons) do
+    for i = 1 , #self._cons do
         obj = self._cons[i]
         if nil ~= obj and nil ~= obj.detect then
             ret = ret and obj:detect()
@@ -123,12 +123,12 @@ function ccs.TriggerObj:detect()
 end
 
 function ccs.TriggerObj:done()
-    if (not self._enable) or (table.getn(self._acts) == 0) then
+    if (not self._enable) or (#self._acts == 0) then
         return
     end
 
     local obj = nil
-    for i = 1, table.getn(self._acts) do
+    for i = 1, #self._acts do
         obj = self._acts[i]
         if nil ~= obj and obj.done then
             obj:done()
@@ -138,7 +138,7 @@ end
 
 function ccs.TriggerObj:removeAll()
     local obj = nil
-    for i=1, table.getn(self._cons) do
+    for i=1, #self._cons do
         obj = self._cons[i]
         if nil ~= obj then
             obj:removeAll()
@@ -146,7 +146,7 @@ function ccs.TriggerObj:removeAll()
     end
     self._cons = {}
 
-    for i=1, table.getn(self._acts) do
+    for i=1, #self._acts do
         obj = self._acts[i]
         if nil ~= obj then
             obj:removeAll()
@@ -162,7 +162,7 @@ function ccs.TriggerObj:serialize(jsonValue)
     --condition
     local cons = jsonValue["conditions"]
     if nil ~= cons then
-        count = table.getn(cons)
+        count = #cons
         for i = 1, count do
             local subDict = cons[i]
             local className = subDict["classname"]
@@ -178,7 +178,7 @@ function ccs.TriggerObj:serialize(jsonValue)
 
     local actions =  jsonValue["actions"]
     if nil ~= actions then
-        count = table.getn(actions)
+        count = #actions
         for i = 1,count do
             local  subAction = actions[i]
             local  className = subAction["classname"]
@@ -194,7 +194,7 @@ function ccs.TriggerObj:serialize(jsonValue)
 
     local events = jsonValue["events"]
     if nil ~= events then
-        count = table.getn(events)
+        count = #events
         for i = 1, count do
             local subEveent = events[i]
             local eventID   = subEveent["id"]
@@ -254,13 +254,13 @@ function ccs.TriggerMng:parse(jsonStr)
         return
     end
 
-    local count = table.getn(parseTable)
+    local count = #parseTable
     for i = 1, count do
         local subDict = parseTable[i]
         local triggerObj = ccs.TriggerObj.new()
         triggerObj:serialize(subDict)
         local events = triggerObj:getEvents()
-        for j = 1, table.getn(events) do
+        for j = 1, #events do
             local event = events[j]
             self:add(event, triggerObj)
         end
@@ -284,7 +284,7 @@ function ccs.TriggerMng:add(event,triggerObj)
     end
 
     local exist = false
-    for i = 1, table.getn(eventTriggers) do
+    for i = 1, #eventTriggers do
         if eventTriggers[i] == triggers then
             exist = true
             break
@@ -300,7 +300,7 @@ end
 function ccs.TriggerMng:removeAll( )
     for k in pairs(self._eventTriggers) do
         local triObjArr = self._eventTriggers[k]
-        for j = 1, table.getn(triObjArr) do
+        for j = 1, #triObjArr do
             local  obj = triObjArr[j]
             obj:removeAll()
         end
@@ -324,7 +324,7 @@ function ccs.TriggerMng:remove(event, obj)
         return false
     end
 
-    for i = 1, table.getn(triObjects) do
+    for i = 1, #triObjects do
         local triObject = triggers[i]
         if nil ~= triObject then
             triObject:remvoeAll()
@@ -346,7 +346,7 @@ function ccs.TriggerMng:removeObjByEvent(event, obj)
         return false
     end
 
-    for i = 1,table.getn(triObjects) do
+    for i = 1,#triObjects do
         local triObject = triObjects[i]
         if  nil ~= triObject and triObject == obj then
             triObject:remvoeAll()
@@ -364,7 +364,7 @@ function ccs.TriggerMng:removeTriggerObj(id)
     end
 
     local events = obj:getEvents()
-    for i = 1, table.getn(events) do
+    for i = 1, #events do
         self:remove(events[i],obj)
     end
 
@@ -372,11 +372,11 @@ function ccs.TriggerMng:removeTriggerObj(id)
 end
 
 function ccs.TriggerMng:isEmpty()
-    return (not (nil == self._eventTriggers)) or table.getn(self._eventTriggers) <= 0
+    return (not (nil == self._eventTriggers)) or #self._eventTriggers <= 0
 end
 
 function __onParseConfig(configType,jasonStr)
-    if configType == cc.ConfigType.COCOSTUDIO then
+    if configType == ax.ConfigType.COCOSTUDIO then
         ccs.TriggerMng.getInstance():parse(jasonStr)
     end
 end

@@ -1,0 +1,360 @@
+/****************************************************************************
+ Copyright (c) 2010-2012 cocos2d-x.org
+ Copyright (c) 2013-2016 Chukong Technologies Inc.
+ Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
+ Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+
+ https://axmol.dev/
+
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the "Software"), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+
+ The above copyright notice and this permission notice shall be included in
+ all copies or substantial portions of the Software.
+
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ THE SOFTWARE.
+ ****************************************************************************/
+#import <UIKit/UIKit.h>
+
+#include "platform/ios/RenderHostView-ios.h"
+#include "platform/ios/DirectorCaller-ios.h"
+#include "platform/ios/RenderViewImpl-ios.h"
+#include "platform/Device.h"
+#include "base/Touch.h"
+#include "base/Director.h"
+
+namespace ax
+{
+
+PixelFormat RenderViewImpl::_pixelFormat        = PixelFormat::RGB565;
+PixelFormat RenderViewImpl::_depthFormat        = PixelFormat::D24S8;
+int RenderViewImpl::_multisamplingCount = 0;
+
+#ifndef AX_CORE_PROFILE
+RenderViewImpl* RenderViewImpl::createWithEARenderView(void* viewHandle)
+{
+    auto ret = new RenderViewImpl;
+    if (ret->initWithEARenderView(viewHandle))
+    {
+        ret->autorelease();
+        return ret;
+    }
+    AX_SAFE_DELETE(ret);
+    return nullptr;
+}
+#endif
+
+// helper to compute the logical screen size based on the current orientation
+static CGSize computeLogicalScreenSize()
+{
+    CGSize screenSize = [UIScreen mainScreen].bounds.size;
+    auto resolvedOrientation = Device::resolveOrientation();
+
+    bool isLandscapeSize = screenSize.width > screenSize.height;
+    bool shouldBeLandscape = (resolvedOrientation == Device::Orientation::Landscape ||
+                              resolvedOrientation == Device::Orientation::ReverseLandscape);
+
+    // If orientation and actual size basis mismatch, swap
+    if ((shouldBeLandscape && !isLandscapeSize) || (!shouldBeLandscape && isLandscapeSize))
+        std::swap(screenSize.width, screenSize.height);
+
+    return screenSize;
+}
+
+RenderViewImpl* RenderViewImpl::create(std::string_view viewName)
+{
+    auto ret = new RenderViewImpl;
+    if (ret->initWithFullScreen(viewName))
+    {
+        ret->autorelease();
+        return ret;
+    }
+    AX_SAFE_DELETE(ret);
+    return nullptr;
+}
+
+RenderViewImpl* RenderViewImpl::createWithRect(std::string_view viewName,
+                                       const ax::Rect& rect,
+                                       float frameZoomFactor,
+                                       bool resizable)
+{
+    auto ret = new RenderViewImpl;
+    if (ret->initWithRect(viewName, rect, frameZoomFactor, resizable))
+    {
+        ret->autorelease();
+        return ret;
+    }
+    AX_SAFE_DELETE(ret);
+    return nullptr;
+}
+
+RenderViewImpl* RenderViewImpl::createWithFullScreen(std::string_view viewName)
+{
+    auto ret = new RenderViewImpl();
+    if (ret->initWithFullScreen(viewName))
+    {
+        ret->autorelease();
+        return ret;
+    }
+    AX_SAFE_DELETE(ret);
+    return nullptr;
+}
+
+void RenderViewImpl::choosePixelFormats()
+{
+    if (_gfxContextAttrs.redBits == 8 && _gfxContextAttrs.greenBits == 8 && _gfxContextAttrs.blueBits == 8 &&
+        _gfxContextAttrs.alphaBits == 8)
+    {
+        _pixelFormat = PixelFormat::RGBA8;
+    }
+    else if (_gfxContextAttrs.redBits == 5 && _gfxContextAttrs.greenBits == 6 && _gfxContextAttrs.blueBits == 5 &&
+             _gfxContextAttrs.alphaBits == 0)
+    {
+        _pixelFormat = PixelFormat::RGB565;
+    }
+    else
+    {
+        AXASSERT(0, "Unsupported render buffer pixel format. Using default");
+    }
+
+    if (_gfxContextAttrs.depthBits == 24 && _gfxContextAttrs.stencilBits == 8)
+    {
+        _depthFormat = PixelFormat::D24S8;
+    }
+    else if (_gfxContextAttrs.depthBits == 0 && _gfxContextAttrs.stencilBits == 0)
+    {
+        _depthFormat = PixelFormat::NONE;
+    }
+    else
+    {
+        AXASSERT(0, "Unsupported format for depth and stencil buffers. Using default");
+    }
+
+    _multisamplingCount = _gfxContextAttrs.multisamplingCount;
+}
+
+RenderViewImpl::RenderViewImpl() {}
+
+RenderViewImpl::~RenderViewImpl()
+{
+    // auto eaView = (__bridge RenderHostView*) _hostViewHandle;
+    //[eaView release];
+}
+
+#ifndef AX_CORE_PROFILE
+bool RenderViewImpl::initWithEARenderView(void* viewHandle)
+{
+    _hostViewHandle          = viewHandle;
+    RenderHostView* eaView  = (__bridge RenderHostView*)_hostViewHandle;
+
+    _screenSize.width = _designResolutionSize.width = [eaView getWidth];
+    _screenSize.height = _designResolutionSize.height = [eaView getHeight];
+    //    _scaleX = _scaleY = [eaView contentScaleFactor];
+
+    return true;
+}
+#endif
+
+bool RenderViewImpl::initWithRect(std::string_view /*viewName*/, const Rect& rect, float frameZoomFactor, bool /*resizable*/)
+{
+    CGRect r = CGRectMake(rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
+    choosePixelFormats();
+
+    // create platform window
+    _hostWindowHandle = [[UIWindow alloc] initWithFrame:r];
+
+    // create platform render view
+    RenderHostView* hostView = [RenderHostView viewWithFrame:r
+                                         pixelFormat:(int)_pixelFormat
+                                         depthFormat:(int)_depthFormat
+                                  preserveBackbuffer:NO
+                                          sharegroup:nil
+                                     multiSampling:_multisamplingCount > 0 ? YES : NO
+                                     numberOfSamples:_multisamplingCount];
+
+    // Not available on tvOS
+#if !defined(AX_TARGET_OS_TVOS)
+    [hostView setMultipleTouchEnabled:YES];
+#endif
+
+    auto logicalSize = computeLogicalScreenSize();
+    
+    const auto backingScaleFactor = hostView.contentScaleFactor;
+
+    _screenSize.width = _designResolutionSize.width = logicalSize.width * backingScaleFactor;
+    _screenSize.height = _designResolutionSize.height = logicalSize.height * backingScaleFactor;
+    //    _scaleX = _scaleY = [eaView contentScaleFactor];
+
+    _hostViewHandle = hostView;
+
+    return true;
+}
+
+bool RenderViewImpl::initWithFullScreen(std::string_view viewName)
+{
+    CGRect rect = [[UIScreen mainScreen] bounds];
+    Rect r;
+    r.origin.x    = rect.origin.x;
+    r.origin.y    = rect.origin.y;
+    r.size.width  = rect.size.width;
+    r.size.height = rect.size.height;
+
+    return initWithRect(viewName, r, 1);
+}
+
+void RenderViewImpl::setMultipleTouchEnabled(bool enabled)
+{
+#if !defined(AX_TARGET_OS_TVOS)
+    [(__bridge RenderHostView*)_hostViewHandle setMultipleTouchEnabled:enabled];
+#else
+    AX_UNUSED_PARAM(enabled);
+#endif
+}
+
+void RenderViewImpl::showWindow(void* viewController)
+{
+    auto window = (__bridge UIWindow*)_hostWindowHandle;
+    auto controller = (__bridge UIViewController*)viewController;
+
+#if !defined(AX_TARGET_OS_TVOS)
+    controller.extendedLayoutIncludesOpaqueBars = YES;
+#endif
+    auto view = (__bridge RenderHostView*)_hostViewHandle;
+    controller.view = view;
+
+    // Set RootViewController to window
+    if ([[UIDevice currentDevice].systemVersion floatValue] < 6.0)
+    {
+        // warning: addSubView doesn't work on iOS6
+        [window addSubview:controller.view];
+    }
+    else
+    {
+        // use this method on ios6
+        [window setRootViewController:controller];
+    }
+
+    [window makeKeyAndVisible];
+
+#if !defined(AX_TARGET_OS_TVOS)
+    [controller prefersStatusBarHidden];
+#endif
+
+    // Launching the app with the arguments -NSAllowsDefaultLineBreakStrategy NO to force back to the old behavior.
+    if ([[UIDevice currentDevice].systemVersion floatValue] >= 13.0f)
+    {
+        [[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"NSAllowsDefaultLineBreakStrategy"];
+    }
+}
+
+bool RenderViewImpl::isGfxContextReady()
+{
+    return _hostViewHandle != nullptr;
+}
+
+bool RenderViewImpl::setContentScaleFactor(float contentScaleFactor)
+{
+    AX_ASSERT(_resolutionPolicy == ResolutionPolicy::UNKNOWN);  // cannot enable retina mode
+    _scaleX = _scaleY = contentScaleFactor;
+
+    [(__bridge RenderHostView*)_hostViewHandle setNeedsLayout];
+
+    return true;
+}
+
+float RenderViewImpl::getContentScaleFactor() const
+{
+    return [(__bridge RenderHostView*)_hostViewHandle contentScaleFactor];
+}
+
+void RenderViewImpl::end()
+{
+    [CCDirectorCaller destroy];
+
+    [(__bridge RenderHostView*)_hostViewHandle removeFromSuperview];
+    release();
+}
+
+void RenderViewImpl::swapBuffers()
+{
+    [(__bridge RenderHostView*)_hostViewHandle swapBuffers];
+}
+
+void RenderViewImpl::setIMEKeyboardState(bool open)
+{
+    auto eaView = (__bridge RenderHostView*)_hostViewHandle;
+    if (open)
+    {
+        [eaView showKeyboard];
+    }
+    else
+    {
+        [eaView hideKeyboard];
+    }
+}
+
+Rect RenderViewImpl::getSafeAreaRect() const
+{
+    RenderHostView* eaView = (__bridge RenderHostView*)_hostViewHandle;
+
+#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 110000
+    float version = [[UIDevice currentDevice].systemVersion floatValue];
+    if (version >= 11.0f)
+    {
+#    pragma clang diagnostic push
+#    pragma clang diagnostic ignored "-Wpartial-availability"
+        UIEdgeInsets safeAreaInsets = eaView.safeAreaInsets;
+#    pragma clang diagnostic pop
+
+        // Multiply contentScaleFactor since safeAreaInsets return points.
+        safeAreaInsets.left *= eaView.contentScaleFactor;
+        safeAreaInsets.right *= eaView.contentScaleFactor;
+        safeAreaInsets.top *= eaView.contentScaleFactor;
+        safeAreaInsets.bottom *= eaView.contentScaleFactor;
+
+        // Get leftBottom and rightTop point in UI coordinates
+        Vec2 leftBottom = Vec2(safeAreaInsets.left, _screenSize.height - safeAreaInsets.bottom);
+        Vec2 rightTop   = Vec2(_screenSize.width - safeAreaInsets.right, safeAreaInsets.top);
+
+        // Convert a point from UI coordinates to which in design resolution coordinate.
+        leftBottom.x = (leftBottom.x - _viewPortRect.origin.x) / _scaleX,
+        leftBottom.y = (leftBottom.y - _viewPortRect.origin.y) / _scaleY;
+        rightTop.x   = (rightTop.x - _viewPortRect.origin.x) / _scaleX,
+        rightTop.y   = (rightTop.y - _viewPortRect.origin.y) / _scaleY;
+
+        // Adjust points to make them inside design resolution
+        leftBottom.x = MAX(leftBottom.x, 0);
+        leftBottom.y = MIN(leftBottom.y, _designResolutionSize.height);
+        rightTop.x   = MIN(rightTop.x, _designResolutionSize.width);
+        rightTop.y   = MAX(rightTop.y, 0);
+
+        // Convert to GL coordinates
+        leftBottom = Director::getInstance()->convertToGL(leftBottom);
+        rightTop   = Director::getInstance()->convertToGL(rightTop);
+
+        return Rect(leftBottom.x, leftBottom.y, rightTop.x - leftBottom.x, rightTop.y - leftBottom.y);
+    }
+#endif
+
+    // If running on iOS devices lower than 11.0, return visiable rect instead.
+    return RenderView::getSafeAreaRect();
+}
+
+void RenderViewImpl::queueOperation(void (*op)(void*), void* param)
+{
+    [[NSOperationQueue mainQueue] addOperationWithBlock:^(void){
+        op(param);
+    }];
+}
+
+}

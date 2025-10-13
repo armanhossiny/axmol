@@ -25,11 +25,10 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef AXMOL__UTF8_H
-#define AXMOL__UTF8_H
+#pragma once
 
 #include "platform/PlatformMacros.h"
-#include <fmt/format.h>
+#include "base/format.h"
 #include <vector>
 #include <string>
 #include <sstream>
@@ -197,11 +196,33 @@ AX_DLL bool isCJKUnicode(char32_t ch);
 AX_DLL bool isUnicodeNonBreaking(char32_t ch);
 
 /**
- *  @brief Returns the length of the string in characters.
- *  @param utf8 An UTF-8 encoded string.
- *  @returns The length of the string in characters.
+ * @brief Calculates the number of Unicode characters (code points) in a UTF-8 encoded string.
+ * @param utf8 A UTF-8 encoded string view.
+ * @return The number of Unicode code points in the input string.
  */
-AX_DLL int32_t getCharacterCountInUTF8String(std::string_view utf8);
+AX_DLL size_t countUTF8Chars(std::string_view utf8);
+
+/*
+ * @brief Gets the byte offset of the UTF-8 character at the specified offset.
+ * @param utf8 The UTF-8 encoded string view.
+ * @param utf8CharOffset The zero-based character offset in the UTF-8 string.
+ * @return The byte offset in the UTF-8 string corresponding to the specified character offset.
+ */
+AX_DLL size_t getUTF8ByteOffset(std::string_view utf8, size_t utf8CharOffset);
+
+/*
+ * @brief Erases the UTF-8 character at the specified offset in the string.
+ * @param str The UTF-8 encoded string to modify.
+ * @param utf8CharOffset The zero-based character offset of the UTF-8 character to erase.
+ * @return The number of bytes removed from the string.
+ *
+ * This function modifies the input string by removing the UTF-8 character at the specified offset.
+ */
+AX_DLL size_t eraseUTF8CharAt(std::string& str, size_t utf8CharOffset);
+
+#ifndef AX_CORE_PROFILE
+AX_DEPRECATED(2.8) AX_DLL size_t getCharacterCountInUTF8String(std::string_view utf8);
+#endif
 
 /**
  *  @brief Gets the index of the last character that is not equal to the character given.
@@ -271,5 +292,3 @@ private:
 }  // namespace StringUtils
 
 }
-
-#endif /** defined(AXMOL__UTF8_H) */

@@ -217,6 +217,8 @@ void LuaMinXmlHttpRequest::_sendRequest()
 
             int statusCode = response->getResponseCode();
 
+            _statusText = fmt::format("{} {}", statusCode, response->getStatusText());
+
             if (!response->isSucceed())
             {
                 AXLOGD("Response failed, statusCode: {}", statusCode);
@@ -224,7 +226,6 @@ void LuaMinXmlHttpRequest::_sendRequest()
                 {
                     _errorFlag = true;
                     _status    = 0;
-                    _statusText.clear();
                 }
                 // TODO: call back lua function
                 int handler = ax::ScriptHandlerMgr::getInstance()->getObjectHandler(

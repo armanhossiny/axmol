@@ -73,7 +73,7 @@ FastTileMapTests::FastTileMapTests()
 TileDemoNew::TileDemoNew()
 {
     // fix bug #486, #419.
-    // "test" is the default value in Director::setGLDefaultValues()
+    // "test" is the default value in Director::setRenderDefaults()
     // but TransitionTest may setDepthTest(false), we should revert it here
     Director::getInstance()->getRenderer()->setDepthTest(true);
     Director::getInstance()->getRenderer()->setDepthWrite(true);

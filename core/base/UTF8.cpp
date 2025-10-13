@@ -400,9 +400,69 @@ std::vector<char16_t> getChar16VectorFromUTF16String(const std::u16string& utf16
     return std::vector<char16_t>(utf16.begin(), utf16.end());
 }
 
-int32_t getCharacterCountInUTF8String(std::string_view utf8)
+size_t getCharacterCountInUTF8String(std::string_view utf8)
 {
-    return getUTF8StringLength((const UTF8*)utf8.data());
+    return countUTF8Chars(utf8);
+}
+
+size_t countUTF8Chars(std::string_view utf8)
+{
+    int count = 0;
+
+    if (!utf8.empty())
+    {
+        const UTF8* source = (const UTF8*)utf8.data();
+        const UTF8* sourceEnd   = (const UTF8*)utf8.data() + utf8.length();
+        while (source != sourceEnd)
+        {
+            auto size = getUTF8SequenceSize(source, sourceEnd);
+            if (size == 0)
+            {
+                // Invalid UTF-8 sequence found
+                return 0;
+            }
+            source += size;
+            ++count;
+        }
+    }
+  
+    return count;
+}
+
+size_t getUTF8ByteOffset(std::string_view utf8, size_t utf8CharOffset)
+{
+    if (utf8CharOffset >= utf8.length())
+        return std::string_view::npos;
+
+    const UTF8* source = (const UTF8*)utf8.data();
+    const UTF8* sourceEnd = source + utf8.length();
+    for (size_t i = 0; i < utf8CharOffset; ++i)
+    {
+        auto size = getUTF8SequenceSize(source, sourceEnd);
+        if (size == 0)
+        {
+            // Invalid UTF-8 sequence found
+            return std::string_view::npos;
+        }
+        source += size;
+    }
+    return static_cast<unsigned int>(source - (const UTF8*)utf8.data());
+}
+
+size_t eraseUTF8CharAt(std::string& str, size_t utf8CharOffset)
+{ 
+    if (utf8CharOffset >= str.length())
+        return 0;
+    const UTF8* source = (const UTF8*)str.data();
+    const UTF8* sourceEnd = source + str.length();
+    size_t byteOffset = getUTF8ByteOffset(str, utf8CharOffset);
+    if (byteOffset == std::string_view::npos)
+        return 0;
+    auto size = getUTF8SequenceSize(source + byteOffset, sourceEnd);
+    if (size == 0)
+        return 0;
+    str.erase(byteOffset, size);
+    return size;
 }
 
 bool hasNonAsciiUTF8(const char* str, size_t len)
@@ -475,7 +535,7 @@ void StringUTF8::replace(std::string_view newStr)
     {
         UTF8* sequenceUtf8 = (UTF8*)newStr.data();
 
-        int lengthString = getUTF8StringLength(sequenceUtf8);
+        int lengthString = countUTF8Chars(newStr);
 
         if (lengthString == 0)
         {

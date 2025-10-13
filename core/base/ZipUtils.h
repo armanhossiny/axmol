@@ -25,8 +25,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ****************************************************************************/
 
-#ifndef __SUPPORT_ZIPUTILS_H__
-#define __SUPPORT_ZIPUTILS_H__
+#pragma once
 /// @cond DO_NOT_SHOW
 
 #include "platform/PlatformMacros.h"
@@ -40,7 +39,7 @@ THE SOFTWARE.
 #    include "platform/StdC.h"
 #endif
 
-#include "yasio/byte_buffer.hpp"
+#include "base/Data.h"
 
 #include <span>
 
@@ -310,12 +309,41 @@ public:
     void vclose(ZipEntryInfo*);
     int64_t vsize(ZipEntryInfo*);
 
-    static ZipFile *createWithBuffer(const void* buffer, unsigned long size);
+    /**
+     * @brief Create a ZipFile instance from a raw memory buffer.
+     *
+     * @deprecated Since axmol-2.9. This API performs an internal copy of the buffer,
+     *             which may cause unnecessary overhead. It is deprecated and
+     *             will be removed in future versions.
+     *
+     * @note Use createWithData() instead, which allows move semantics and
+     *       avoids the extra copy for better performance.
+     *
+     * @param buffer Pointer to the raw memory buffer.
+     * @param size   Size of the buffer in bytes.
+     * @return A pointer to the newly created ZipFile instance.
+     */
+    AX_DEPRECATED(2.9) static ZipFile *createWithBuffer(const void* buffer, unsigned long size);
+
+    /**
+     * @brief Create a ZipFile instance from the given data buffer.
+     *
+     * This function takes the parameter by value to allow the caller to decide
+     * whether the data should be copied or moved:
+     * - Passing an lvalue (e.g. `data`) will copy the buffer.
+     * - Passing an rvalue or using `std::move(data)` will move the buffer,
+     *   avoiding an extra copy and improving performance.
+     *
+     * @param data The input data buffer. Can be copied or moved depending on how
+     *             the caller provides it.
+     * @return A pointer to the newly created ZipFile instance.
+     */
+    static ZipFile* createWithData(Data data);
 
 private:
     ZipFile();
 
-    bool initWithBuffer(const void *buffer, unsigned long size);
+    bool initWithData(Data data);
     int getCurrentFileInfo(std::string* filename, unz_file_info_s* info);
 
     /** Internal data like zip file pointer / file list array and so on */
@@ -328,4 +356,3 @@ private:
 /// @}
 
 /// @endcond
-#endif  // __SUPPORT_ZIPUTILS_H__

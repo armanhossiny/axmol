@@ -11,7 +11,7 @@ on:
         default: ''
         # Input has to be provided for the workflow to run
         required: false
-        
+
 run-name: verify-app-pr${{ inputs.pr_id }}
 
 # env:
@@ -21,7 +21,7 @@ jobs:
   win32:
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
       with:
         ref: 'refs/pull/${{ inputs.pr_id }}/merge'
     - name: Build
@@ -34,7 +34,7 @@ jobs:
     # build uwp debug avoid github CI fail with memory issue
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
       with:
         ref: 'refs/pull/${{ inputs.pr_id }}/merge'
     - name: Build
@@ -49,7 +49,7 @@ jobs:
       # Test winsdk < 10.0.22000.0 (missing C11 standard stdalign.h), axmol will auto fallback to C99 for resolving compiling issue.
       WINSDK_VER: '10.0.19041.0'
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
       with:
         ref: 'refs/pull/${{ inputs.pr_id }}/merge'
     - name: Build
@@ -61,7 +61,7 @@ jobs:
   linux:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
       with:
         ref: 'refs/pull/${{ inputs.pr_id }}/merge'
     - name: Install deps
@@ -75,7 +75,7 @@ jobs:
   osx-arm64:
     runs-on: macos-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
       with:
         ref: 'refs/pull/${{ inputs.pr_id }}/merge'
     - name: Build
@@ -87,7 +87,7 @@ jobs:
   osx-x64:
     runs-on: macos-13
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
       with:
         ref: 'refs/pull/${{ inputs.pr_id }}/merge'
     - name: Build
@@ -99,7 +99,7 @@ jobs:
   android:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
       with:
         ref: 'refs/pull/${{ inputs.pr_id }}/merge'
     - name: Build
@@ -118,7 +118,7 @@ jobs:
     env:
       TARGET_OS: ${{ matrix.target_os }}
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
       with:
         ref: 'refs/pull/${{ inputs.pr_id }}/merge'
     - name: Build
@@ -130,7 +130,7 @@ jobs:
   wasm:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
       with:
         ref: 'refs/pull/${{ inputs.pr_id }}/merge'
     - name: Build
