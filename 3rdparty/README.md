@@ -159,7 +159,7 @@
 
 ## oboe (Android only)
 - [![Upstream](https://img.shields.io/github/v/tag/google/oboe?label=Upstream)](https://github.com/google/oboe)
-- Version: 1.9.3
+- Version: 1.10.0
 - License: Apache-2.0
 
 ## ogg
