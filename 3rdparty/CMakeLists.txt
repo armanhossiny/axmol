@@ -113,14 +113,32 @@ function(ax_add_3rd source_dir)
 
     get_target_property(is_imported_lib ${tgt} IMPORTED)
 
-    if((NOT is_imported_lib) AND(NOT(tgt_type STREQUAL "INTERFACE_LIBRARY")))
-      set_target_properties(${tgt} PROPERTIES
-        ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
-        LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
-        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
-        FOLDER "3rdparty"
-      )
+    if (NOT is_imported_lib)
+      if(tgt_type STREQUAL "SHARED_LIBRARY")
+        if(LINUX)
+          set_target_properties(${tgt} PROPERTIES
+            ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+            LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+            RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"        
+            FOLDER "3rdparty"
+          )
+        else()      
+          set_target_properties(${tgt} PROPERTIES
+            ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+            RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"         
+            FOLDER "3rdparty"
+          )
+        endif()
+      elseif(NOT(tgt_type STREQUAL "INTERFACE_LIBRARY"))
+        set_target_properties(${tgt} PROPERTIES
+          ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+          LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+          RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+          FOLDER "3rdparty"
+        )
+      endif()
     endif()
+
   endforeach()
 endfunction()
 
