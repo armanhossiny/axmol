@@ -32,6 +32,7 @@
 #include "GUI/ScrollView/ScrollView.h"
 #include "GUI/ScrollView/TableView.h"
 #include "VisibleRect.h"
+#include "feature-detect.h"
 
 class TestSuite;
 

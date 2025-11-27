@@ -1,7 +1,7 @@
 #include "platform/PlatformConfig.h"
 #include "ImGuiTest.h"
 
-#if defined(AX_PLATFORM_PC) || (AX_TARGET_PLATFORM == AX_PLATFORM_ANDROID) || defined(__EMSCRIPTEN__)
+#if AX_ENABLE_EXT_IMGUI
 
 #include "ImGui/ImGuiPresenter.h"
 #if !defined(__ANDROID__)

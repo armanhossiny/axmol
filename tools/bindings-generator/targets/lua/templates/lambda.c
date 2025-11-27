@@ -1,4 +1,4 @@
 do {
 	// Lambda binding for lua is not supported.
-	assert(false);
+    assert(false);
 } while(0)

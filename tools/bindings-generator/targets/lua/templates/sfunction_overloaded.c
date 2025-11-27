@@ -13,13 +13,12 @@ int ${signature_name}(lua_State* tolua_S)
 
     argc = lua_gettop(tolua_S)-1;
 
-    #for func in $implementations   
+    #for func in $implementations
     #if len($func.arguments) >= $func.min_args
     #set arg_count = len($func.arguments)
     #set arg_idx = $func.min_args
     #while $arg_idx <= $arg_count
-    do 
-    {
+    do {
         if (argc == ${arg_idx})
         {
             #set arg_list = ""

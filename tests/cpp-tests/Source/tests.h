@@ -27,7 +27,11 @@
 #define _TESTS_H_
 
 #include "Box2DTest/Box2dTest.h"
+#include "feature-detect.h"
+
+#    if AX_ENABLE_EXT_IMGUI && AX_TARGET_PLATFORM != AX_PLATFORM_ANDROID
 #include "Box2DTestBed/Box2DTestBed.h"
+#    endif
 
 #include "ChipmunkTest/ChipmunkTest.h"
 #if defined(AX_PLATFORM_PC) || defined(__EMSCRIPTEN__)
@@ -121,7 +125,7 @@
 #include "VibrateTest/VibrateTest.h"
 #include "SpriteFrameCacheTest/SpriteFrameCacheTest.h"
 #include "ZipTest/ZipTests.h"
-#if defined(AX_PLATFORM_PC) || (AX_TARGET_PLATFORM == AX_PLATFORM_ANDROID) || defined(__EMSCRIPTEN__)
+#if AX_ENABLE_EXT_IMGUI
 #    include "ImGuiTest/ImGuiTest.h"
 #endif
 #endif
