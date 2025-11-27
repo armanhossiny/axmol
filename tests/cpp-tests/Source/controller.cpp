@@ -47,7 +47,7 @@ public:
         addTest("Effekseer", []() { return new EffekseerTests(); });
 #endif
         addTest("Scene3D", [](){return new Scene3DTests(); });
-#if defined(AX_PLATFORM_PC) || (AX_TARGET_PLATFORM == AX_PLATFORM_ANDROID) || defined(__EMSCRIPTEN__)
+#if AX_ENABLE_EXT_IMGUI
         addTest("ImGui", []() { return new ImGuiTests(); });
 #endif
         addTest("Texture2D", []() { return new Texture2DTests(); });
@@ -58,7 +58,7 @@ public:
         addTest("AudioEngine", []() { return new AudioEngineTests(); });
 
         addTest("Box2D - Basic", []() { return new Box2DTests(); });
-#if defined(AX_PLATFORM_PC) || defined(__EMSCRIPTEN__)
+#if AX_ENABLE_EXT_IMGUI && AX_TARGET_PLATFORM != AX_PLATFORM_ANDROID
         addTest("Box2D - TestBed", []() { return new Box2DTestBedTests(); });
 #endif
         addTest("Chipmunk2D - Basic", []() { return new ChipmunkTests(); });
@@ -189,7 +189,7 @@ Coroutine TestController::traverseTestList(TestList* testList)
          _logIndentation += LOG_INDENTATION;
      }
 
-     co_yield DelayTime::create(0.5);  
+     co_yield DelayTime::create(0.5);
      AXLOGD("{}{}Begin traverse TestList:{}", LOG_TAG, _logIndentation, testList->getTestName());
 
      auto scheduler = _director->getScheduler();
@@ -201,7 +201,7 @@ Coroutine TestController::traverseTestList(TestList* testList)
          while (_isRunInBackground)
          {
              AXLOGD("_director is paused");
-             co_yield DelayTime::create(0.5);  
+             co_yield DelayTime::create(0.5);
          }
          if (callback)
          {
@@ -288,7 +288,7 @@ Coroutine TestController::traverseTestList(TestList* testList)
              {
                  testCase         = (TestCase*)transitionScene->getInScene();
                  testCaseDuration = transitionScene->getDuration() + 0.5f;
-                 
+
              }
              else
              {

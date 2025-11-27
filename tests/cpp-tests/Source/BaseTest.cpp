@@ -28,7 +28,7 @@
 #include "testResource.h"
 #include "controller.h"
 
-#if defined(AX_PLATFORM_PC) || (AX_TARGET_PLATFORM == AX_PLATFORM_ANDROID) || defined(__EMSCRIPTEN__)
+#if AX_ENABLE_EXT_IMGUI
 #include "Inspector/Inspector.h"
 #endif
 
@@ -488,14 +488,14 @@ void TestCase::onEnter()
         _restartTestItem->setVisible(false);
     }
 
-#if defined(AX_PLATFORM_PC) || (AX_TARGET_PLATFORM == AX_PLATFORM_ANDROID) || defined(__EMSCRIPTEN__)
+#if AX_ENABLE_EXT_IMGUI
     extension::Inspector::getInstance()->openForScene(this);
 #endif
 }
 
 void TestCase::onExit()
 {
-#if defined(AX_PLATFORM_PC) || (AX_TARGET_PLATFORM == AX_PLATFORM_ANDROID) || defined(__EMSCRIPTEN__)
+#if AX_ENABLE_EXT_IMGUI
     extension::Inspector::getInstance()->close();
 #endif
     Scene::onExit();

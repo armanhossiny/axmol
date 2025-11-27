@@ -386,7 +386,9 @@ list(APPEND GAME_SOURCE
    Source/Box2DTest/Box2dTest.cpp
 )
 
-if((WINDOWS OR MACOSX OR LINUX OR WASM) AND (NOT WINRT))
+
+if(NOT IOS AND NOT ANDROID AND AX_ENABLE_EXT_IMGUI)
+    # android support imgui, but box2d testbed not adapt for android which requires GLFW_KEY_XX
     list(APPEND GAME_HEADER
         Source/Box2DTestBed/tests/test.h
         Source/Box2DTestBed/tests/settings.h
@@ -587,7 +589,7 @@ endif()
 
 if((NOT IOS) AND (NOT WINRT))
     message(STATUS "CMake precompile headers for ${APP_NAME}")
-    target_precompile_headers(${APP_NAME} PRIVATE 
+    target_precompile_headers(${APP_NAME} PRIVATE
       "$<$<COMPILE_LANGUAGE:CXX>:axmol.h>"
     )
 endif()

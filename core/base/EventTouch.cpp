@@ -26,6 +26,8 @@
 #include "base/EventTouch.h"
 #include "base/Touch.h"
 
+#include <utility>
+
 namespace ax
 {
 
@@ -34,4 +36,4 @@ EventTouch::EventTouch() : Event(Type::TOUCH)
     _touches.reserve(MAX_TOUCHES);
 }
 
-}
+}  // namespace ax
