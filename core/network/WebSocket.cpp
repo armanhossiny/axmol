@@ -457,15 +457,11 @@ void WebSocket::close(uint16_t code, std::string_view reason)
         {
             _state = State::CLOSING;
             
-            std::vector<char> closeData(sizeof(_closeCode)+reason.size());
-            memcpy(closeData.data(), &_closeCode, sizeof(_closeCode));
+            yasio::obstream obs(sizeof(code, reason.size()));
+            obs.write(_closeCode);
+            obs.write_bytes(reason);
             
-            if (!reason.empty())
-            {
-                memcpy(closeData.data()+sizeof(_closeCode), reason.data(), reason.size());
-            }
-            
-            WebSocketProtocol::sendFrame(*this, closeData.data(), closeData.size(), ws::detail::opcode::close);
+            WebSocketProtocol::sendFrame(*this, obs.data(), obs.length(), ws::detail::opcode::close);
             
             _service->close(0);
 

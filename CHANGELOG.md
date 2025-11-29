@@ -1,4 +1,4 @@
-# axmol-2.10.0 Nov. ?? 2025
+# axmol-2.10.0 Nov.27 2025
 
 ## Significant changes relative to 2.9.1
 
@@ -43,8 +43,8 @@
 - Axmol supports building with **Visual Studio 2026** out of the box.  
   Ensure that [CMake 4.2.0+](https://cmake.org/download/) is installed.
 
-- In **November 2025**, Axmol introduced **experimental Direct3D12 and Vulkan RHI** support,  
-  marking the first step toward modern, cross‑API rendering backends.
+- In **November 2025**, Axmol introduced **experimental Direct3D12 and Vulkan RHI** support  
+  in the **dev(v3) branch**, marking the first step toward modern, cross‑API rendering backends.
 
 # axmol-2.9.1 Nov.2 2025
 
