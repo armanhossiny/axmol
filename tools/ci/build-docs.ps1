@@ -2,10 +2,8 @@
 # Can runs on Windows,Linux
 param(
     $site_dist = $null,
-    $min_ver = '2.4' # The minimum version to build docs
+    $min_ver = '2.6' # The minimum version to build docs
 )
-
-$myRoot = $PSScriptRoot
 
 $ErrorActionPreference = 'Stop'
 
@@ -13,7 +11,7 @@ $isWin = $IsWindows -or ("$env:OS" -eq 'Windows_NT')
 
 $pwsh_ver = $PSVersionTable.PSVersion.ToString()
 
-$AX_ROOT = (Resolve-Path $myRoot/../..)
+$AX_ROOT = (Resolve-Path $PSScriptRoot/../..)
 
 $git_prog = (Get-Command 'git' -ErrorAction SilentlyContinue).Source
 if (!$git_prog) {
@@ -114,14 +112,14 @@ function parse_current_rev() {
     $axver = "$(&$parse_axver 'MAJOR').$(&$parse_axver 'MINOR').$(&$parse_axver 'PATCH')"
 
     $branch_name = $(git -C $AX_ROOT branch --show-current)
-    if ($branch_name.StartsWith('dev/') -or $branch_name.StartsWith('release/')) {
+    if ($branch_name.StartsWith('dev') -or $branch_name.StartsWith('release/')) {
         $short_sha = $(git -C $AX_ROOT rev-parse --short=7 HEAD)
         $axver += "-$short_sha"
     }
     return $axver
 }
 
-$site_src = (Resolve-Path "$myRoot/../../docs").Path
+$site_src = (Resolve-Path "$PSScriptRoot/../../docs").Path
 if (!$site_dist) {
     $site_dist = Join-Path $site_src 'dist'
 }
@@ -140,35 +138,47 @@ function  configure_file($infile, $outfile, $vars) {
 
 # build manuals
 
-# collection ver_list
-# doc_ver   2.4         latest
-# ref       v2.4.1      dev/v3
-# 
+# collection ver_map
+# key   (doc_ver)
+# value (head_ref)
 $release_tags = $(git tag)
-$ver_list = [System.Collections.ArrayList]::new()
 
-$ver_list.Add([PSCustomObject]@{
-        doc_ver  = 'latest'
-        head_ref = $latest_branch
-    }) | Out-Null
+$comparer = [System.Collections.Generic.Comparer[Version]]::Create({
+        param($x, $y)
+        $y.CompareTo($x)
+    })
+
+$ver_map = New-Object 'System.Collections.Generic.SortedDictionary[Version,Version]' ($comparer)
 
 foreach ($item in $release_tags) {
     if ([Regex]::Match($item, '^v[0-9]+\.[0-9]+\.[0-9]+$').Success) {
-        $doc_ver = $($item.Split('.')[0..1] -join '.').TrimStart('v')
-        if ($doc_ver -lt $min_ver) {
+        $ver = [version]$item.TrimStart('v')
+        $doc_ver = [version]"$($ver.Major).$($ver.Minor)"
+        if ($doc_ver -lt [version]$min_ver) {
             continue
         }
-        $ver_list.Add([PSCustomObject]@{
-                doc_ver  = $doc_ver
-                head_ref = $item
-            }) | Out-Null
+        if (!$ver_map.ContainsKey($doc_ver)) {
+            $ver_map.Add($doc_ver, $ver)
+        }
+        elseif ($ver_map[$doc_ver] -lt $ver) {
+            $ver_map[$doc_ver] = $ver
+        }
     }
 }
 
-$ver_list.Sort([System.Collections.Generic.Comparer[object]]::Create({
-            param($x, $y)
-            return [System.Collections.Comparer]::Default.Compare($y.doc_ver, $x.doc_ver)
-        }))
+$ver_list = New-Object System.Collections.ArrayList($ver_map.Count + 1)
+$null = $ver_list.Add([PSCustomObject]@{
+        doc_ver  = 'latest'
+        head_ref = $latest_branch
+    })
+foreach ($item in $ver_map.GetEnumerator()) {
+    $full_ver = [version]$item.Value
+    $null = $ver_list.Add([PSCustomObject]@{
+            doc_ver  = [string]$item.Key
+            head_ref = "v$full_ver"
+        })
+}
+
 $ver_list | Format-Table doc_ver, head_ref -AutoSize
 
 $menu_ver_list = ($ver_list | ForEach-Object { "'$($_.doc_ver)'" }) -join ','

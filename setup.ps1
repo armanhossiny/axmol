@@ -22,8 +22,7 @@ echo > /dev/null <<"out-null"
 #vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 # Powershell Start ----------------------------------------------------#>
 
-$myRoot = $PSScriptRoot
-$AX_ROOT = $myRoot
+$AX_ROOT = $PSScriptRoot
 
 $Global:is_axmol_engine = Test-Path $(Join-Path $AX_ROOT 'core/axmol.cpp')
 
@@ -46,26 +45,28 @@ function mkdirs([string]$path) {
 }
 
 if ($pwsh_ver -lt [VersionEx]'5.0') {
+    $ErrorActionPreference = 'Stop'
+
     # try setup WMF5.1, require reboot, try run setup.ps1 several times
-    Write-Host "Installing WMF5.1 ..."
+    Write-Host "Configuring WMF5.1 ..."
     $osVer = [System.Environment]::OSVersion.Version
-    
+
     if ($osVer.Major -ne 6) {
         throw "Unsupported OSVersion: $($osVer.ToString())"
     }
     if ($osVer.Minor -ne 1 -and $osVer -ne 3) {
         throw "Only win7 SP1 or win8 supported"
     }
-    
+
     $is_win7 = $osVer.Minor -eq 1
-    
+
     # [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 5.1 non-win10
-    
+
     $prefix = Join-Path (Get-Location).Path 'tmp'
-    
+
     mkdirs $prefix
     $curl = (New-Object Net.WebClient)
-    
+
     # .net 4.5.2 prereq by WMF5.1
     $pkg_out = Join-Path $prefix 'NDP452-KB2901907-x86-x64-AllOS-ENU.exe'
     if (!(Test-Path $pkg_out -PathType Leaf)) {
@@ -76,7 +77,7 @@ if ($pwsh_ver -lt [VersionEx]'5.0') {
         }
     }
     .\tmp\NDP452-KB2901907-x86-x64-AllOS-ENU.exe /q /norestart
-    
+
     # WMF5.1: https://learn.microsoft.com/en-us/powershell/scripting/windows-powershell/wmf/setup/install-configure?view=powershell-7.3&source=recommendations#download-and-install-the-wmf-51-package
     if ($is_win7) {
         $wmf_pkg = 'Win7AndW2K8R2-KB3191566-x64.zip'
@@ -84,7 +85,7 @@ if ($pwsh_ver -lt [VersionEx]'5.0') {
     else {
         $wmf_pkg = 'Win8.1AndW2K12R2-KB3191564-x64.msu'
     }
-    
+
     $pkg_out = Join-Path $prefix "$wmf_pkg"
     if (!(Test-Path $pkg_out -PathType Leaf)) {
         Write-Host "Downloading $pkg_out ..."
@@ -110,7 +111,8 @@ if ($pwsh_ver -lt [VersionEx]'5.0') {
         wusa.exe $pkg_out /quiet /norestart
     }
 
-    throw "PowerShell 5.0+ required, installed is: $pwsh_ver, after install WMF5.1 and restart computer, try again"
+    echo "Configure WMF5.1 success, please retart your computer to finish installation and try again"
+    exit 0
 }
 
 # powershell 7 require mark as global explicit if want access in function via $Global:xxx
@@ -135,19 +137,19 @@ if ($IsWin) {
             $oldCmdRoot = $cmdRootTmp
         }
     }
-    
+
     function RefreshPath ($strPathList) {
-        if ($strPathList) { 
+        if ($strPathList) {
             $pathList = [System.Collections.ArrayList]($strPathList.Split(';', [System.StringSplitOptions]::RemoveEmptyEntries))
         }
-        else { 
-            $pathList = New-Object System.Collections.ArrayList 
+        else {
+            $pathList = New-Object System.Collections.ArrayList
         }
-        
+
         if ($Global:oldCmdRoot) {
             $pathList.Remove($Global:oldCmdRoot)
         }
-        
+
         if ($Global:isMeInPath) {
             if ($pathList[0] -ne $Global:AX_CLI_ROOT) {
                 $pathList.Remove($Global:AX_CLI_ROOT)
@@ -159,11 +161,11 @@ if ($IsWin) {
         }
         return $pathList -join ';'
     }
-    
+
     if (!$isMeInPath -or $oldCmdRoot) {
         # Add cmdline bin to User PATH
         $strPathList = [Environment]::GetEnvironmentVariable('PATH', 'User')
-        $strPathList = RefreshPath $strPathList 
+        $strPathList = RefreshPath $strPathList
         [Environment]::SetEnvironmentVariable('PATH', $strPathList, 'User')
 
         # Re-eval env:PATH to system + users
@@ -258,12 +260,14 @@ else {
         # for terminal
         if ("$env:SHELL" -like '*/zsh') {
             updateUnixProfile ~/.zshrc
-        } else {
+        }
+        else {
             updateUnixProfile ~/.bash_profile
         }
         # for GUI apps, android studio can find AX_ROOT
         launchctl setenv AX_ROOT $env:AX_ROOT
-    } elseif($IsLinux) {
+    }
+    elseif ($IsLinux) {
         # determine distro
         if ($(Get-Command 'dpkg' -ErrorAction SilentlyContinue)) {
             $LinuxDistro = 'Debian'
@@ -282,7 +286,8 @@ else {
         if (Test-Path ~/.bash_profile -PathType Leaf) {
             if ("$env:SHELL" -like '*/zsh') {
                 updateUnixProfile ~/.zshrc
-            } else {
+            }
+            else {
                 updateUnixProfile ~/.bashrc
             }
         }
@@ -294,8 +299,8 @@ else {
                 println "It will take few minutes"
                 $os_name = $PSVersionTable.OS
                 $os_ver = [Regex]::Match($os_name, '(\d+\.)+(\*|\d+)(\-[a-z0-9]+)?').Value
-                if (($os_name -match 'Ubuntu' -and [VersionEx]$os_ver -ge [VersionEx]'24.04') -or 
-                ($os_name -match 'Debian' -and [VersionEx]$os_ver -ge [VersionEx]'13')) {
+                if (($os_name -match 'Ubuntu' -and [VersionEx]$os_ver -ge [VersionEx]'24.04') -or
+                    ($os_name -match 'Debian' -and [VersionEx]$os_ver -ge [VersionEx]'13')) {
                     $webkit2gtk_dev = 'libwebkit2gtk-4.1-dev'
                 }
                 else {
@@ -348,7 +353,7 @@ else {
                     'git',
                     'cmake',
                     'make',
-                    'libx11', 
+                    'libx11',
                     'libxrandr',
                     'libxinerama',
                     'libxcursor',
@@ -367,8 +372,8 @@ else {
     }
 }
 
-$1k_script = Join-Path $myRoot '1k/1kiss.ps1'
-$prefix = Join-Path $myRoot 'tools/external'
+$1k_script = Join-Path $PSScriptRoot '1k/1kiss.ps1'
+$prefix = Join-Path $PSScriptRoot 'tools/external'
 if (!(Test-Path $prefix -PathType Container)) {
     mkdirs $prefix
 }
@@ -396,7 +401,7 @@ if ($updateAdt) {
     $gradle_settings_file = Join-Path $aproj_source_gradle_wrapper 'gradle-wrapper.properties'
     $settings_lines = Get-Content $gradle_settings_file
     $settings_lines[0] = "#$current_time"
-    for($i = 1; $i -lt $settings_lines.Count; ++$i) {
+    for ($i = 1; $i -lt $settings_lines.Count; ++$i) {
         $line_text = $settings_lines[$i]
         if ($line_text -match '^distributionUrl\s*=.*') {
             $settings_lines[$i] = [Regex]::Replace($line_text, 'gradle-.+-bin.zip', "gradle-$gradleVer-bin.zip")
@@ -442,7 +447,7 @@ if ($updateAdt) {
     update_agp('templates/common')
     foreach ($testName in $testList) {
         update_gradle_for_test($testName)
-        update_agp_for_test($testName) 
+        update_agp_for_test($testName)
     }
 }
 
