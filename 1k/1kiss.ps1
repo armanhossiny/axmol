@@ -1336,7 +1336,7 @@ function setup_android_sdk() {
         if (!$sdk_dir -or !$1k.isdir($sdk_dir)) {
             return $null
         }
-        $1k.println("Looking require $ndk_ver$IsGraterThan in $sdk_dir")
+        $1k.println("Looking require android ndk $ndk_ver$IsGraterThan in $sdk_dir")
 
         $ndk_major = ($ndk_ver -replace '[^0-9]', '')
         $ndk_minor_off = "$ndk_major".Length + 1
@@ -1896,7 +1896,7 @@ if (!$setupOnly) {
               return $1k.realpath("$prefix${TARGET_OS}_$TARGET_CPU/")
           }
         }
-        
+
         if ($is_host_target) {
             if (!$is_host_cpu) {
                 $out_dir = "${prefix}${TARGET_CPU}"
