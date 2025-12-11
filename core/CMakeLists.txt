@@ -394,7 +394,7 @@ if(WINDOWS)
   # cppwinrt or webview2 require nuget
   if(WINDOWS_STORE OR AX_ENABLE_MSEDGE_WEBVIEW2)
     find_program(NUGET_EXE NAMES nuget
-      PATHS ${_AX_ROOT}/tools/external/nuget)
+      PATHS "$ENV{AX_ROOT}/tools/external/nuget")
 
     if(NOT NUGET_EXE)
       message("NUGET.EXE not found.")
