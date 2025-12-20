@@ -522,7 +522,7 @@ function(ax_setup_app_config app_name)
   if(XCODE AND AX_ENABLE_AUDIO AND ALSOFT_OSX_FRAMEWORK)
     # Embedded soft_oal embedded framework
     # XCODE_LINK_BUILD_PHASE_MODE BUILT_ONLY
-    # ???Xcode limition: XCODE_EMBED_FRAMEWORKS_CODE_SIGN_ON_COPY works for first app
+    # !Please use latest cmake to avoid strange issue, at least cmake 4.0.0+
     message(STATUS "Embedding framework soft_oal to ${app_name}...")
     set_target_properties(${app_name} PROPERTIES
       XCODE_LINK_BUILD_PHASE_MODE KNOWN_LOCATION
@@ -530,6 +530,25 @@ function(ax_setup_app_config app_name)
       XCODE_EMBED_FRAMEWORKS_CODE_SIGN_ON_COPY ON
       XCODE_EMBED_FRAMEWORKS_REMOVE_HEADERS_ON_COPY ON
     )
+
+    # Detecting Xcode version
+    execute_process(
+      COMMAND xcodebuild -version
+      OUTPUT_VARIABLE XCODE_VERSION_RAW
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    string(REGEX MATCH "Xcode ([0-9]+\\.[0-9]+)" _match "${XCODE_VERSION_RAW}")
+    set(XCODE_VERSION "${CMAKE_MATCH_1}")
+
+    message(STATUS "Detected Xcode version: ${XCODE_VERSION}")
+    if(XCODE_VERSION VERSION_LESS_EQUAL "14.2")
+      message(STATUS
+        "Detected Xcode ${XCODE_VERSION} (<= 14.2): "
+        "manually adding framework search path: ${CMAKE_BINARY_DIR}/build/<CONFIG>")
+      set(_AX_FRAMEWORK_OUT_DIR "${CMAKE_BINARY_DIR}/build")
+      set_property(TARGET ${app_name} APPEND PROPERTY
+        XCODE_ATTRIBUTE_FRAMEWORK_SEARCH_PATHS "\"${_AX_FRAMEWORK_OUT_DIR}/$<CONFIG>\"")
+    endif()
   endif()
 
   # auto looking app shaders source dir and add to axslcc compile-list
