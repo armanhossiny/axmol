@@ -6,11 +6,11 @@
 # --- region platfom:common
 
 # The axmol shader compiler, legacy name is 'glslcc' before axmol-2.3.0
-axslcc=1.9.6
+axslcc=1.14.0
 
 # The cmake, @gradle @axmol-cmdline
 # as latest as possible
-cmake=4.2.0+
+cmake=4.2.0~4.2.1+
 
 # The ninja
 ninja=1.10.0~1.12.1+
@@ -34,7 +34,7 @@ llvm=19.0.0~19.1.7+
 # region platform:android
 
 # The microsoft openjdk, @axmol-cmdline
-jdk=17.0.10~17.0.15+
+jdk=17.0.10~17.0.17+
 
 # The android cmdline-tools aka sdkmanager, as stable as possible
 cmdlinetools=19.0

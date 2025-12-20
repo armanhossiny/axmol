@@ -18,7 +18,7 @@ if (($stage -band 1)) {
 
     if($IsLinux -and $LinuxDistro -eq 'Debian') 
     {
-        sudo apt install python3-yaml python3-cheetah
+        sudo apt-get install -y python3-yaml python3-cheetah
     }
     else 
     {
