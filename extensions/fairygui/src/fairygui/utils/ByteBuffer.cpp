@@ -18,7 +18,7 @@ ByteBuffer::ByteBuffer(char* buffer, int offset, int len, bool transferOwnerShip
 ByteBuffer::~ByteBuffer()
 {
     if (_ownsBuffer && _buffer != nullptr)
-        delete _buffer;
+        ::free(_buffer);
 }
 
 int ByteBuffer::getBytesAvailable() const

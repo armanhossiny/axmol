@@ -249,13 +249,17 @@ public:
     /** Delete frame from cache, rebuild index
      */
     bool eraseFrame(std::string_view frameName);
-    
+
     void addSpriteFrameCapInset(SpriteFrame* spriteFrame, const Rect& capInsets, Texture2D* texture);
 
     void registerSpriteSheetLoader(std::shared_ptr<ISpriteSheetLoader> loader);
     void deregisterSpriteSheetLoader(uint32_t spriteSheetFormat);
 
     ISpriteSheetLoader* getSpriteSheetLoader(uint32_t spriteSheetFormat);
+
+#ifndef _AX_GEN_SCRIPT_BINDINGS
+    std::shared_ptr<SpriteSheet> getSpriteSheet(std::string_view spriteSheetFileName);
+#endif
 
 protected:
     // MARMALADE: Made this protected not private, as deriving from this class is pretty useful

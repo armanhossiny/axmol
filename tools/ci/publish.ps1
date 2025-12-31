@@ -64,6 +64,7 @@ $excludes = @(
     'axmol-*.zip'
     'out'
     '*/_x/*'
+    'cache/cmake-*'
 )
 
 if($is_v3) {
