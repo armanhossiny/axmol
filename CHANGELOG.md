@@ -1,3 +1,33 @@
+# axmol-2.11.1 (Dec 31, 2025)
+
+## Significant changes relative to 2.11.0
+
+- Disable `streamParsingEnabled` by default (true -> false) @halx99
+- Add debian-12+ build support by @halx99 in [#2956](https://github.com/axmolengine/axmol/pull/2956)
+
+## Bug fixes
+
+- Fix android assets missing when build first time by @halx99 in [#2975](https://github.com/axmolengine/axmol/pull/2975)
+- Fix partial cleanup issue by reusing existing SpriteSheet by @suhailmalik07 in [#2978](https://github.com/axmolengine/axmol/pull/2978)
+- Fix fairygui memory issues by @halx99
+
+## Improvements
+
+- Improve build system: No longer create ninja symlink into cmake bin dir by @halx99 in [#2976](https://github.com/axmolengine/axmol/pull/2976)
+- Refactor `DevSetup.md` for clarity and consistency by @halx99
+- Use `apt-get` insetad `apt` in axmol cmdline tool scripts by @halx99
+- Use binary search to find fitting font size for labels shrinking on overflow by @j-jorge in [#2960](https://github.com/axmolengine/axmol/pull/2960)
+
+## SDK & Tools updates
+
+- Android appcompat: `1.7.0` => `1.7.1`
+- Android guava: `33.3.1` => `33.5.0`
+
+## 3rdparty updates
+
+- clipper2: 1.5.4 => 2.0.1
+
+
 # axmol-2.11.0 Dec.19 2025
 
 ## Bug fixes
