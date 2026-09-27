@@ -3772,7 +3772,7 @@ int lua_ax_base_EventKeyboard_isRepeat(lua_State* tolua_S)
 
     return 0;
 }
-int lua_ax_base_EventKeyboard_constructor(lua_State* tolua_S)
+int lua_ax_base_EventKeyboard_getModifiers(lua_State* tolua_S)
 {
     int argc = 0;
     ax::EventKeyboard* obj = nullptr;
@@ -3783,52 +3783,145 @@ int lua_ax_base_EventKeyboard_constructor(lua_State* tolua_S)
 #endif
 
 
+#if _AX_DEBUG >= 1
+    if (!tolua_isusertype(tolua_S,1,"ax.EventKeyboard",0,&tolua_err)) goto tolua_lerror;
+#endif
+
+    obj = (ax::EventKeyboard*)tolua_tousertype(tolua_S,1,0);
+
+#if _AX_DEBUG >= 1
+    if (!obj)
+    {
+        tolua_error(tolua_S,"invalid 'obj' in function 'lua_ax_base_EventKeyboard_getModifiers'", nullptr);
+        return 0;
+    }
+#endif
 
     argc = lua_gettop(tolua_S)-1;
-    if (argc == 2)
+    if (argc == 0)
     {
-        ax::EventKeyboard::KeyCode arg0;
-        bool arg1;
-
-        ok &= luaval_to_int32(tolua_S, 2,(int *)&arg0, "ax.EventKeyboard:EventKeyboard");
-
-        ok &= luaval_to_boolean(tolua_S, 3,&arg1, "ax.EventKeyboard:EventKeyboard");
         if(!ok)
         {
-            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_EventKeyboard_constructor'", nullptr);
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_EventKeyboard_getModifiers'", nullptr);
             return 0;
         }
-        obj = new ax::EventKeyboard(arg0, arg1);
-        obj->autorelease();
-        int ID =  (int)obj->_ID ;
-        int* luaID =  &obj->_luaID ;
-        toluafix_pushusertype_object(tolua_S, ID, luaID, (void*)obj,"ax.EventKeyboard");
+        auto&& ret = obj->getModifiers();
+        tolua_pushnumber(tolua_S,(lua_Number)ret);
         return 1;
     }
-    if (argc == 3)
-    {
-        ax::EventKeyboard::KeyCode arg0;
-        bool arg1;
-        bool arg2;
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "ax.EventKeyboard:getModifiers",argc, 0);
+    return 0;
 
-        ok &= luaval_to_int32(tolua_S, 2,(int *)&arg0, "ax.EventKeyboard:EventKeyboard");
+#if _AX_DEBUG >= 1
+    tolua_lerror:
+    tolua_error(tolua_S,"#ferror in function 'lua_ax_base_EventKeyboard_getModifiers'.",&tolua_err);
+#endif
 
-        ok &= luaval_to_boolean(tolua_S, 3,&arg1, "ax.EventKeyboard:EventKeyboard");
+    return 0;
+}
+int lua_ax_base_EventKeyboard_constructor(lua_State* tolua_S)
+{
+    int argc = 0;
+    ax::EventKeyboard* obj = nullptr;
+    bool ok  = true;
+#if _AX_DEBUG >= 1
+    tolua_Error tolua_err;
+#endif
 
-        ok &= luaval_to_boolean(tolua_S, 4,&arg2, "ax.EventKeyboard:EventKeyboard");
-        if(!ok)
-        {
-            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_EventKeyboard_constructor'", nullptr);
-            return 0;
+    argc = lua_gettop(tolua_S)-1;
+    do {
+        if (argc == 3) {
+            ax::EventKeyboard::KeyCode arg0;
+            ok &= luaval_to_int32(tolua_S, 2,(int *)&arg0, "ax.EventKeyboard:EventKeyboard");
+
+            if (!ok) { break; }
+            bool arg1;
+            ok &= luaval_to_boolean(tolua_S, 3,&arg1, "ax.EventKeyboard:EventKeyboard");
+
+            if (!ok) { break; }
+            unsigned int arg2;
+            ok &= luaval_to_uint32(tolua_S, 4,&arg2, "ax.EventKeyboard:EventKeyboard");
+
+            if (!ok) { break; }
+            obj = new ax::EventKeyboard(arg0, arg1, arg2);
+            obj->autorelease();
+            int ID =  (int)obj->_ID ;
+            int* luaID =  &obj->_luaID ;
+            toluafix_pushusertype_object(tolua_S, ID, luaID, (void*)obj,"ax.EventKeyboard");
+            return 1;
         }
-        obj = new ax::EventKeyboard(arg0, arg1, arg2);
-        obj->autorelease();
-        int ID =  (int)obj->_ID ;
-        int* luaID =  &obj->_luaID ;
-        toluafix_pushusertype_object(tolua_S, ID, luaID, (void*)obj,"ax.EventKeyboard");
-        return 1;
-    }
-    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "ax.EventKeyboard:EventKeyboard",argc, 2);
+    }while(0);
+    ok  = true;
+    do {
+        if (argc == 4) {
+            ax::EventKeyboard::KeyCode arg0;
+            ok &= luaval_to_int32(tolua_S, 2,(int *)&arg0, "ax.EventKeyboard:EventKeyboard");
+
+            if (!ok) { break; }
+            bool arg1;
+            ok &= luaval_to_boolean(tolua_S, 3,&arg1, "ax.EventKeyboard:EventKeyboard");
+
+            if (!ok) { break; }
+            unsigned int arg2;
+            ok &= luaval_to_uint32(tolua_S, 4,&arg2, "ax.EventKeyboard:EventKeyboard");
+
+            if (!ok) { break; }
+            bool arg3;
+            ok &= luaval_to_boolean(tolua_S, 5,&arg3, "ax.EventKeyboard:EventKeyboard");
+
+            if (!ok) { break; }
+            obj = new ax::EventKeyboard(arg0, arg1, arg2, arg3);
+            obj->autorelease();
+            int ID =  (int)obj->_ID ;
+            int* luaID =  &obj->_luaID ;
+            toluafix_pushusertype_object(tolua_S, ID, luaID, (void*)obj,"ax.EventKeyboard");
+            return 1;
+        }
+    }while(0);
+    ok  = true;
+    do {
+        if (argc == 2) {
+            ax::EventKeyboard::KeyCode arg0;
+            ok &= luaval_to_int32(tolua_S, 2,(int *)&arg0, "ax.EventKeyboard:EventKeyboard");
+
+            if (!ok) { break; }
+            bool arg1;
+            ok &= luaval_to_boolean(tolua_S, 3,&arg1, "ax.EventKeyboard:EventKeyboard");
+
+            if (!ok) { break; }
+            obj = new ax::EventKeyboard(arg0, arg1);
+            obj->autorelease();
+            int ID =  (int)obj->_ID ;
+            int* luaID =  &obj->_luaID ;
+            toluafix_pushusertype_object(tolua_S, ID, luaID, (void*)obj,"ax.EventKeyboard");
+            return 1;
+        }
+    }while(0);
+    ok  = true;
+    do {
+        if (argc == 3) {
+            ax::EventKeyboard::KeyCode arg0;
+            ok &= luaval_to_int32(tolua_S, 2,(int *)&arg0, "ax.EventKeyboard:EventKeyboard");
+
+            if (!ok) { break; }
+            bool arg1;
+            ok &= luaval_to_boolean(tolua_S, 3,&arg1, "ax.EventKeyboard:EventKeyboard");
+
+            if (!ok) { break; }
+            bool arg2;
+            ok &= luaval_to_boolean(tolua_S, 4,&arg2, "ax.EventKeyboard:EventKeyboard");
+
+            if (!ok) { break; }
+            obj = new ax::EventKeyboard(arg0, arg1, arg2);
+            obj->autorelease();
+            int ID =  (int)obj->_ID ;
+            int* luaID =  &obj->_luaID ;
+            toluafix_pushusertype_object(tolua_S, ID, luaID, (void*)obj,"ax.EventKeyboard");
+            return 1;
+        }
+    }while(0);
+    ok  = true;
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n",  "ax.EventKeyboard:EventKeyboard",argc, 2);
     return 0;
 
 #if _AX_DEBUG >= 1
@@ -3852,6 +3945,7 @@ int lua_register_ax_base_EventKeyboard(lua_State* tolua_S)
     tolua_beginmodule(tolua_S,"EventKeyboard");
         tolua_function(tolua_S,"new",lua_ax_base_EventKeyboard_constructor);
         tolua_function(tolua_S,"isRepeat",lua_ax_base_EventKeyboard_isRepeat);
+        tolua_function(tolua_S,"getModifiers",lua_ax_base_EventKeyboard_getModifiers);
     tolua_endmodule(tolua_S);
     auto typeName = typeid(ax::EventKeyboard).name(); // rtti is literal storage
     g_luaType[reinterpret_cast<uintptr_t>(typeName)] = "ax.EventKeyboard";
@@ -15200,6 +15294,103 @@ int lua_ax_base_Director_setNextDeltaTimeZero(lua_State* tolua_S)
 
     return 0;
 }
+int lua_ax_base_Director_getMaxDeltaTime(lua_State* tolua_S)
+{
+    int argc = 0;
+    ax::Director* obj = nullptr;
+    bool ok  = true;
+
+#if _AX_DEBUG >= 1
+    tolua_Error tolua_err;
+#endif
+
+
+#if _AX_DEBUG >= 1
+    if (!tolua_isusertype(tolua_S,1,"ax.Director",0,&tolua_err)) goto tolua_lerror;
+#endif
+
+    obj = (ax::Director*)tolua_tousertype(tolua_S,1,0);
+
+#if _AX_DEBUG >= 1
+    if (!obj)
+    {
+        tolua_error(tolua_S,"invalid 'obj' in function 'lua_ax_base_Director_getMaxDeltaTime'", nullptr);
+        return 0;
+    }
+#endif
+
+    argc = lua_gettop(tolua_S)-1;
+    if (argc == 0)
+    {
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_Director_getMaxDeltaTime'", nullptr);
+            return 0;
+        }
+        auto&& ret = obj->getMaxDeltaTime();
+        tolua_pushnumber(tolua_S,(lua_Number)ret);
+        return 1;
+    }
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "ax.Director:getMaxDeltaTime",argc, 0);
+    return 0;
+
+#if _AX_DEBUG >= 1
+    tolua_lerror:
+    tolua_error(tolua_S,"#ferror in function 'lua_ax_base_Director_getMaxDeltaTime'.",&tolua_err);
+#endif
+
+    return 0;
+}
+int lua_ax_base_Director_setMaxDeltaTime(lua_State* tolua_S)
+{
+    int argc = 0;
+    ax::Director* obj = nullptr;
+    bool ok  = true;
+
+#if _AX_DEBUG >= 1
+    tolua_Error tolua_err;
+#endif
+
+
+#if _AX_DEBUG >= 1
+    if (!tolua_isusertype(tolua_S,1,"ax.Director",0,&tolua_err)) goto tolua_lerror;
+#endif
+
+    obj = (ax::Director*)tolua_tousertype(tolua_S,1,0);
+
+#if _AX_DEBUG >= 1
+    if (!obj)
+    {
+        tolua_error(tolua_S,"invalid 'obj' in function 'lua_ax_base_Director_setMaxDeltaTime'", nullptr);
+        return 0;
+    }
+#endif
+
+    argc = lua_gettop(tolua_S)-1;
+    if (argc == 1)
+    {
+        double arg0;
+
+        ok &= luaval_to_number(tolua_S, 2,&arg0, "ax.Director:setMaxDeltaTime");
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_Director_setMaxDeltaTime'", nullptr);
+            return 0;
+        }
+        obj->setMaxDeltaTime(arg0);
+        lua_settop(tolua_S, 1);
+        return 1;
+    }
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "ax.Director:setMaxDeltaTime",argc, 1);
+    return 0;
+
+#if _AX_DEBUG >= 1
+    tolua_lerror:
+    tolua_error(tolua_S,"#ferror in function 'lua_ax_base_Director_setMaxDeltaTime'.",&tolua_err);
+#endif
+
+    return 0;
+}
 int lua_ax_base_Director_isPaused(lua_State* tolua_S)
 {
     int argc = 0;
@@ -17996,6 +18187,8 @@ int lua_register_ax_base_Director(lua_State* tolua_S)
         tolua_function(tolua_S,"getTextureCache",lua_ax_base_Director_getTextureCache);
         tolua_function(tolua_S,"isNextDeltaTimeZero",lua_ax_base_Director_isNextDeltaTimeZero);
         tolua_function(tolua_S,"setNextDeltaTimeZero",lua_ax_base_Director_setNextDeltaTimeZero);
+        tolua_function(tolua_S,"getMaxDeltaTime",lua_ax_base_Director_getMaxDeltaTime);
+        tolua_function(tolua_S,"setMaxDeltaTime",lua_ax_base_Director_setMaxDeltaTime);
         tolua_function(tolua_S,"isPaused",lua_ax_base_Director_isPaused);
         tolua_function(tolua_S,"getTotalFrames",lua_ax_base_Director_getTotalFrames);
         tolua_function(tolua_S,"setProjection",lua_ax_base_Director_setProjection);
