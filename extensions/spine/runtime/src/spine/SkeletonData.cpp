@@ -1,60 +1,59 @@
 /******************************************************************************
  * Spine Runtimes License Agreement
- * Last updated May 1, 2019. Replaces all prior versions.
+ * Last updated July 28, 2023. Replaces all prior versions.
  *
- * Copyright (c) 2013-2019, Esoteric Software LLC
+ * Copyright (c) 2013-2023, Esoteric Software LLC
  *
  * Integration of the Spine Runtimes into software or otherwise creating
  * derivative works of the Spine Runtimes is permitted under the terms and
  * conditions of Section 2 of the Spine Editor License Agreement:
  * http://esotericsoftware.com/spine-editor-license
  *
- * Otherwise, it is permitted to integrate the Spine Runtimes into software
- * or otherwise create derivative works of the Spine Runtimes (collectively,
+ * Otherwise, it is permitted to integrate the Spine Runtimes into software or
+ * otherwise create derivative works of the Spine Runtimes (collectively,
  * "Products"), provided that each user of the Products must obtain their own
  * Spine Editor license and redistribution of the Products in any form must
  * include this license and copyright notice.
  *
- * THIS SOFTWARE IS PROVIDED BY ESOTERIC SOFTWARE LLC "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
- * NO EVENT SHALL ESOTERIC SOFTWARE LLC BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES, BUSINESS
- * INTERRUPTION, OR LOSS OF USE, DATA, OR PROFITS) HOWEVER CAUSED AND ON ANY
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
- * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
- * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * THE SPINE RUNTIMES ARE PROVIDED BY ESOTERIC SOFTWARE LLC "AS IS" AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL ESOTERIC SOFTWARE LLC BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES,
+ * BUSINESS INTERRUPTION, OR LOSS OF USE, DATA, OR PROFITS) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THE
+ * SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
-
-#ifdef SPINE_UE4
-#include "SpinePluginPrivatePCH.h"
-#endif
 
 #include <spine/SkeletonData.h>
 
-#include <spine/BoneData.h>
-#include <spine/SlotData.h>
-#include <spine/Skin.h>
-#include <spine/EventData.h>
 #include <spine/Animation.h>
+#include <spine/BoneData.h>
+#include <spine/EventData.h>
 #include <spine/IkConstraintData.h>
-#include <spine/TransformConstraintData.h>
 #include <spine/PathConstraintData.h>
+#include <spine/PhysicsConstraintData.h>
+#include <spine/Skin.h>
+#include <spine/SlotData.h>
+#include <spine/TransformConstraintData.h>
 
 #include <spine/ContainerUtil.h>
 
 using namespace spine;
 
-SkeletonData::SkeletonData() :
-		_name(),
-		_defaultSkin(NULL),
-		_width(0),
-		_height(0),
-		_version(),
-		_hash(),
-		_fps(0),
-		_imagesPath() {
+SkeletonData::SkeletonData() : _name(),
+							   _defaultSkin(NULL),
+							   _x(0),
+							   _y(0),
+							   _width(0),
+							   _height(0),
+							   _referenceScale(100),
+							   _version(),
+							   _hash(),
+							   _fps(0),
+							   _imagesPath() {
 }
 
 SkeletonData::~SkeletonData() {
@@ -69,22 +68,18 @@ SkeletonData::~SkeletonData() {
 	ContainerUtil::cleanUpVectorOfPointers(_ikConstraints);
 	ContainerUtil::cleanUpVectorOfPointers(_transformConstraints);
 	ContainerUtil::cleanUpVectorOfPointers(_pathConstraints);
+	ContainerUtil::cleanUpVectorOfPointers(_physicsConstraints);
+	for (size_t i = 0; i < _strings.size(); i++) {
+		SpineExtension::free(_strings[i], __FILE__, __LINE__);
+	}
 }
 
 BoneData *SkeletonData::findBone(const String &boneName) {
 	return ContainerUtil::findWithName(_bones, boneName);
 }
 
-int SkeletonData::findBoneIndex(const String &boneName) {
-	return ContainerUtil::findIndexWithName(_bones, boneName);
-}
-
 SlotData *SkeletonData::findSlot(const String &slotName) {
 	return ContainerUtil::findWithName(_slots, slotName);
-}
-
-int SkeletonData::findSlotIndex(const String &slotName) {
-	return ContainerUtil::findIndexWithName(_slots, slotName);
 }
 
 Skin *SkeletonData::findSkin(const String &skinName) {
@@ -111,8 +106,8 @@ PathConstraintData *SkeletonData::findPathConstraint(const String &constraintNam
 	return ContainerUtil::findWithName(_pathConstraints, constraintName);
 }
 
-int SkeletonData::findPathConstraintIndex(const String &pathConstraintName) {
-	return ContainerUtil::findIndexWithName(_pathConstraints, pathConstraintName);
+PhysicsConstraintData *SkeletonData::findPhysicsConstraint(const String &constraintName) {
+	return ContainerUtil::findWithName(_physicsConstraints, constraintName);
 }
 
 const String &SkeletonData::getName() {
@@ -163,6 +158,26 @@ Vector<PathConstraintData *> &SkeletonData::getPathConstraints() {
 	return _pathConstraints;
 }
 
+Vector<PhysicsConstraintData *> &SkeletonData::getPhysicsConstraints() {
+	return _physicsConstraints;
+}
+
+float SkeletonData::getX() {
+	return _x;
+}
+
+void SkeletonData::setX(float inValue) {
+	_x = inValue;
+}
+
+float SkeletonData::getY() {
+	return _y;
+}
+
+void SkeletonData::setY(float inValue) {
+	_y = inValue;
+}
+
 float SkeletonData::getWidth() {
 	return _width;
 }
@@ -177,6 +192,14 @@ float SkeletonData::getHeight() {
 
 void SkeletonData::setHeight(float inValue) {
 	_height = inValue;
+}
+
+float SkeletonData::getReferenceScale() {
+	return _referenceScale;
+}
+
+void SkeletonData::setReferenceScale(float inValue) {
+	_referenceScale = inValue;
 }
 
 const String &SkeletonData::getVersion() {

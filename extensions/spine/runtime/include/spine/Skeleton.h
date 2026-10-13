@@ -1,30 +1,30 @@
 /******************************************************************************
  * Spine Runtimes License Agreement
- * Last updated May 1, 2019. Replaces all prior versions.
+ * Last updated July 28, 2023. Replaces all prior versions.
  *
- * Copyright (c) 2013-2019, Esoteric Software LLC
+ * Copyright (c) 2013-2023, Esoteric Software LLC
  *
  * Integration of the Spine Runtimes into software or otherwise creating
  * derivative works of the Spine Runtimes is permitted under the terms and
  * conditions of Section 2 of the Spine Editor License Agreement:
  * http://esotericsoftware.com/spine-editor-license
  *
- * Otherwise, it is permitted to integrate the Spine Runtimes into software
- * or otherwise create derivative works of the Spine Runtimes (collectively,
+ * Otherwise, it is permitted to integrate the Spine Runtimes into software or
+ * otherwise create derivative works of the Spine Runtimes (collectively,
  * "Products"), provided that each user of the Products must obtain their own
  * Spine Editor license and redistribution of the Products in any form must
  * include this license and copyright notice.
  *
- * THIS SOFTWARE IS PROVIDED BY ESOTERIC SOFTWARE LLC "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
- * NO EVENT SHALL ESOTERIC SOFTWARE LLC BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES, BUSINESS
- * INTERRUPTION, OR LOSS OF USE, DATA, OR PROFITS) HOWEVER CAUSED AND ON ANY
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
- * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
- * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * THE SPINE RUNTIMES ARE PROVIDED BY ESOTERIC SOFTWARE LLC "AS IS" AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL ESOTERIC SOFTWARE LLC BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES,
+ * BUSINESS INTERRUPTION, OR LOSS OF USE, DATA, OR PROFITS) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THE
+ * SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
 
 #ifndef Spine_Skeleton_h
@@ -35,212 +35,251 @@
 #include <spine/SpineObject.h>
 #include <spine/SpineString.h>
 #include <spine/Color.h>
-
-#include <limits> // std::numeric_limits
+#include <spine/Physics.h>
 
 namespace spine {
-class SkeletonData;
+	class SkeletonData;
 
-class Bone;
+	class Bone;
 
-class Updatable;
+	class Updatable;
 
-class Slot;
+	class Slot;
 
-class IkConstraint;
+	class IkConstraint;
 
-class PathConstraint;
+	class PathConstraint;
 
-class TransformConstraint;
+    class PhysicsConstraint;
 
-class Skin;
+	class TransformConstraint;
 
-class Attachment;
+	class Skin;
 
-class SP_API Skeleton : public SpineObject {
-	friend class AnimationState;
+	class Attachment;
 
-	friend class SkeletonBounds;
+    class SkeletonClipping;
 
-	friend class SkeletonClipping;
+	class SP_API Skeleton : public SpineObject {
+		friend class AnimationState;
 
-	friend class AttachmentTimeline;
+		friend class SkeletonBounds;
 
-	friend class ColorTimeline;
+		friend class SkeletonClipping;
 
-	friend class DeformTimeline;
+		friend class AttachmentTimeline;
 
-	friend class DrawOrderTimeline;
+		friend class RGBATimeline;
 
-	friend class EventTimeline;
+		friend class RGBTimeline;
 
-	friend class IkConstraintTimeline;
+		friend class AlphaTimeline;
 
-	friend class PathConstraintMixTimeline;
+		friend class RGBA2Timeline;
 
-	friend class PathConstraintPositionTimeline;
+		friend class RGB2Timeline;
 
-	friend class PathConstraintSpacingTimeline;
+		friend class DeformTimeline;
 
-	friend class ScaleTimeline;
+		friend class DrawOrderTimeline;
 
-	friend class ShearTimeline;
+		friend class EventTimeline;
 
-	friend class TransformConstraintTimeline;
+		friend class IkConstraintTimeline;
 
-	friend class TranslateTimeline;
+		friend class PathConstraintMixTimeline;
 
-	friend class TwoColorTimeline;
+		friend class PathConstraintPositionTimeline;
 
-public:
-	explicit Skeleton(SkeletonData *skeletonData);
+		friend class PathConstraintSpacingTimeline;
 
-	~Skeleton();
+		friend class ScaleTimeline;
 
-	/// Caches information about bones and constraints. Must be called if bones, constraints or weighted path attachments are added
-	/// or removed.
-	void updateCache();
+		friend class ScaleXTimeline;
 
-	void printUpdateCache();
+		friend class ScaleYTimeline;
 
-	/// Updates the world transform for each bone and applies constraints.
-	void updateWorldTransform();
+		friend class ShearTimeline;
 
-	/// Sets the bones, constraints, and slots to their setup pose values.
-	void setToSetupPose();
+		friend class ShearXTimeline;
 
-	/// Sets the bones and constraints to their setup pose values.
-	void setBonesToSetupPose();
+		friend class ShearYTimeline;
 
-	void setSlotsToSetupPose();
+		friend class TransformConstraintTimeline;
 
-	/// @return May be NULL.
-	Bone *findBone(const String &boneName);
+		friend class RotateTimeline;
 
-	/// @return -1 if the bone was not found.
-	int findBoneIndex(const String &boneName);
+		friend class TranslateTimeline;
 
-	/// @return May be NULL.
-	Slot *findSlot(const String &slotName);
+		friend class TranslateXTimeline;
 
-	/// @return -1 if the bone was not found.
-	int findSlotIndex(const String &slotName);
+		friend class TranslateYTimeline;
 
-	/// Sets a skin by name (see setSkin).
-	void setSkin(const String &skinName);
+		friend class TwoColorTimeline;
 
-	/// Attachments from the new skin are attached if the corresponding attachment from the old skin was attached.
-	/// If there was no old skin, each slot's setup mode attachment is attached from the new skin.
-	/// After changing the skin, the visible attachments can be reset to those attached in the setup pose by calling
-	/// See Skeleton::setSlotsToSetupPose()
-	/// Also, often AnimationState::apply(Skeleton&) is called before the next time the
-	/// skeleton is rendered to allow any attachment keys in the current animation(s) to hide or show attachments from the new skin.
-	///
-	/// @param newSkin May be NULL.
-	void setSkin(Skin *newSkin);
+	public:
+		explicit Skeleton(SkeletonData *skeletonData);
 
-	/// @return May be NULL.
-	Attachment *getAttachment(const String &slotName, const String &attachmentName);
+		~Skeleton();
 
-	/// @return May be NULL.
-	Attachment *getAttachment(int slotIndex, const String &attachmentName);
+		/// Caches information about bones and constraints. Must be called if bones, constraints or weighted path attachments are added
+		/// or removed.
+		void updateCache();
 
-	/// @param attachmentName May be empty.
-	void setAttachment(const String &slotName, const String &attachmentName);
+		void printUpdateCache();
 
-	/// @return May be NULL.
-	IkConstraint *findIkConstraint(const String &constraintName);
+        /// Updates the world transform for each bone and applies all constraints.
+        ///
+        /// See [World transforms](http://esotericsoftware.com/spine-runtime-skeletons#World-transforms) in the Spine
+        /// Runtimes Guide.
+		void updateWorldTransform(Physics physics);
 
-	/// @return May be NULL.
-	TransformConstraint *findTransformConstraint(const String &constraintName);
+		void updateWorldTransform(Physics physics, Bone *parent);
 
-	/// @return May be NULL.
-	PathConstraint *findPathConstraint(const String &constraintName);
+		/// Sets the bones, constraints, and slots to their setup pose values.
+		void setToSetupPose();
 
-	void update(float delta);
+		/// Sets the bones and constraints to their setup pose values.
+		void setBonesToSetupPose();
 
-	/// Returns the axis aligned bounding box (AABB) of the region and mesh attachments for the current pose.
-	/// @param outX The horizontal distance between the skeleton origin and the left side of the AABB.
-	/// @param outY The vertical distance between the skeleton origin and the bottom side of the AABB.
-	/// @param outWidth The width of the AABB
-	/// @param outHeight The height of the AABB.
-	/// @param outVertexBuffer Reference to hold a Vector of floats. This method will assign it with new floats as needed.
-	void getBounds(float &outX, float &outY, float &outWidth, float &outHeight, Vector<float> &outVertexBuffer);
+		void setSlotsToSetupPose();
 
-	Bone *getRootBone();
+		/// @return May be NULL.
+		Bone *findBone(const String &boneName);
 
-	SkeletonData *getData();
+		/// @return May be NULL.
+		Slot *findSlot(const String &slotName);
 
-	Vector<Bone *> &getBones();
+		/// Sets a skin by name (see setSkin).
+		void setSkin(const String &skinName);
 
-	Vector<Updatable *> &getUpdateCacheList();
+		/// Attachments from the new skin are attached if the corresponding attachment from the old skin was attached.
+		/// If there was no old skin, each slot's setup mode attachment is attached from the new skin.
+		/// After changing the skin, the visible attachments can be reset to those attached in the setup pose by calling
+		/// See Skeleton::setSlotsToSetupPose()
+		/// Also, often AnimationState::apply(Skeleton&) is called before the next time the
+		/// skeleton is rendered to allow any attachment keys in the current animation(s) to hide or show attachments from the new skin.
+		/// @param newSkin May be NULL.
+		void setSkin(Skin *newSkin);
 
-	Vector<Slot *> &getSlots();
+		/// @return May be NULL.
+		Attachment *getAttachment(const String &slotName, const String &attachmentName);
 
-	Vector<Slot *> &getDrawOrder();
+		/// @return May be NULL.
+		Attachment *getAttachment(int slotIndex, const String &attachmentName);
 
-	Vector<IkConstraint *> &getIkConstraints();
+		/// @param attachmentName May be empty.
+		void setAttachment(const String &slotName, const String &attachmentName);
 
-	Vector<PathConstraint *> &getPathConstraints();
+		/// @return May be NULL.
+		IkConstraint *findIkConstraint(const String &constraintName);
 
-	Vector<TransformConstraint *> &getTransformConstraints();
+		/// @return May be NULL.
+		TransformConstraint *findTransformConstraint(const String &constraintName);
 
-	Skin *getSkin();
+		/// @return May be NULL.
+		PathConstraint *findPathConstraint(const String &constraintName);
 
-	Color &getColor();
+        /// @return May be NULL.
+        PhysicsConstraint *findPhysicsConstraint(const String &constraintName);
 
-	float getTime();
+		/// Returns the axis aligned bounding box (AABB) of the region and mesh attachments for the current pose.
+		/// @param outX The horizontal distance between the skeleton origin and the left side of the AABB.
+		/// @param outY The vertical distance between the skeleton origin and the bottom side of the AABB.
+		/// @param outWidth The width of the AABB
+		/// @param outHeight The height of the AABB.
+		/// @param outVertexBuffer Reference to hold a Vector of floats. This method will assign it with new floats as needed.
+		// @param clipping Pointer to a SkeletonClipping instance or NULL. If a clipper is given, clipping attachments will be taken into account.
+        void getBounds(float &outX, float &outY, float &outWidth, float &outHeight, Vector<float> &outVertexBuffer);
+		void getBounds(float &outX, float &outY, float &outWidth, float &outHeight, Vector<float> &outVertexBuffer, SkeletonClipping *clipper);
 
-	void setTime(float inValue);
+		Bone *getRootBone();
 
-	void setPosition(float x, float y);
+		SkeletonData *getData();
 
-	float getX();
+		Vector<Bone *> &getBones();
 
-	void setX(float inValue);
+		Vector<Updatable *> &getUpdateCacheList();
 
-	float getY();
+		Vector<Slot *> &getSlots();
 
-	void setY(float inValue);
+		Vector<Slot *> &getDrawOrder();
 
-	float getScaleX();
+		Vector<IkConstraint *> &getIkConstraints();
 
-	void setScaleX(float inValue);
+		Vector<PathConstraint *> &getPathConstraints();
 
-	float getScaleY();
+		Vector<TransformConstraint *> &getTransformConstraints();
 
-	void setScaleY(float inValue);
+        Vector<PhysicsConstraint *> &getPhysicsConstraints();
 
-private:
-	SkeletonData *_data;
-	Vector<Bone *> _bones;
-	Vector<Slot *> _slots;
-	Vector<Slot *> _drawOrder;
-	Vector<IkConstraint *> _ikConstraints;
-	Vector<TransformConstraint *> _transformConstraints;
-	Vector<PathConstraint *> _pathConstraints;
-	Vector<Updatable *> _updateCache;
-	Vector<Bone *> _updateCacheReset;
-	Skin *_skin;
-	Color _color;
-	float _time;
-	float _scaleX, _scaleY;
-	float _x, _y;
+		Skin *getSkin();
 
-	void sortIkConstraint(IkConstraint *constraint);
+		Color &getColor();
 
-	void sortPathConstraint(PathConstraint *constraint);
+		void setPosition(float x, float y);
 
-	void sortTransformConstraint(TransformConstraint *constraint);
+		float getX();
 
-	void sortPathConstraintAttachment(Skin *skin, size_t slotIndex, Bone &slotBone);
+		void setX(float inValue);
 
-	void sortPathConstraintAttachment(Attachment *attachment, Bone &slotBone);
+		float getY();
 
-	void sortBone(Bone *bone);
+		void setY(float inValue);
 
-	static void sortReset(Vector<Bone *> &bones);
-};
+		float getScaleX();
+
+		void setScaleX(float inValue);
+
+		float getScaleY();
+
+		void setScaleY(float inValue);
+
+        float getTime();
+
+        void setTime(float time);
+
+        void update(float delta);
+
+        /// Rotates the physics constraint so next {@link #update(Physics)} forces are applied as if the bone rotated around the
+	    /// specified point in world space.
+        void physicsTranslate(float x, float y);
+
+        /// Calls {@link PhysicsConstraint#rotate(float, float, float)} for each physics constraint. */
+        void physicsRotate(float x, float y, float degrees);
+
+	private:
+		SkeletonData *_data;
+		Vector<Bone *> _bones;
+		Vector<Slot *> _slots;
+		Vector<Slot *> _drawOrder;
+		Vector<IkConstraint *> _ikConstraints;
+		Vector<TransformConstraint *> _transformConstraints;
+		Vector<PathConstraint *> _pathConstraints;
+        Vector<PhysicsConstraint *> _physicsConstraints;
+		Vector<Updatable *> _updateCache;
+		Skin *_skin;
+		Color _color;
+		float _scaleX, _scaleY;
+		float _x, _y;
+        float _time;
+
+		void sortIkConstraint(IkConstraint *constraint);
+
+		void sortPathConstraint(PathConstraint *constraint);
+
+        void sortPhysicsConstraint(PhysicsConstraint *constraint);
+
+		void sortTransformConstraint(TransformConstraint *constraint);
+
+		void sortPathConstraintAttachment(Skin *skin, size_t slotIndex, Bone &slotBone);
+
+		void sortPathConstraintAttachment(Attachment *attachment, Bone &slotBone);
+
+		void sortBone(Bone *bone);
+
+		static void sortReset(Vector<Bone *> &bones);
+	};
 }
 
 #endif /* Spine_Skeleton_h */
